@@ -1,0 +1,11 @@
+os: linux
+dist: focal
+language: go
+go:
+- 1.15.x
+services:
+- docker
+after_success:
+- docker login ghcr.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+- docker build -t docker.pkg.github.com/tonkat-su/bot/bot:latest .
+- docker push docker.pkg.github.com/tonkat-su/bot/bot:latest
