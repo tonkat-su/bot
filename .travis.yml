@@ -9,3 +9,7 @@ after_success:
 - docker login ghcr.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 - docker build -t docker.pkg.github.com/tonkat-su/bot/bot:latest .
 - docker push docker.pkg.github.com/tonkat-su/bot/bot:latest
+env:
+  global:
+    DOCKER_USERNAME: bsdlp
+    secure: D8/I0SinHBCWaSNbF2EGtRZSHko3B0GpUdeYwpPRMX7aAWeK76n/h3l4wblwi66kMZGrxzBQbrlL6XCF6T88rD2XTDepHj6Kw/2/JdEGt5tspsKBCOB8gDt5pc/2zlhPrntJ4W/iyOH4umu234jnd0ewzAzPr4cO/PVtOS0xfYDa3QfsPrzZ6OZNB2H4GpEo7D3bkLLj/ErA3RAOdpjFNRagBi4Bqao+ZLy7IVRqSwx8hj/duD+qXbGhZkfncnTqHgrRMm5819y37znZEF2wjBlfV8P8yZrt7AsEyGzfxo+NMg9vTYcIm+Zv/xCxjbzzcOkApnEoA1RWP+tJkG6rnSO5Xe4Zvgt/VZ4Z/U0cj2WnjwyV3naxpsEFY/6QVM86uzmWSwMcAx3ap/BJ4UWSWUgsbc6ysyW2qvVMqHW++lmHQA7UHPS1Qw+fOEqeJgCjVhgoW1yerSS6yqqXuKNSfqjGILNDaEwqx2DxUaOGEbtp1UvCcSF6F1Xa9cEPeSaUTbjYh2Xp+cLzoCZITDaP4C0G9CJrNWT5+vPBvxLkAEzVInX7ScxuSsfGffb3frrX92m0g0whL3aeTTEE9SFbVxi/2haVZ35T21iapYJaJkeFP7tVMjXch6/oaHDG12pN+jzVE76B+/lHNNNG3Jxx9uX4lr39gLzM2jKrbdQCSSI=
