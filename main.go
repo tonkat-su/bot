@@ -62,7 +62,7 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 		ctx := context.Background()
 
 		embeds := make([]*discordgo.MessageEmbed, 0, len(cfg.Servers))
-		for i, host := range cfg.Servers {
+		for _, host := range cfg.Servers {
 			hostports, err := resolveMinecraftHostPort(ctx, nil, host)
 			if err != nil {
 				log.Printf("error resolving server host '%s': %s", host, err.Error())
@@ -79,22 +79,31 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 				return
 			}
 
+			embed := &discordgo.MessageEmbed{
+				Title: serverUrl,
+			}
+
 			pong, err := minepong.Ping(conn, serverUrl)
 			if err != nil {
 				log.Printf("error pinging server '%s': %s", serverUrl, err.Error())
-				return
+				embed.Fields = []*discordgo.MessageEmbedField{
+					{
+						Name:  "error",
+						Value: err.Error(),
+					},
+				}
+				embed.Color = 0xf04747
+				embeds = append(embeds, embed)
+				continue
 			}
 
-			embed := &discordgo.MessageEmbed{
-				URL:   fmt.Sprintf("https://map.tonkat.su#%d", i),
-				Title: serverUrl,
-				Fields: []*discordgo.MessageEmbedField{
-					{
-						Name:  "online",
-						Value: fmt.Sprintf("%d/%d", pong.Players.Online, pong.Players.Max),
-					},
+			embed.Fields = []*discordgo.MessageEmbedField{
+				{
+					Name:  "online",
+					Value: fmt.Sprintf("%d/%d", pong.Players.Online, pong.Players.Max),
 				},
 			}
+			embed.Color = 0x43b581
 
 			if description, ok := pong.Description.(map[string]string); ok {
 				embed.Description = description["text"]
