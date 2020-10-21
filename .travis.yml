@@ -5,6 +5,8 @@ go:
 - 1.15.x
 services:
 - docker
+before_script:
+- docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:v1.31.0 golangci-lint run -v
 after_success:
 - docker login ghcr.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 - docker build -t ghcr.io/tonkat-su/bot:latest .
