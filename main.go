@@ -30,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dg.AddHandler(listServers)
+	dg.AddHandler(listServers(cfg))
 
 	err = dg.Open()
 	if err != nil {
