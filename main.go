@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -11,11 +12,16 @@ import (
 	"github.com/andrewtian/minepong"
 	"github.com/bwmarrin/discordgo"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/tonkat-su/bot/imgur"
+	"github.com/vincent-petithory/dataurl"
 )
 
 type Config struct {
-	DiscordToken string   `required:"true"`
-	Servers      []string `default:"mc.sep.gg,mc.hypixel.net" required:"true"`
+	DiscordToken        string   `required:"true"`
+	DiscordWebhookId    string   `required:"true"`
+	DiscordWebhookToken string   `required:"true"`
+	ImgurClientId       string   `required:"true"`
+	Servers             []string `default:"mc.hypixel.net" required:"true"`
 }
 
 func main() {
@@ -25,12 +31,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	imgur := &imgur.Client{
+		ClientId: cfg.ImgurClientId,
+	}
+
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dg.AddHandler(listServers(cfg))
+	dg.AddHandler(listServers(cfg, imgur))
 
 	err = dg.Open()
 	if err != nil {
@@ -43,41 +53,82 @@ func main() {
 	dg.Close()
 }
 
-func listServers(cfg Config) func(s *discordgo.Session, m *discordgo.MessageCreate) {
+func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if m.Author.ID == s.State.User.ID || m.Content != "list servers" {
 			return
 		}
 
-		msg := &discordgo.MessageSend{}
-		msg.Files = make([]*discordgo.File, 0, len(cfg.Servers))
-		for _, host := range cfg.Servers {
-			s, err := resolveMinecraftHostPort(context.Background(), nil, host)
+		ctx := context.Background()
+
+		embeds := make([]*discordgo.MessageEmbed, 0, len(cfg.Servers))
+		for i, host := range cfg.Servers {
+			hostports, err := resolveMinecraftHostPort(ctx, nil, host)
 			if err != nil {
 				log.Printf("error resolving server host '%s': %s", host, err.Error())
+				return
 			}
-			if len(s) == 0 {
+			if len(hostports) == 0 {
 				continue
 			}
+			serverUrl := hostports[0].String()
 
-			conn, err := net.Dial("tcp", s[0].String())
+			conn, err := net.Dial("tcp", serverUrl)
 			if err != nil {
-				log.Printf("error connecting to server '%s': %s", s[0].String(), err.Error())
-			}
-			pong, err := minepong.Ping(conn, s[0].String())
-			if err != nil {
-				log.Printf("error pinging server '%s': %s", s[0].String(), err.Error())
+				log.Printf("error connecting to server '%s': %s", serverUrl, err.Error())
+				return
 			}
 
-			file, err := parseFavIcon(s[0].String(), pong.FavIcon)
+			pong, err := minepong.Ping(conn, serverUrl)
 			if err != nil {
-				log.Printf("error parsing favicon: %s", err.Error())
+				log.Printf("error pinging server '%s': %s", serverUrl, err.Error())
+				return
 			}
-			msg.Files = append(msg.Files, file)
+
+			embed := &discordgo.MessageEmbed{
+				URL:   fmt.Sprintf("https://map.tonkat.su#%d", i),
+				Title: serverUrl,
+				Fields: []*discordgo.MessageEmbedField{
+					{
+						Name:  "online",
+						Value: fmt.Sprintf("%d/%d", pong.Players.Online, pong.Players.Max),
+					},
+				},
+			}
+
+			if description, ok := pong.Description.(map[string]string); ok {
+				embed.Description = description["text"]
+			}
+
+			if pong.FavIcon != "" {
+				favIcon, err := dataurl.DecodeString(pong.FavIcon)
+				if err != nil {
+					log.Printf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
+					return
+				}
+
+				uploadRequest := &imgur.ImageUploadRequest{
+					Image: favIcon.Data,
+					Name:  serverUrl,
+				}
+				img, err := imgurClient.Upload(ctx, uploadRequest)
+				if err != nil {
+					log.Printf("error uploading favicon for server '%s' to imgur: %s", serverUrl, err.Error())
+					return
+				}
+				embed.Image = &discordgo.MessageEmbedImage{
+					URL: img.Link,
+				}
+			}
+			embeds = append(embeds, embed)
 		}
-		_, err := s.ChannelMessageSendComplex(m.ChannelID, msg)
+
+		webhookParams := &discordgo.WebhookParams{
+			Embeds: embeds,
+		}
+		_, err := s.WebhookExecute(cfg.DiscordWebhookId, cfg.DiscordWebhookToken, false, webhookParams)
 		if err != nil {
-			log.Printf("error responding to list servers: %s", err.Error())
+			log.Printf("failed to execute webhook: %s", err.Error())
 		}
 	}
 }
