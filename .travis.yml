@@ -7,8 +7,8 @@ services:
 - docker
 after_success:
 - docker login ghcr.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-- docker build -t docker.pkg.github.com/tonkat-su/bot/bot:latest .
-- docker push docker.pkg.github.com/tonkat-su/bot/bot:latest
+- docker build -t gchr.io/tonkat-su/bot:latest .
+- docker push gchr.io/tonkat-su/bot:latest
 env:
   global:
     - DOCKER_USERNAME: bsdlp
