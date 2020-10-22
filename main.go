@@ -21,7 +21,7 @@ type Config struct {
 	DiscordWebhookId    string            `required:"true"`
 	DiscordWebhookToken string            `required:"true"`
 	ImgurClientId       string            `required:"true"`
-	Servers             map[string]string `default:"hypixel;mc.hypixel.net,pumpcraft;mc.sep.gg" required:"true" kv_delimiter:";"`
+	Servers             map[string]string `required:"true"`
 }
 
 func main() {
