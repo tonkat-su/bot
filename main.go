@@ -10,8 +10,8 @@ import (
 	"syscall"
 
 	"github.com/andrewtian/minepong"
+	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/tonkat-su/bot/imgur"
 	"github.com/vincent-petithory/dataurl"
 )
