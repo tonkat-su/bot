@@ -17,11 +17,11 @@ import (
 )
 
 type Config struct {
-	DiscordToken        string   `required:"true"`
-	DiscordWebhookId    string   `required:"true"`
-	DiscordWebhookToken string   `required:"true"`
-	ImgurClientId       string   `required:"true"`
-	Servers             []string `default:"mc.hypixel.net" required:"true"`
+	DiscordToken        string            `required:"true"`
+	DiscordWebhookId    string            `required:"true"`
+	DiscordWebhookToken string            `required:"true"`
+	ImgurClientId       string            `required:"true"`
+	Servers             map[string]string `default:"hypixel;mc.hypixel.net,pumpcraft;mc.sep.gg" required:"true" kv_delimiter:";"`
 }
 
 func main() {
@@ -62,7 +62,7 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 		ctx := context.Background()
 
 		embeds := make([]*discordgo.MessageEmbed, 0, len(cfg.Servers))
-		for _, host := range cfg.Servers {
+		for serverName, host := range cfg.Servers {
 			hostports, err := resolveMinecraftHostPort(ctx, nil, host)
 			if err != nil {
 				log.Printf("error resolving server host '%s': %s", host, err.Error())
@@ -80,7 +80,7 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 			}
 
 			embed := &discordgo.MessageEmbed{
-				Title: serverUrl,
+				Title: serverName,
 			}
 
 			pong, err := minepong.Ping(conn, serverUrl)
@@ -98,6 +98,10 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 			}
 
 			embed.Fields = []*discordgo.MessageEmbedField{
+				{
+					Name:  "host",
+					Value: host,
+				},
 				{
 					Name:  "online",
 					Value: fmt.Sprintf("%d/%d", pong.Players.Online, pong.Players.Max),
