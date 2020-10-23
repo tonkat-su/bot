@@ -8,6 +8,8 @@ import (
 	"path"
 )
 
+var ErrAvatarServiceDown = errors.New("crafatar.com is down")
+
 func GetFace(uuid string) ([]byte, error) {
 	if uuid == "" {
 		return nil, errors.New("uuid is required")
@@ -30,5 +32,8 @@ func GetFace(uuid string) ([]byte, error) {
 		return nil, err
 	}
 	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, ErrAvatarServiceDown
+	}
 	return ioutil.ReadAll(response.Body)
 }
