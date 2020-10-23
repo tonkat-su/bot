@@ -17,11 +17,12 @@ import (
 )
 
 type Config struct {
-	DiscordToken        string            `required:"true"`
-	DiscordWebhookId    string            `required:"true"`
-	DiscordWebhookToken string            `required:"true"`
-	ImgurClientId       string            `required:"true"`
-	Servers             map[string]string `required:"true"`
+	DiscordToken        string `required:"true"`
+	DiscordWebhookId    string `required:"true"`
+	DiscordWebhookToken string `required:"true"`
+	ImgurClientId       string `required:"true"`
+	ServerName          string `required:"true"`
+	ServerHost          string `required:"true"`
 }
 
 func main() {
@@ -61,7 +62,7 @@ func anyGamers(cfg Config) func(s *discordgo.Session, m *discordgo.MessageCreate
 			return
 		}
 
-		embed, err := prepareEmbedWithServerStatus(cfg, nil, "pumpcraft", "mc.sep.gg")
+		embed, err := prepareEmbedWithServerStatus(cfg, nil, cfg.ServerName, cfg.ServerHost)
 		if err != nil {
 			log.Printf("error preparing embed: %s", err.Error())
 			return
