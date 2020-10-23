@@ -31,16 +31,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	imgur := &imgur.Client{
-		ClientId: cfg.ImgurClientId,
-	}
+	/*
+		imgur := &imgur.Client{
+			ClientId: cfg.ImgurClientId,
+		}
+	*/
 
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dg.AddHandler(listServers(cfg, imgur))
 	dg.AddHandler(anyGamers(cfg))
 
 	err = dg.Open()
@@ -150,6 +151,7 @@ func prepareEmbedWithServerStatus(cfg Config, imgurClient *imgur.Client, serverN
 	return embed, nil
 }
 
+/*
 func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if m.Author.ID == s.State.User.ID || m.Content != "list servers" {
@@ -175,3 +177,4 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 		}
 	}
 }
+*/
