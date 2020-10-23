@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
-	"github.com/andrewtian/minepong"
+	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/imgur"
@@ -71,19 +72,13 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 			if len(hostports) == 0 {
 				continue
 			}
-			serverUrl := hostports[0].String()
-
-			conn, err := net.Dial("tcp", serverUrl)
-			if err != nil {
-				log.Printf("error connecting to server '%s': %s", serverUrl, err.Error())
-				return
-			}
 
 			embed := &discordgo.MessageEmbed{
 				Title: serverName,
 			}
 
-			pong, err := minepong.Ping(conn, serverUrl)
+			serverUrl := hostports[0].String()
+			pong, err := mcpinger.New(hostports[0].Host, hostports[0].Port).Ping()
 			if err != nil {
 				log.Printf("error pinging server '%s': %s", serverUrl, err.Error())
 				embed.Fields = []*discordgo.MessageEmbedField{
@@ -100,21 +95,28 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 			embed.Fields = []*discordgo.MessageEmbedField{
 				{
 					Name:  "host",
-					Value: host,
-				},
-				{
-					Name:  "online",
-					Value: fmt.Sprintf("%d/%d", pong.Players.Online, pong.Players.Max),
+					Value: serverUrl,
 				},
 			}
+
+			sample := make([]string, len(pong.Players.Sample))
+			for i, player := range pong.Players.Sample {
+				sample[i] = player.Name
+			}
+			playersEmbedField := &discordgo.MessageEmbedField{
+				Name: fmt.Sprintf("online (%d/%d)", pong.Players.Online, pong.Players.Max),
+			}
+			if len(sample) == 0 {
+				playersEmbedField.Value = ":("
+			} else {
+				playersEmbedField.Value = strings.Join(sample, ", ")
+			}
+			embed.Fields = append(embed.Fields, playersEmbedField)
 			embed.Color = 0x43b581
 
-			if description, ok := pong.Description.(map[string]string); ok {
-				embed.Description = description["text"]
-			}
-
-			if pong.FavIcon != "" {
-				favIcon, err := dataurl.DecodeString(pong.FavIcon)
+			embed.Description = pong.Description.Text
+			if pong.Favicon != "" {
+				favIcon, err := dataurl.DecodeString(pong.Favicon)
 				if err != nil {
 					log.Printf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
 					return
@@ -136,10 +138,16 @@ func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Sessio
 			embeds = append(embeds, embed)
 		}
 
+		bs, err := json.Marshal(embeds)
+		if err != nil {
+			log.Println("error marshalling" + err.Error())
+		}
+		log.Println(string(bs))
+
 		webhookParams := &discordgo.WebhookParams{
 			Embeds: embeds,
 		}
-		_, err := s.WebhookExecute(cfg.DiscordWebhookId, cfg.DiscordWebhookToken, false, webhookParams)
+		_, err = s.WebhookExecute(cfg.DiscordWebhookId, cfg.DiscordWebhookToken, false, webhookParams)
 		if err != nil {
 			log.Printf("failed to execute webhook: %s", err.Error())
 		}

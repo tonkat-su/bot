@@ -9,11 +9,11 @@ import (
 // Server is host port
 type Server struct {
 	Host string
-	Port string
+	Port uint16
 }
 
-func (svc *Server) String() string {
-	return net.JoinHostPort(svc.Host, svc.Port)
+func (srv *Server) String() string {
+	return net.JoinHostPort(srv.Host, strconv.FormatUint(uint64(srv.Port), 10))
 }
 
 func resolveMinecraftHostPort(ctx context.Context, resolver *net.Resolver, server string) (servers []Server, err error) {
@@ -30,7 +30,7 @@ func resolveMinecraftHostPort(ctx context.Context, resolver *net.Resolver, serve
 					}
 					return nil, err
 				}
-				return []Server{{Host: server, Port: "25565"}}, nil
+				return []Server{{Host: server, Port: 25565}}, nil
 			}
 		}
 		return nil, err
@@ -40,7 +40,7 @@ func resolveMinecraftHostPort(ctx context.Context, resolver *net.Resolver, serve
 	for i := range servers {
 		servers[i] = Server{
 			Host: addrs[i].Target,
-			Port: strconv.FormatUint(uint64(addrs[i].Port), 10),
+			Port: addrs[i].Port,
 		}
 	}
 	return servers, nil

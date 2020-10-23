@@ -1,6 +1,8 @@
-# github.com/andrewtian/minepong v0.0.0-20150110094556-14bdfa2199b7
+# github.com/Raqbit/mc-pinger v0.0.0-20191220212142-2843d3222bd5
 ## explicit
-github.com/andrewtian/minepong
+github.com/Raqbit/mc-pinger
+github.com/Raqbit/mc-pinger/encoding
+github.com/Raqbit/mc-pinger/packet
 # github.com/bsdlp/envconfig v1.5.0
 ## explicit
 github.com/bsdlp/envconfig
