@@ -10,15 +10,16 @@ import (
 )
 
 type Player struct {
-	Name string
-	Uuid string
+	Name    string
+	Uuid    string
+	emojiID string
 }
 
 func (p *Player) EmojiName() string {
 	return strings.ToLower(p.Name) + "Face"
 }
 
-func filterPlayersThatNeedEmoji(input []*discordgo.Emoji, players []Player) []Player {
+func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Player) error) error {
 	e := make(map[string]*discordgo.Emoji)
 	for _, emoji := range input {
 		if strings.HasSuffix(emoji.Name, "Face") {
@@ -26,59 +27,48 @@ func filterPlayersThatNeedEmoji(input []*discordgo.Emoji, players []Player) []Pl
 		}
 	}
 
-	var index int
 	for _, player := range players {
-		if _, ok := e[player.EmojiName()]; !ok {
-			players[index] = player
-			index++
-		}
-	}
-
-	return players[:index]
-}
-
-type playerEmoji struct {
-	code  string
-	image string
-}
-
-func fetchAvatarsAndPrepareEmoji(players []Player) ([]playerEmoji, error) {
-	emoji := make([]playerEmoji, len(players))
-	for i, player := range players {
-		face, err := mcuser.GetFace(player.Uuid)
-		if err != nil {
-			return nil, fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
-		}
-		emoji[i] = playerEmoji{
-			code:  player.EmojiName(),
-			image: dataurl.New(face, "image/png").String(),
-		}
-	}
-	return emoji, nil
-}
-
-func syncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, players []Player) error {
-	guild, err := session.Guild(guildId)
-	if err != nil {
-		return err
-	}
-	emoji, err := fetchAvatarsAndPrepareEmoji(filterPlayersThatNeedEmoji(guild.Emojis, players))
-	if err != nil {
-		return err
-	}
-	for _, e := range emoji {
-		_, err = session.GuildEmojiCreate(guildId, e.code, e.image, nil)
-		if err != nil {
-			return fmt.Errorf("error uploading emoji '%s': %s", e.code, err.Error())
+		emoji, ok := e[player.EmojiName()]
+		if ok {
+			player.emojiID = emoji.ID
+		} else {
+			err := fill(player)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func playerListEmojis(players []Player) string {
+func fillEmoji(session *discordgo.Session, guildId string) func(*Player) error {
+	return func(player *Player) error {
+		face, err := mcuser.GetFace(player.Uuid)
+		if err != nil {
+			return fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
+		}
+		emoji, err := session.GuildEmojiCreate(guildId, player.EmojiName(), dataurl.New(face, "image/png").String(), nil)
+		if err != nil {
+			return fmt.Errorf("error uploading emoji '%s': %s", player.EmojiName(), err.Error())
+		}
+		player.emojiID = emoji.ID
+		return nil
+	}
+}
+
+func syncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, players []*Player) error {
+	guild, err := session.Guild(guildId)
+	if err != nil {
+		return err
+	}
+
+	return fillPlayerEmojis(guild.Emojis, players, fillEmoji(session, guildId))
+}
+
+func playerListEmojis(players []*Player) string {
 	emojis := make([]string, len(players))
 	for i, p := range players {
-		emojis[i] = ":" + p.EmojiName() + ":"
+		emojis[i] = "<:" + p.EmojiName() + ":" + p.emojiID + ">"
 	}
 	return strings.Join(emojis, " ")
 }
