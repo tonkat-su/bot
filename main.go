@@ -27,12 +27,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	/*
-		imgur := &imgur.Client{
-			ClientId: cfg.ImgurClientId,
-		}
-	*/
-
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
 	if err != nil {
 		log.Fatal(err)

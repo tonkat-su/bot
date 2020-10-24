@@ -113,31 +113,3 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 
 	return nil
 }
-
-/*
-func listServers(cfg Config, imgurClient *imgur.Client) func(s *discordgo.Session, m *discordgo.MessageCreate) {
-	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID || m.Content != "list servers" {
-			return
-		}
-
-		embeds := make([]*discordgo.MessageEmbed, 0, len(cfg.Servers))
-		for serverName, host := range cfg.Servers {
-			embed, err := prepareEmbedWithServerStatus(cfg, imgurClient, serverName, host)
-			if err != nil {
-				log.Printf("error preparing embed for server '%s': %s", serverName, err.Error())
-				return
-			}
-			embeds = append(embeds, embed)
-		}
-
-		webhookParams := &discordgo.WebhookParams{
-			Embeds: embeds,
-		}
-		_, err := s.WebhookExecute(cfg.DiscordWebhookId, cfg.DiscordWebhookToken, false, webhookParams)
-		if err != nil {
-			log.Printf("failed to execute webhook: %s", err.Error())
-		}
-	}
-}
-*/
