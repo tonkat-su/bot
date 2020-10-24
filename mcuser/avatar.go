@@ -1,4 +1,4 @@
-package mcavatar
+package mcuser
 
 import (
 	"errors"

@@ -23,6 +23,7 @@ type Config struct {
 	ImgurClientId       string `required:"true"`
 	ServerName          string `required:"true"`
 	ServerHost          string `required:"true"`
+	GuildId             string `required:"true"`
 }
 
 func main() {
@@ -62,16 +63,7 @@ func anyGamers(cfg Config) func(s *discordgo.Session, m *discordgo.MessageCreate
 			return
 		}
 
-		embed, err := prepareEmbedWithServerStatus(cfg, nil, cfg.ServerName, cfg.ServerHost)
-		if err != nil {
-			log.Printf("error preparing embed: %s", err.Error())
-			return
-		}
-
-		_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-			Content: "gamers?",
-			Embed:   embed,
-		})
+		err := sendServerStatus(s, m, cfg, nil)
 		if err != nil {
 			log.Printf("error sending message: %s", err.Error())
 			return
@@ -79,18 +71,18 @@ func anyGamers(cfg Config) func(s *discordgo.Session, m *discordgo.MessageCreate
 	}
 }
 
-func prepareEmbedWithServerStatus(cfg Config, imgurClient *imgur.Client, serverName, host string) (*discordgo.MessageEmbed, error) {
+func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Config, imgurClient *imgur.Client) error {
 	ctx := context.Background()
-	hostports, err := resolveMinecraftHostPort(ctx, nil, host)
+	hostports, err := resolveMinecraftHostPort(ctx, nil, cfg.ServerHost)
 	if err != nil {
-		return nil, fmt.Errorf("error resolving server host '%s': %s", host, err.Error())
+		return fmt.Errorf("error resolving server host '%s': %s", cfg.ServerHost, err.Error())
 	}
 	if len(hostports) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	embed := &discordgo.MessageEmbed{
-		Title: serverName,
+		Title: cfg.ServerName,
 	}
 
 	serverUrl := hostports[0].String()
@@ -104,7 +96,14 @@ func prepareEmbedWithServerStatus(cfg Config, imgurClient *imgur.Client, serverN
 			},
 		}
 		embed.Color = 0xf04747
-		return embed, nil
+		_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+			Content: "gamers?",
+			Embed:   embed,
+		})
+		if err != nil {
+			log.Printf("error sending message: %s", err.Error())
+		}
+		return nil
 	}
 
 	embed.Fields = []*discordgo.MessageEmbedField{
@@ -114,17 +113,25 @@ func prepareEmbedWithServerStatus(cfg Config, imgurClient *imgur.Client, serverN
 		},
 	}
 
-	sample := make([]string, len(pong.Players.Sample))
-	for i, player := range pong.Players.Sample {
-		sample[i] = player.Name
+	players := make([]Player, len(pong.Players.Sample))
+	for i, p := range pong.Players.Sample {
+		players[i] = Player{
+			Name: p.Name,
+			Uuid: p.ID,
+		}
 	}
+	err = syncMinecraftAvatarsToEmoji(s, m.GuildID, players)
+	if err != nil {
+		log.Printf("error syncing emoji: %s", err.Error())
+	}
+
 	playersEmbedField := &discordgo.MessageEmbedField{
 		Name: fmt.Sprintf("online (%d/%d)", pong.Players.Online, pong.Players.Max),
 	}
-	if len(sample) == 0 {
+	if len(players) == 0 {
 		playersEmbedField.Value = ":("
 	} else {
-		playersEmbedField.Value = strings.Join(sample, ", ")
+		playersEmbedField.Value = playerListEmojis(players)
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
 	embed.Color = 0x43b581
@@ -134,7 +141,7 @@ func prepareEmbedWithServerStatus(cfg Config, imgurClient *imgur.Client, serverN
 	if pong.Favicon != "" && imgurClient != nil {
 		favIcon, err := dataurl.DecodeString(pong.Favicon)
 		if err != nil {
-			return nil, fmt.Errorf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
+			return fmt.Errorf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
 		}
 
 		uploadRequest := &imgur.ImageUploadRequest{
@@ -143,13 +150,13 @@ func prepareEmbedWithServerStatus(cfg Config, imgurClient *imgur.Client, serverN
 		}
 		img, err := imgurClient.Upload(ctx, uploadRequest)
 		if err != nil {
-			return nil, fmt.Errorf("error uploading favicon for server '%s' to imgur: %s", serverUrl, err.Error())
+			return fmt.Errorf("error uploading favicon for server '%s' to imgur: %s", serverUrl, err.Error())
 		}
 		embed.Image = &discordgo.MessageEmbedImage{
 			URL: img.Link,
 		}
 	}
-	return embed, nil
+	return nil
 }
 
 /*
