@@ -13,6 +13,7 @@ import (
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/imgur"
+	"github.com/tonkat-su/bot/mcuser"
 	"github.com/vincent-petithory/dataurl"
 )
 
@@ -115,9 +116,14 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 
 	players := make([]Player, len(pong.Players.Sample))
 	for i, p := range pong.Players.Sample {
+		uuid, err := mcuser.GetUuid(p.Name)
+		if err != nil {
+			uuid = p.ID
+			log.Printf("error getting uuid for user %s: %s", p.Name, err.Error())
+		}
 		players[i] = Player{
 			Name: p.Name,
-			Uuid: p.ID,
+			Uuid: uuid,
 		}
 	}
 	playersEmbedField := &discordgo.MessageEmbedField{
