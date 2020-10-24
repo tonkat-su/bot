@@ -120,17 +120,17 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 			Uuid: p.ID,
 		}
 	}
-	err = syncMinecraftAvatarsToEmoji(s, m.GuildID, players)
-	if err != nil {
-		log.Printf("error syncing emoji: %s", err.Error())
-	}
-
 	playersEmbedField := &discordgo.MessageEmbedField{
 		Name: fmt.Sprintf("online (%d/%d)", pong.Players.Online, pong.Players.Max),
 	}
 	if len(players) == 0 {
 		playersEmbedField.Value = ":("
 	} else {
+		err = syncMinecraftAvatarsToEmoji(s, m.GuildID, players)
+		if err != nil {
+			log.Printf("error syncing emoji: %s", err.Error())
+		}
+
 		playersEmbedField.Value = playerListEmojis(players)
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
@@ -156,6 +156,15 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 			URL: img.Link,
 		}
 	}
+
+	_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+		Content: "gamers?",
+		Embed:   embed,
+	})
+	if err != nil {
+		log.Printf("error sending message: %s", err.Error())
+	}
+
 	return nil
 }
 

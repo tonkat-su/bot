@@ -1,12 +1,12 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/mcuser"
+	"github.com/vincent-petithory/dataurl"
 )
 
 type Player struct {
@@ -51,7 +51,7 @@ func fetchAvatarsAndPrepareEmoji(players []Player) ([]playerEmoji, error) {
 		}
 		emoji[i] = playerEmoji{
 			code:  player.EmojiName(),
-			image: base64.StdEncoding.EncodeToString(face),
+			image: dataurl.New(face, "image/png").String(),
 		}
 	}
 	return emoji, nil

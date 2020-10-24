@@ -23,7 +23,7 @@ func GetFace(uuid string) ([]byte, error) {
 	u := &url.URL{
 		Scheme:   "https",
 		Host:     "crafatar.com",
-		Path:     path.Join("avatar", uuid),
+		Path:     path.Join("avatars", uuid),
 		RawQuery: query.Encode(),
 	}
 
