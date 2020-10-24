@@ -19,6 +19,10 @@ func (p *Player) EmojiName() string {
 	return strings.ToLower(p.Name) + "Face"
 }
 
+func (p *Player) EmojiTextCode() string {
+	return "<:" + p.EmojiName() + ":" + p.emojiID + ">"
+}
+
 func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Player) error) error {
 	e := make(map[string]*discordgo.Emoji)
 	for _, emoji := range input {
@@ -68,7 +72,7 @@ func syncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, pla
 func playerListEmojis(players []*Player) string {
 	emojis := make([]string, len(players))
 	for i, p := range players {
-		emojis[i] = "<:" + p.EmojiName() + ":" + p.emojiID + ">"
+		emojis[i] = p.EmojiTextCode()
 	}
 	return strings.Join(emojis, " ")
 }
