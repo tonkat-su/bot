@@ -37,6 +37,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	dg.ShouldReconnectOnError = true
+	dg.StateEnabled = true
+	dg.Identify.Compress = true
 
 	dg.AddHandler(anyGamers(cfg))
 
