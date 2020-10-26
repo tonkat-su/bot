@@ -19,7 +19,7 @@ jobs:
                 name: lint
                 uses: actions-contrib/golangci-lint@v1
                 with:
-                    golangci_lint_version: latest-alpine
+                    golangci_lint_version: latest
             -
                 name: setup qemu
                 uses: docker/setup-qemu-action@v1
