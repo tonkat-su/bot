@@ -34,5 +34,3 @@ jobs:
                 with:
                     push: true
                     tags: ghcr.io/${{ github.repository }}:latest
-                    labels: |
-                        org.opencontainers.image.source=${{ fromJson(steps.repo.outputs.result).clone_url }}
