@@ -13,13 +13,10 @@ import (
 )
 
 type Config struct {
-	DiscordToken        string `required:"true"`
-	DiscordWebhookId    string `required:"true"`
-	DiscordWebhookToken string `required:"true"`
-	ImgurClientId       string
-	ServerName          string `required:"true"`
-	ServerHost          string `required:"true"`
-	GuildId             string `required:"true"`
+	DiscordToken string `required:"true"`
+	ServerName   string `required:"true"`
+	ServerHost   string `required:"true"`
+	GuildId      string `required:"true"`
 }
 
 func main() {
