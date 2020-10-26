@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
@@ -41,6 +43,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	presenceTicker := time.NewTicker(5 * time.Minute)
+	go func(presenceTicker *time.Ticker) {
+		for {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			err := updatePresence(ctx, dg, cfg)
+			if err != nil {
+				log.Printf("failed to update presence: %s", err.Error())
+			}
+			cancel()
+			<-presenceTicker.C
+		}
+	}(presenceTicker)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
