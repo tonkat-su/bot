@@ -66,18 +66,23 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 			Uuid: uuid,
 		}
 	}
-	playersEmbedField := &discordgo.MessageEmbedField{
-		Name: fmt.Sprintf("online (%d/%d)", pong.Players.Online, pong.Players.Max),
-	}
+
+	var playersEmbedField *discordgo.MessageEmbedField
 	if len(players) == 0 {
-		playersEmbedField.Value = ":("
+		playersEmbedField = &discordgo.MessageEmbedField{
+			Name:  "nobody's online :(",
+			Value: "be the change u wanna see in the world",
+		}
 	} else {
 		err = syncMinecraftAvatarsToEmoji(s, m.GuildID, players)
 		if err != nil {
 			log.Printf("error syncing emoji: %s", err.Error())
 		}
 
-		playersEmbedField.Value = playerListEmojis(players)
+		playersEmbedField = &discordgo.MessageEmbedField{
+			Name:  fmt.Sprintf("online (%d/%d)", pong.Players.Online, pong.Players.Max),
+			Value: playerListEmojis(players),
+		}
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
 	embed.Color = 0x43b581
