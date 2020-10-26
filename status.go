@@ -14,16 +14,16 @@ import (
 
 func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Config, imgurClient *imgur.Client) error {
 	ctx := context.Background()
-	hostports, err := resolveMinecraftHostPort(ctx, nil, cfg.ServerHost)
+	hostports, err := resolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
 	if err != nil {
-		return fmt.Errorf("error resolving server host '%s': %s", cfg.ServerHost, err.Error())
+		return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
 	}
 	if len(hostports) == 0 {
 		return nil
 	}
 
 	embed := &discordgo.MessageEmbed{
-		Title: cfg.ServerName,
+		Title: cfg.MinecraftServerName,
 	}
 
 	serverUrl := hostports[0].String()

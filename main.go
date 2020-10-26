@@ -13,10 +13,10 @@ import (
 )
 
 type Config struct {
-	DiscordToken string `required:"true"`
-	ServerName   string `required:"true"`
-	ServerHost   string `required:"true"`
-	GuildId      string `required:"true"`
+	DiscordToken        string `required:"true" split_words:"true"`
+	MinecraftServerName string `required:"true" split_words:"true"`
+	MinecraftServerHost string `required:"true" split_words:"true"`
+	GuildId             string `required:"true" split_words:"true"`
 }
 
 func main() {

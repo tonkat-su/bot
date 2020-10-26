@@ -10,12 +10,12 @@ import (
 )
 
 func updatePresence(ctx context.Context, s *discordgo.Session, cfg Config) error {
-	hostports, err := resolveMinecraftHostPort(ctx, nil, cfg.ServerHost)
+	hostports, err := resolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
 	if err != nil {
-		return fmt.Errorf("error resolving server host '%s': %s", cfg.ServerHost, err.Error())
+		return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
 	}
 	if len(hostports) == 0 {
-		log.Printf("no records for %s", cfg.ServerHost)
+		log.Printf("no records for %s", cfg.MinecraftServerHost)
 		return nil
 	}
 
