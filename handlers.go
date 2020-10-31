@@ -9,7 +9,7 @@ import (
 
 func anyGamers(cfg Config) func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, "any gamers") {
+		if m.Author.ID == s.State.User.ID || !(strings.HasPrefix(m.Content, "any gamers") || strings.HasPrefix(m.Content, "Any gamers")) {
 			return
 		}
 
