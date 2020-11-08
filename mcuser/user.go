@@ -26,27 +26,42 @@ type playerDBResponse struct {
 	Success bool `json:"success"`
 }
 
-func GetUuid(name string) (string, error) {
+func queryPlayerDb(identifier string) (response *playerDBResponse, err error) {
 	u := &url.URL{
 		Scheme: "https",
 		Host:   "playerdb.co",
-		Path:   path.Join("api", "player", "minecraft", name),
+		Path:   path.Join("api", "player", "minecraft", identifier),
 	}
 	resp, err := http.Get(u.String())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	var data playerDBResponse
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if data.Code != "player.found" || data.Data.Player.RawID == "" {
-		return "", nil
+		return nil, nil
 	}
+	return &data, nil
+}
 
+func GetUuid(name string) (string, error) {
+	data, err := queryPlayerDb(name)
+	if err != nil {
+		return "", err
+	}
 	return data.Data.Player.RawID, nil
+}
+
+func GetUsername(id string) (string, error) {
+	data, err := queryPlayerDb(id)
+	if err != nil {
+		return "", err
+	}
+	return data.Data.Player.Username, nil
 }
