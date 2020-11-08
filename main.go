@@ -45,6 +45,7 @@ func main() {
 	dg.AddHandler(anyGamers(cfg))
 	dg.AddHandler(registerMinecraftGamer(usersService))
 	dg.AddHandler(echo)
+	dg.AddHandler(lookupUser(usersService))
 
 	err = dg.Open()
 	if err != nil {

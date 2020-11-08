@@ -65,3 +65,63 @@ func (svc *Service) Register(ctx context.Context, input *RegisterInput) error {
 
 	return svc.Redis.MSet(ctx, input.redisInput()).Err()
 }
+
+type LookupInput struct {
+	Id string
+}
+
+type LookupOutput struct {
+	MinecraftUserId   string
+	MinecraftUsername string
+	DiscordUserId     string
+}
+
+func (svc *Service) LookupByDiscordId(ctx context.Context, input *LookupInput) (*LookupOutput, error) {
+	if input == nil {
+		return nil, errors.New("input must not be nil")
+	}
+	result, err := svc.Redis.Get(ctx, input.Id).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	output := &LookupOutput{
+		DiscordUserId:   input.Id,
+		MinecraftUserId: result,
+	}
+
+	username, err := mcuser.GetUsername(result)
+	if err != nil {
+		return output, nil
+	}
+	output.MinecraftUsername = username
+	return output, nil
+}
+
+func (svc *Service) LookupByMinecraftUsername(ctx context.Context, input *LookupInput) (*LookupOutput, error) {
+	if input == nil {
+		return nil, errors.New("input must not be nil")
+	}
+
+	minecraftUserId, err := mcuser.GetUuid(input.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := svc.Redis.Get(ctx, minecraftUserId).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &LookupOutput{
+		DiscordUserId:     result,
+		MinecraftUserId:   minecraftUserId,
+		MinecraftUsername: input.Id,
+	}, nil
+}

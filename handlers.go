@@ -108,6 +108,94 @@ func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 	}
 }
 
+func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) {
+			return
+		}
+
+		const helptext = "lookup <@discordUser or minecraftUsername>"
+		args := strings.Split(m.Content, " ")
+		if len(args) < 2 {
+			return
+		}
+		if args[1] == "lookup" && (len(args) == 2 || len(args) > 3) {
+			if sendErr := reply(s, m, helptext); sendErr != nil {
+				log.Printf("error sending reply: %s", sendErr)
+			}
+			return
+		}
+
+		var storedUserInfo *users.LookupOutput
+		if len(m.Mentions) == 2 {
+			var targetDiscordUser *discordgo.User
+			for _, v := range m.Mentions {
+				if v.ID == s.State.User.ID {
+					continue
+				}
+				targetDiscordUser = v
+			}
+			var err error
+			storedUserInfo, err = usersService.LookupByDiscordId(context.TODO(), &users.LookupInput{Id: targetDiscordUser.ID})
+			if err != nil {
+				log.Printf("error looking up user: %s", err)
+				if sendErr := reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
+					log.Printf("error sending reply: %s", sendErr)
+				}
+				return
+			}
+		} else {
+			var err error
+			storedUserInfo, err = usersService.LookupByMinecraftUsername(context.TODO(), &users.LookupInput{Id: args[2]})
+			if err != nil {
+				log.Printf("error looking up user: %s", err)
+				if sendErr := reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
+					log.Printf("error sending reply: %s", sendErr)
+				}
+				return
+			}
+		}
+
+		if storedUserInfo == nil {
+			if sendErr := reply(s, m, "user not found"); sendErr != nil {
+				log.Printf("error sending reply: %s", sendErr)
+			}
+			return
+		}
+
+		discordUser, err := s.User(storedUserInfo.DiscordUserId)
+		if err != nil {
+			log.Printf("error looking up discord username by id: %s", err)
+			if sendErr := reply(s, m, "error looking up discord username"); sendErr != nil {
+				log.Printf("error sending reply: %s", sendErr)
+			}
+			return
+		}
+
+		msg := &discordgo.MessageEmbed{
+			Title: "user registration result",
+			Color: 0x43b581,
+			Fields: []*discordgo.MessageEmbedField{
+				{
+					Name:  "discord user",
+					Value: discordUser.Username,
+				},
+				{
+					Name:  "minecraft name",
+					Value: storedUserInfo.MinecraftUsername,
+				},
+				{
+					Name:  "minecraft id",
+					Value: storedUserInfo.MinecraftUserId,
+				},
+			},
+		}
+		if _, sendErr := s.ChannelMessageSendEmbed(m.ChannelID, msg); sendErr != nil {
+			log.Printf("error sending reply: %s", sendErr)
+		}
+	}
+}
+
 func echo(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) || !strings.Contains(m.Content, "echo") {
 		return
