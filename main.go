@@ -10,6 +10,7 @@ import (
 
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
+	"github.com/tonkat-su/bot/users"
 )
 
 type Config struct {
@@ -17,6 +18,8 @@ type Config struct {
 	MinecraftServerName string `required:"true" split_words:"true"`
 	MinecraftServerHost string `required:"true" split_words:"true"`
 	GuildId             string `required:"true" split_words:"true"`
+
+	UsersServiceRedisUrl string `required:"true" split_words:"true"`
 }
 
 func main() {
@@ -24,6 +27,11 @@ func main() {
 	err := envconfig.Process("", &cfg)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	usersService, err := users.New(context.TODO(), cfg.UsersServiceRedisUrl)
+	if err != nil {
+		log.Fatalf("error setting up users service: %s", err)
 	}
 
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
@@ -35,6 +43,8 @@ func main() {
 	dg.Identify.Compress = true
 
 	dg.AddHandler(anyGamers(cfg))
+	dg.AddHandler(registerMinecraftGamer(usersService))
+	dg.AddHandler(echo)
 
 	err = dg.Open()
 	if err != nil {
