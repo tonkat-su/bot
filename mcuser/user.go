@@ -55,7 +55,7 @@ func GetUuid(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return data.Data.Player.RawID, nil
+	return data.Data.Player.ID, nil
 }
 
 func GetUsername(id string) (string, error) {
