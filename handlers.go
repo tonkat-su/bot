@@ -114,12 +114,16 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 			return
 		}
 
-		const helptext = "lookup <@discordUser or minecraftUsername>"
 		args := strings.Split(m.Content, " ")
 		if len(args) < 2 {
 			return
 		}
-		if args[1] == "lookup" && (len(args) == 2 || len(args) > 3) {
+		if args[1] != "lookup" {
+			return
+		}
+
+		const helptext = "lookup <@discordUser or minecraftUsername>"
+		if len(args) == 2 || len(args) > 3 {
 			if sendErr := reply(s, m, helptext); sendErr != nil {
 				log.Printf("error sending reply: %s", sendErr)
 			}
