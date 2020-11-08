@@ -4,10 +4,14 @@ services:
     build:
       context: ./
     restart: unless-stopped
-    env_file: ./docker.env
+    env_file: ./secrets.env
     init: true
     environment:
       USERS_SERVICE_REDIS_URL: redis://bot_redis/0
+      LEADERBOARD_SERVICE_REDIS_URL: redis://bot_redis/1
+      MINECRAFT_SERVER_NAME: pumpcraft
+      MINECRAFT_SERVER_HOST: mc.sep.gg
+      AWS_REGION: us-west-2
   bot_redis:
     image: redis:6-alpine
     restart: unless-stopped

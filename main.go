@@ -8,18 +8,27 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
+	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/users"
 )
 
 type Config struct {
-	DiscordToken        string `required:"true" split_words:"true"`
+	DiscordToken       string `required:"true" split_words:"true"`
+	AWSRegion          string `required:"true" envconfig:"AWS_REGION"`
+	AWSAccessKeyId     string `required:"true" envconfig:"AWS_ACCESS_KEY_ID"`
+	AWSSecretAccessKey string `required:"true" envconfig:"AWS_SECRET_ACCESS_KEY"`
+
 	MinecraftServerName string `required:"true" split_words:"true"`
 	MinecraftServerHost string `required:"true" split_words:"true"`
 	GuildId             string `required:"true" split_words:"true"`
 
-	UsersServiceRedisUrl string `required:"true" split_words:"true"`
+	PresenceInterval int64 `default:"5" split_words:"true"`
+
+	UsersServiceRedisUrl       string `required:"true" split_words:"true"`
+	LeaderboardServiceRedisUrl string `required:"true" split_words:"true"`
 }
 
 func main() {
@@ -32,6 +41,16 @@ func main() {
 	usersService, err := users.New(context.TODO(), cfg.UsersServiceRedisUrl)
 	if err != nil {
 		log.Fatalf("error setting up users service: %s", err)
+	}
+
+	sess, err := session.NewSession()
+	if err != nil {
+		log.Fatalf("error setting up aws session: %s", err)
+	}
+
+	leaderboardService, err := leaderboard.New(context.TODO(), cfg.LeaderboardServiceRedisUrl, sess)
+	if err != nil {
+		log.Fatalf("error setting up leaderboard service: %s", err)
 	}
 
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
@@ -52,11 +71,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	presenceTicker := time.NewTicker(5 * time.Minute)
+	presenceTicker := time.NewTicker(time.Duration(cfg.PresenceInterval) * time.Minute)
 	go func(presenceTicker *time.Ticker) {
 		for {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			err := updatePresence(ctx, dg, cfg)
+			err := updatePresence(ctx, cfg, dg, leaderboardService)
 			if err != nil {
 				log.Printf("failed to update presence: %s", err.Error())
 			}
