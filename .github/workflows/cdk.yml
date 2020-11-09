@@ -1,8 +1,7 @@
 on: [push]
 jobs:
   cdk:
-    needs:
-      - build_binaries
+    needs: [build_binaries]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
