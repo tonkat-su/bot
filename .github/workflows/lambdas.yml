@@ -32,6 +32,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: download binaries
+        id: download
         uses: actions/download-artifact@v2
         with:
           name: binaries
@@ -54,3 +55,5 @@ jobs:
           AWS_DEFAULT_REGION: 'us-west-2'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: 'Echo download path'
+        run: echo ${{steps.download.outputs.download-path}}
