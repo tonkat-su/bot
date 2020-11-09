@@ -43,6 +43,18 @@ jobs:
           working_dir: 'infra'
         env:
           BINARIES_DIR: ${{steps.download.outputs.download-path}}
+      - name: cdk diff
+        uses: youyo/aws-cdk-github-actions@v1
+        with:
+          cdk_subcommand: 'diff'
+          cdk_version: '1.72.0'
+          working_dir: 'infra'
+          actions_comment: true
+        env:
+          AWS_DEFAULT_REGION: 'us-west-2'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          BINARIES_DIR: ${{steps.download.outputs.download-path}}
       - name: cdk deploy
         uses: youyo/aws-cdk-github-actions@v1
         with:
