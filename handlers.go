@@ -229,7 +229,7 @@ func leaderboardRequestHandler(lboard *leaderboard.Service) func(*discordgo.Sess
 		}
 
 		embed := &discordgo.MessageEmbed{
-			Title:  "biggest nerds on the server",
+			Title:  "biggest nerds on the server (in the last 7 days)",
 			Fields: make([]*discordgo.MessageEmbedField, len(standings.SortedStandings)),
 		}
 		for i, v := range standings.SortedStandings {
