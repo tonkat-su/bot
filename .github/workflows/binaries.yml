@@ -1,7 +1,7 @@
 on: [push]
 name: build all binaries
 jobs:
-  pipeline:
+  build_binaries:
     strategy:
       matrix:
         go-version: [^1.x]
