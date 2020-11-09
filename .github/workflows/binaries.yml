@@ -1,0 +1,22 @@
+on: [push]
+name: build all binaries
+jobs:
+  pipeline:
+    strategy:
+      matrix:
+        go-version: [^1.x]
+    runs-on: ubuntu-latest
+    steps:
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: go build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: linux
+        run: |
+          mkdir build
+          go build -a -ldflags='-extldflags=-static' -o ./build/ ./...
