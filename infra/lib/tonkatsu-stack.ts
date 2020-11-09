@@ -3,7 +3,7 @@ import assets = require("@aws-cdk/aws-s3-assets");
 import lambda = require("@aws-cdk/aws-lambda");
 import path = require("path");
 
-export class InfraStack extends cdk.Stack {
+export class TonkatsuStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 

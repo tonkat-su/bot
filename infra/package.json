@@ -1,8 +1,8 @@
 {
-  "name": "infra",
+  "name": "tonkatsu",
   "version": "0.1.0",
   "bin": {
-    "infra": "bin/infra.js"
+    "tonkatsu": "bin/tonkatsu.js"
   },
   "scripts": {
     "build": "tsc",
