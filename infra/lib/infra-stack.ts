@@ -8,7 +8,7 @@ export class InfraStack extends cdk.Stack {
     super(scope, id, props);
 
     const giveCatTreatsAsset = new assets.Asset(this, "giveCatTreatsZip", {
-      path: path.join(__dirname, "../../build/give-cat-treats"),
+      path: path.join(process.env["GITHUB_WORKSPACE"]!, "/build/give-cat-treats"),
     })
 
     const giveCatTreatsLambda = new lambda.Function(this, "giveCatTreatsLambda", {
