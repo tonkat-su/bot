@@ -20,3 +20,8 @@ jobs:
         run: |
           mkdir build
           go build -a -ldflags='-extldflags=-static' -o ./build/ ./...
+      - name: archive built binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: build/
