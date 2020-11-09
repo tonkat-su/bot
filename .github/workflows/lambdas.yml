@@ -55,5 +55,4 @@ jobs:
           AWS_DEFAULT_REGION: 'us-west-2'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: 'Echo download path'
-        run: echo ${{steps.download.outputs.download-path}}
+          BINARIES_DIR: ${{steps.download.outputs.download-path}}
