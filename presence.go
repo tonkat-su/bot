@@ -8,10 +8,11 @@ import (
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/leaderboard"
+	"github.com/tonkat-su/bot/mclookup"
 )
 
 func updatePresence(ctx context.Context, cfg Config, s *discordgo.Session, lboard *leaderboard.Service) error {
-	hostports, err := resolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
+	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
 	if err != nil {
 		return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
 	}

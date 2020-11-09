@@ -8,13 +8,14 @@ import (
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/imgur"
+	"github.com/tonkat-su/bot/mclookup"
 	"github.com/tonkat-su/bot/mcuser"
 	"github.com/vincent-petithory/dataurl"
 )
 
 func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Config, imgurClient *imgur.Client) error {
 	ctx := context.Background()
-	hostports, err := resolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
+	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
 	if err != nil {
 		return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
 	}

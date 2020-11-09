@@ -1,4 +1,4 @@
-package main
+package mclookup
 
 import (
 	"context"
@@ -16,7 +16,7 @@ func (srv *Server) String() string {
 	return net.JoinHostPort(srv.Host, strconv.FormatUint(uint64(srv.Port), 10))
 }
 
-func resolveMinecraftHostPort(ctx context.Context, resolver *net.Resolver, server string) (servers []Server, err error) {
+func ResolveMinecraftHostPort(ctx context.Context, resolver *net.Resolver, server string) (servers []Server, err error) {
 	_, addrs, err := resolver.LookupSRV(ctx, "minecraft", "tcp", server)
 	if err != nil {
 		if e, ok := err.(*net.DNSError); ok {

@@ -24,11 +24,9 @@ type Config struct {
 	MinecraftServerName string `required:"true" split_words:"true"`
 	MinecraftServerHost string `required:"true" split_words:"true"`
 	GuildId             string `required:"true" split_words:"true"`
+	PresenceInterval    int64  `default:"5" split_words:"true"`
 
-	PresenceInterval int64 `default:"5" split_words:"true"`
-
-	UsersServiceRedisUrl       string `required:"true" split_words:"true"`
-	LeaderboardServiceRedisUrl string `required:"true" split_words:"true"`
+	UsersServiceRedisUrl string `required:"true" split_words:"true"`
 }
 
 func main() {
@@ -48,7 +46,7 @@ func main() {
 		log.Fatalf("error setting up aws session: %s", err)
 	}
 
-	leaderboardService, err := leaderboard.New(context.TODO(), cfg.LeaderboardServiceRedisUrl, sess, &leaderboard.Config{NamespacePrefix: cfg.MinecraftServerName})
+	leaderboardService, err := leaderboard.New(sess, &leaderboard.Config{NamespacePrefix: cfg.MinecraftServerName})
 	if err != nil {
 		log.Fatalf("error setting up leaderboard service: %s", err)
 	}
