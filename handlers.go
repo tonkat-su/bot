@@ -8,6 +8,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
+	"github.com/tonkat-su/bot/leaderboard"
+	"github.com/tonkat-su/bot/mcuser"
 	"github.com/tonkat-su/bot/users"
 )
 
@@ -196,6 +198,55 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 		}
 		if _, sendErr := s.ChannelMessageSendEmbed(m.ChannelID, msg); sendErr != nil {
 			log.Printf("error sending reply: %s", sendErr)
+		}
+	}
+}
+
+func leaderboardRequestHandler(lboard *leaderboard.Service) func(*discordgo.Session, *discordgo.MessageCreate) {
+	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) {
+			return
+		}
+
+		args := strings.Split(m.Content, " ")
+		if len(args) < 2 {
+			return
+		}
+		if args[1] != "leaderboard" {
+			return
+		}
+
+		standings, err := lboard.GetStandings(context.TODO())
+		if err != nil {
+			log.Printf("error getting standings: %s", err)
+			if sendErr := reply(s, m, "error fetching standings"); sendErr != nil {
+				log.Printf("error replying: %s", err)
+			}
+			return
+		}
+		if standings == nil {
+			return
+		}
+
+		embed := &discordgo.MessageEmbed{
+			Title:  "biggest nerds on the server",
+			Fields: make([]*discordgo.MessageEmbedField, len(standings.SortedStandings)),
+		}
+		for i, v := range standings.SortedStandings {
+			username, err := mcuser.GetUsername(v.PlayerId)
+			if err != nil {
+				log.Printf("error getting username: %s", err)
+				return
+			}
+			embed.Fields[i] = &discordgo.MessageEmbedField{
+				Name:  username,
+				Value: fmt.Sprintf("%d minutes", v.Score),
+			}
+		}
+		_, err = s.ChannelMessageSendEmbed(m.ChannelID, embed)
+		if err != nil {
+			log.Printf("error sending standings: %s", err)
+			return
 		}
 	}
 }

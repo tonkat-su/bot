@@ -48,7 +48,7 @@ func main() {
 		log.Fatalf("error setting up aws session: %s", err)
 	}
 
-	leaderboardService, err := leaderboard.New(context.TODO(), cfg.LeaderboardServiceRedisUrl, sess)
+	leaderboardService, err := leaderboard.New(context.TODO(), cfg.LeaderboardServiceRedisUrl, sess, &leaderboard.Config{NamespacePrefix: cfg.MinecraftServerName})
 	if err != nil {
 		log.Fatalf("error setting up leaderboard service: %s", err)
 	}
@@ -65,6 +65,7 @@ func main() {
 	dg.AddHandler(registerMinecraftGamer(usersService))
 	dg.AddHandler(echo)
 	dg.AddHandler(lookupUser(usersService))
+	dg.AddHandler(leaderboardRequestHandler(leaderboardService))
 
 	err = dg.Open()
 	if err != nil {
