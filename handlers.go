@@ -241,7 +241,7 @@ func leaderboardRequestHandler(lboard *leaderboard.Service) func(*discordgo.Sess
 			}
 			embed.Fields[i] = &discordgo.MessageEmbedField{
 				Name:  username,
-				Value: fmt.Sprintf("%d minutes", v.Score),
+				Value: fmt.Sprintf("%d cat treats", v.Score),
 			}
 		}
 		_, err = s.ChannelMessageSendEmbed(m.ChannelID, embed)
