@@ -19,7 +19,7 @@ jobs:
           GOOS: linux
         run: |
           mkdir build
-          go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
+          go build -a -ldflags='-extldflags=-static' -o ./build/give-cat-treats/main ./lambdas/give-cat-treats
       - name: archive built binaries
         uses: actions/upload-artifact@v2
         with:
