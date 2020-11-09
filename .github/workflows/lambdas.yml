@@ -1,7 +1,32 @@
 on: [push]
+name: lambdas
 jobs:
+  build_lambdas:
+    strategy:
+      matrix:
+        go-version: [^1.x]
+    runs-on: ubuntu-latest
+    steps:
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: go build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: linux
+        run: |
+          mkdir build
+          go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
+      - name: archive built binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: build/
   cdk:
-    needs: [build_binaries]
+    needs: [build_lambdas]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
