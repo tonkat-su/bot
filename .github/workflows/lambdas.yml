@@ -44,6 +44,7 @@ jobs:
           cdk_version: '1.72.0'
           working_dir: 'infra'
       - name: cdk diff
+        if: github.base_ref == refs/heads/main
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'diff'
