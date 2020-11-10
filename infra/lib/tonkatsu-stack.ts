@@ -22,6 +22,10 @@ export class TonkatsuStack extends cdk.Stack {
       runtime: lambda.Runtime.GO_1_X,
       handler: "give-cat-treats",
       timeout: cdk.Duration.seconds(45),
+      environment: {
+        "MINECRAFT_SERVER_NAME": "NewPumpcraft",
+        "MINECRAFT_SERVER_HOST": "mc.sep.gg",
+      },
     })
 
     giveCatTreatsLambda.addToRolePolicy(new iam.PolicyStatement({
