@@ -49,7 +49,6 @@ jobs:
           cdk_subcommand: 'deploy --require-approval never'
           cdk_version: '1.72.0'
           working_dir: 'infra'
-          actions_comment: false
         env:
           AWS_DEFAULT_REGION: 'us-west-2'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
