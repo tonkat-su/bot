@@ -14,32 +14,18 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v2
       - name: go build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: linux
         run: |
           mkdir build
-          CGO_ENABLED=0 GOOS=linux go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
-      - name: archive built binaries
-        uses: actions/upload-artifact@v2
-        with:
-          name: binaries
-          path: ${{ github.workspace }}
-  cdk:
-    needs: [build_lambdas]
-    runs-on: ubuntu-latest
-    steps:
-      - name: download binaries
-        id: download
-        uses: actions/download-artifact@v2
-        with:
-          name: binaries
-          path: ${{ github.workspace }}
+          go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
       - name: cdk synth
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'synth'
           cdk_version: '1.72.0'
           working_dir: 'infra'
-        env:
-          BINARIES_DIR: ${{steps.download.outputs.download-path}}
       - name: cdk deploy
         uses: youyo/aws-cdk-github-actions@v1
         with:
@@ -51,4 +37,3 @@ jobs:
           AWS_DEFAULT_REGION: 'us-west-2'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          BINARIES_DIR: ${{steps.download.outputs.download-path}}
