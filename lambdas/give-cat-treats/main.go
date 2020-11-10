@@ -17,6 +17,7 @@ import (
 // triggered by cloudwatch event to query the minecraft server and give cat treats to players
 func Handler(cfg Config, leaderboardService *leaderboard.Service) func(context.Context, *events.CloudWatchEvent) error {
 	return func(ctx context.Context, event *events.CloudWatchEvent) error {
+		log.Printf("looking up '%s'", cfg.MinecraftServerHost)
 		hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
 		if err != nil {
 			return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
@@ -26,12 +27,14 @@ func Handler(cfg Config, leaderboardService *leaderboard.Service) func(context.C
 			return nil
 		}
 
+		log.Printf("pinging '%s:%d'", hostports[0].Host, hostports[0].Port)
 		pong, err := mcpinger.New(hostports[0].Host, hostports[0].Port).Ping()
 		if err != nil {
 			return err
 		}
 
 		if pong.Players.Online == 0 {
+			log.Println("no players online")
 			return nil
 		}
 
@@ -44,6 +47,7 @@ func Handler(cfg Config, leaderboardService *leaderboard.Service) func(context.C
 				Score:    1,
 			}
 		}
+		log.Println("recording scores")
 		return leaderboardService.RecordScores(ctx, input)
 	}
 }
