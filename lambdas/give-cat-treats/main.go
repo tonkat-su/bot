@@ -38,6 +38,10 @@ func Handler(cfg Config, leaderboardService *leaderboard.Service) func(context.C
 			return nil
 		}
 
+		if int(pong.Players.Online) != len(pong.Players.Sample) {
+			log.Printf("expected %d players, got %d in the list", pong.Players.Online, len(pong.Players.Sample))
+		}
+
 		input := &leaderboard.RecordScoresInput{
 			Scores: make([]*leaderboard.PlayerScore, len(pong.Players.Sample)),
 		}
