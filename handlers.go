@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
@@ -240,7 +241,7 @@ func prepareStandingsEmbed(standings *leaderboard.Standings) (*discordgo.Message
 	embed := &discordgo.MessageEmbed{
 		Title: `biggest nerds on the server
 (in the last 7 days)`,
-		Fields: make([]*discordgo.MessageEmbedField, len(standings.SortedStandings)),
+		Fields: make([]*discordgo.MessageEmbedField, len(standings.SortedStandings), len(standings.SortedStandings)+1),
 	}
 	for i, v := range standings.SortedStandings {
 		username, err := mcuser.GetUsername(v.PlayerId)
@@ -252,6 +253,16 @@ func prepareStandingsEmbed(standings *leaderboard.Standings) (*discordgo.Message
 			Value: fmt.Sprintf("%d cat treats", v.Score),
 		}
 	}
+
+	tz, err := time.LoadLocation("America/Los_Angeles")
+	if err != nil {
+		return nil, err
+	}
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:  "*last updated:*",
+		Value: standings.LastUpdated.In(tz).Format(time.UnixDate),
+	})
 	return embed, nil
 }
 

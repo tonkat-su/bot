@@ -78,10 +78,10 @@ func (svc *Service) RecordScores(ctx context.Context, input *RecordScoresInput) 
 
 type Standings struct {
 	SortedStandings []*PlayerScore
+	LastUpdated     time.Time
 }
 
-func (svc *Service) fetchStandingsFromLastWeek(ctx context.Context) ([]*cloudwatch.MetricDataResult, error) {
-	endTime := time.Now().Round(5 * time.Minute)
+func (svc *Service) fetchStandingsFromLastWeek(ctx context.Context, endTime time.Time) ([]*cloudwatch.MetricDataResult, error) {
 	listMetricsInput := &cloudwatch.ListMetricsInput{
 		Namespace:  aws.String(svc.metricsNamespace()),
 		MetricName: aws.String("PlayerScore"),
@@ -150,9 +150,12 @@ func transformCloudwatchResultsToStandings(results []*cloudwatch.MetricDataResul
 }
 
 func (svc *Service) GetStandings(ctx context.Context) (*Standings, error) {
-	results, err := svc.fetchStandingsFromLastWeek(ctx)
+	endTime := time.Now().Round(5 * time.Minute)
+	results, err := svc.fetchStandingsFromLastWeek(ctx, endTime)
 	if err != nil {
 		return nil, err
 	}
-	return transformCloudwatchResultsToStandings(results), nil
+	standings := transformCloudwatchResultsToStandings(results)
+	standings.LastUpdated = endTime
+	return standings, nil
 }
