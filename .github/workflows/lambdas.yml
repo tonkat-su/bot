@@ -14,12 +14,9 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v2
       - name: go build
-        env:
-          CGO_ENABLED: "0"
-          GOOS: linux
         run: |
           mkdir build
-          go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
+          CGO_ENABLED=0 GOOS=linux go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
       - name: archive built binaries
         uses: actions/upload-artifact@v2
         with:
