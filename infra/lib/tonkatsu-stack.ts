@@ -31,6 +31,7 @@ export class TonkatsuStack extends cdk.Stack {
     giveCatTreatsLambda.addToRolePolicy(new iam.PolicyStatement({
       actions: [
         "cloudwatch:PutMetricData",
+        "log:*",
       ],
       resources: ["*"],
     }))
