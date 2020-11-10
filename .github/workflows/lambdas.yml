@@ -44,7 +44,7 @@ jobs:
           cdk_version: '1.72.0'
           working_dir: 'infra'
       - name: cdk diff
-        if: github.base_ref == refs/heads/main
+        if: ${{ github.base_ref }} == refs/heads/main
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'diff'
@@ -55,7 +55,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: cdk deploy
-        if: github.ref == refs/heads/main
+        if: ${{ github.ref }} == refs/heads/main
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'deploy --require-approval never'
