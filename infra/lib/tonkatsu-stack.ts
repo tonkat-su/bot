@@ -20,7 +20,7 @@ export class TonkatsuStack extends cdk.Stack {
         giveCatTreatsAsset.s3ObjectKey,
       ),
       runtime: lambda.Runtime.GO_1_X,
-      handler: "main",
+      handler: "give-cat-treats",
       timeout: cdk.Duration.seconds(45),
       environment: {
         "MINECRAFT_SERVER_NAME": "NewPumpcraft",
