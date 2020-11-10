@@ -9,7 +9,7 @@ services:
     environment:
       USERS_SERVICE_REDIS_URL: redis://bot_redis/0
       LEADERBOARD_SERVICE_REDIS_URL: redis://bot_redis/1
-      MINECRAFT_SERVER_NAME: Pumpcraft
+      MINECRAFT_SERVER_NAME: NewPumpcraft
       MINECRAFT_SERVER_HOST: mc.sep.gg
       AWS_REGION: us-west-2
   bot_redis:
