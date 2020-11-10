@@ -20,6 +20,23 @@ jobs:
         run: |
           mkdir build
           go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
+      - name: archive built binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: ${{ github.workspace }}
+  cdk:
+    needs: [build_lambdas]
+    runs-on: ubuntu-latest
+    steps:
+      - name: download binaries
+        id: download
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+          path: ${{ github.workspace }}
+      - name: fix executable permissions
+        run: chmod 755 -R ${{ github.workspace }}/build
       - name: cdk synth
         uses: youyo/aws-cdk-github-actions@v1
         with:
