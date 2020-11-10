@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
@@ -228,28 +229,38 @@ func leaderboardRequestHandler(lboard *leaderboard.Service) func(*discordgo.Sess
 			return
 		}
 
-		embed := &discordgo.MessageEmbed{
-			Title: `biggest nerds on the server
-(in the last 7 days)`,
-			Fields: make([]*discordgo.MessageEmbedField, len(standings.SortedStandings)),
-		}
-		for i, v := range standings.SortedStandings {
-			username, err := mcuser.GetUsername(v.PlayerId)
-			if err != nil {
-				log.Printf("error getting username: %s", err)
-				return
-			}
-			embed.Fields[i] = &discordgo.MessageEmbedField{
-				Name:  username,
-				Value: fmt.Sprintf("%d cat treats", v.Score),
-			}
-		}
-		_, err = s.ChannelMessageSendEmbed(m.ChannelID, embed)
+		_, err = sendStandingsMessage(s, m.ChannelID, standings)
 		if err != nil {
-			log.Printf("error sending standings: %s", err)
-			return
+			log.Println(err)
 		}
 	}
+}
+
+func prepareStandingsEmbed(standings *leaderboard.Standings) (*discordgo.MessageEmbed, error) {
+	embed := &discordgo.MessageEmbed{
+		Title: `biggest nerds on the server
+(in the last 7 days)`,
+		Fields: make([]*discordgo.MessageEmbedField, len(standings.SortedStandings)),
+	}
+	for i, v := range standings.SortedStandings {
+		username, err := mcuser.GetUsername(v.PlayerId)
+		if err != nil {
+			return nil, fmt.Errorf("error getting username: %s", err)
+		}
+		embed.Fields[i] = &discordgo.MessageEmbedField{
+			Name:  username,
+			Value: fmt.Sprintf("%d cat treats", v.Score),
+		}
+	}
+	return embed, nil
+}
+
+func sendStandingsMessage(s *discordgo.Session, channelID string, standings *leaderboard.Standings) (*discordgo.Message, error) {
+	embed, err := prepareStandingsEmbed(standings)
+	if err != nil {
+		return nil, err
+	}
+	return s.ChannelMessageSendEmbed(channelID, embed)
 }
 
 func echo(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -260,5 +271,111 @@ func echo(s *discordgo.Session, m *discordgo.MessageCreate) {
 	_, err := s.ChannelMessageSend(m.ChannelID, "```\n"+m.Content+"\n```")
 	if err != nil {
 		log.Println(err)
+	}
+}
+
+type leaderboardHandlerService struct {
+	sync.RWMutex
+
+	leaderboard *leaderboard.Service
+
+	// guild id to pinnedMessageId
+	messages map[string]string
+}
+
+func (svc *leaderboardHandlerService) onConnect(s *discordgo.Session, event *discordgo.Ready) {
+	for _, guild := range event.Guilds {
+		channels, err := s.GuildChannels(guild.ID)
+		if err != nil {
+			log.Fatalf("unable to fetch guild channels for leaderboard state: %s", err)
+		}
+
+		var boardChannel string
+		for _, channel := range channels {
+			if channel.Name == "leaderboard" {
+				boardChannel = channel.ID
+				log.Printf("found leaderboard guild:%s channel:%s", guild.ID, channel.ID)
+				pinnedMessages, err := s.ChannelMessagesPinned(channel.ID)
+				if err != nil {
+					log.Fatalf("unable to fetch pinned messages for channel '%s': %s", channel.ID, err)
+				}
+				for _, message := range pinnedMessages {
+					if message.Author.ID == s.State.User.ID {
+						log.Printf("found leaderboard channel:%s message:%s", channel.ID, message.ID)
+						svc.Lock()
+						svc.messages[guild.ID] = message.ID
+						svc.Unlock()
+						break
+					}
+				}
+				break
+			}
+		}
+
+		if boardChannel == "" {
+			log.Printf("creating leaderboard channel for guild:%s", guild.ID)
+			channel, err := s.GuildChannelCreate(guild.ID, "leaderboard", discordgo.ChannelTypeGuildText)
+			if err != nil {
+				log.Printf("unable to create leaderboard for guild (%s:%s): %s", guild.Name, guild.ID, err)
+				continue
+			}
+			boardChannel = channel.ID
+		}
+
+		if _, ok := svc.messages[guild.ID]; !ok {
+			log.Printf("creating leaderboard message for channel:%s", boardChannel)
+			standings, err := svc.leaderboard.GetStandings(context.TODO())
+			if err != nil {
+				log.Printf("error fetching leaderboard: %s", err)
+			}
+			msg, err := sendStandingsMessage(s, boardChannel, standings)
+			if err != nil {
+				log.Printf("error sending leaderboard message to channel (%s): %s", boardChannel, err)
+			}
+			err = s.ChannelMessagePin(boardChannel, msg.ID)
+			if err != nil {
+				log.Printf("error pinning leaderboard message (%s) to channel (%s): %s", msg.ID, boardChannel, err)
+			}
+			svc.Lock()
+			svc.messages[guild.ID] = msg.ID
+			svc.Unlock()
+		}
+
+		err = s.MessageReactionsRemoveAll(boardChannel, svc.messages[guild.ID])
+		if err != nil {
+			log.Printf("error removing all reactions from leaderboard message in channel %s: %s", boardChannel, err)
+		}
+
+		err = s.MessageReactionAdd(boardChannel, svc.messages[guild.ID], "♻️")
+		if err != nil {
+			log.Printf("error adding refresh reaction to leaderboard message in channel %s: %s", svc.messages[guild.ID], err)
+		}
+	}
+}
+
+func (svc *leaderboardHandlerService) updateLeaderboard(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
+	if m.MessageReaction.UserID == s.State.User.ID || svc.messages[m.MessageReaction.GuildID] != m.MessageReaction.MessageID {
+		return
+	}
+
+	err := s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, `♻️`, m.MessageReaction.UserID)
+	if err != nil {
+		log.Printf("error removing reaction from leaderboard message: %s", err)
+		return
+	}
+
+	standings, err := svc.leaderboard.GetStandings(context.TODO())
+	if err != nil {
+		log.Printf("error fetching leaderboard: %s", err)
+		return
+	}
+	embed, err := prepareStandingsEmbed(standings)
+	if err != nil {
+		log.Printf("error preparing standings embed: %s", err)
+		return
+	}
+	_, err = s.ChannelMessageEditEmbed(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, embed)
+	if err != nil {
+		log.Printf("error updating leaderboard message in channel %s: %s", m.MessageReaction.ChannelID, err)
 	}
 }

@@ -51,6 +51,11 @@ func main() {
 		log.Fatalf("error setting up leaderboard service: %s", err)
 	}
 
+	leaderboardHandler := &leaderboardHandlerService{
+		leaderboard: leaderboardService,
+		messages:    make(map[string]string),
+	}
+
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
 	if err != nil {
 		log.Fatal(err)
@@ -64,6 +69,8 @@ func main() {
 	dg.AddHandler(echo)
 	dg.AddHandler(lookupUser(usersService))
 	dg.AddHandler(leaderboardRequestHandler(leaderboardService))
+	dg.AddHandler(leaderboardHandler.onConnect)
+	dg.AddHandler(leaderboardHandler.updateLeaderboard)
 
 	err = dg.Open()
 	if err != nil {
