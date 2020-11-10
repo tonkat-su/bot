@@ -5,6 +5,7 @@ import events_targets = require("@aws-cdk/aws-events-targets");
 import iam = require("@aws-cdk/aws-iam");
 import lambda = require("@aws-cdk/aws-lambda");
 import path = require("path");
+import { Duration } from '@aws-cdk/core';
 
 export class TonkatsuStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -36,7 +37,7 @@ export class TonkatsuStack extends cdk.Stack {
     }))
 
     new events.Rule(this, "giveCatTreatsSchedule", {
-      schedule: events.Schedule.cron({minute: '5'}),
+      schedule: events.Schedule.rate(Duration.minutes(5)),
       targets: [new events_targets.LambdaFunction(giveCatTreatsLambda)],
     })
   }
