@@ -8,7 +8,7 @@ export class TonkatsuStack extends cdk.Stack {
     super(scope, id, props);
 
     const giveCatTreatsAsset = new assets.Asset(this, "giveCatTreatsZip", {
-      path: path.join(__dirname, "../../build/give-cat-treats"),
+      path: path.join(__dirname, "../../build/"),
     })
 
     const giveCatTreatsLambda = new lambda.Function(this, "giveCatTreatsLambda", {
@@ -17,7 +17,7 @@ export class TonkatsuStack extends cdk.Stack {
         giveCatTreatsAsset.s3ObjectKey,
       ),
       runtime: lambda.Runtime.GO_1_X,
-      handler: "main",
+      handler: "give-cat-treats",
       timeout: cdk.Duration.seconds(45),
     })
   }
