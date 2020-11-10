@@ -23,7 +23,7 @@ export class TonkatsuStack extends cdk.Stack {
       handler: "give-cat-treats",
       timeout: cdk.Duration.seconds(45),
       environment: {
-        "MINECRAFT_SERVER_NAME": "NewPumpcraft",
+        "MINECRAFT_SERVER_NAME": "Pumpcraft",
         "MINECRAFT_SERVER_HOST": "mc.sep.gg",
       },
     })

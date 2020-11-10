@@ -74,7 +74,7 @@ func main() {
 	go func(presenceTicker *time.Ticker) {
 		for {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			err := updatePresence(ctx, cfg, dg, leaderboardService)
+			err := updatePresence(ctx, cfg, dg)
 			if err != nil {
 				log.Printf("failed to update presence: %s", err.Error())
 			}

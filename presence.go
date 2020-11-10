@@ -7,11 +7,10 @@ import (
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
-	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/mclookup"
 )
 
-func updatePresence(ctx context.Context, cfg Config, s *discordgo.Session, lboard *leaderboard.Service) error {
+func updatePresence(ctx context.Context, cfg Config, s *discordgo.Session) error {
 	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
 	if err != nil {
 		return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
@@ -27,22 +26,6 @@ func updatePresence(ctx context.Context, cfg Config, s *discordgo.Session, lboar
 	}
 
 	if pong.Players.Online > 0 {
-		go func(pong *mcpinger.ServerInfo) {
-			input := &leaderboard.RecordScoresInput{
-				Scores: make([]*leaderboard.PlayerScore, len(pong.Players.Sample)),
-			}
-			for i, v := range pong.Players.Sample {
-				input.Scores[i] = &leaderboard.PlayerScore{
-					PlayerId: v.ID,
-					Score:    cfg.PresenceInterval,
-				}
-			}
-			err = lboard.RecordScores(context.TODO(), input)
-			if err != nil {
-				log.Printf("error recording score for leaderboard: %s", err)
-			}
-		}(pong)
-
 		return s.UpdateStatus(0, fmt.Sprintf("currently online: (%d/%d)", pong.Players.Online, pong.Players.Max))
 	}
 	return s.UpdateStatus(0, "")
