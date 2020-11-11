@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/handlers/connected"
@@ -10,15 +14,27 @@ import (
 )
 
 type config struct {
-	MinecraftServerHost string `split_words:"true" required:"true"`
-	MinecraftServerName string `split_words:"true" required:"true"`
-	GuildId             string `split_words:"true" required:"true"`
-	DiscordToken        string `split_words:"true" required:"true"`
+	MinecraftServerHost   string `split_words:"true" required:"true"`
+	MinecraftServerName   string `split_words:"true" required:"true"`
+	GuildId               string `split_words:"true" required:"true"`
+	DiscordTokenSecretArn string `split_words:"true" required:"true"`
 }
 
 func main() {
 	var cfg config
 	err := envconfig.Process("", &cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sess, err := session.NewSession()
+	if err != nil {
+		log.Fatal(err)
+	}
+	secrets := secretsmanager.New(sess)
+	sv, err := secrets.GetSecretValueWithContext(context.TODO(), &secretsmanager.GetSecretValueInput{
+		SecretId: aws.String(cfg.DiscordTokenSecretArn),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,7 +47,7 @@ func main() {
 		PinnedChannelName: "whos-online",
 	}
 
-	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
+	dg, err := discordgo.New("Bot " + aws.StringValue(sv.SecretString))
 	if err != nil {
 		log.Fatal(err)
 	}

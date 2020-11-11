@@ -58,10 +58,20 @@ export class TonkatsuStack extends cdk.Stack {
         "MINECRAFT_SERVER_HOST": "mc.sep.gg",
         "MINECRAFT_SERVER_NAME": "NewPumpcraft",
         "GUILD_ID": "764720442250100757",
-        "DISCORD_TOKEN": discordToken.secretValue.toString(),
+        "DISCORD_TOKEN_SECRET_ARN": discordToken.secretArn,
       },
       logRetention: logs.RetentionDays.THREE_DAYS,
     })
+
+    refreshWhosOnlineLambda.addToRolePolicy(new iam.PolicyStatement({
+      actions: [
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:ListSecretVersionIds"
+      ],
+      resources: [discordToken.secretArn],
+    }))
 
     new events.Rule(this, "refreshWhosOnlineSchedule", {
       schedule: events.Schedule.rate(Duration.minutes(5)),
