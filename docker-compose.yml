@@ -3,6 +3,8 @@ services:
   bot:
     build:
       context: ./
+    depends_on:
+      - bot_redis
     restart: unless-stopped
     env_file: ./secrets.env
     init: true
