@@ -47,8 +47,10 @@ func main() {
 		PinnedChannelName: "whos-online",
 	}
 
+	var dg *discordgo.Session
 	lambda.Start(func() error {
-		dg, err := discordgo.New("Bot " + aws.StringValue(sv.SecretString))
+		var err error
+		dg, err = discordgo.New("Bot " + aws.StringValue(sv.SecretString))
 		if err != nil {
 			return err
 		}
