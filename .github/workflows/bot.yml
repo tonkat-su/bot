@@ -2,6 +2,8 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
 name: bot build and push
 jobs:
   pipeline:
@@ -27,6 +29,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.CR_PAT }}
       - name: docker build and push
+        if: github.ref != 'refs/heads/main'
+        uses: docker/build-push-action@v2
+        with:
+          push: false
+      - name: docker build and push
+        if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v2
         with:
           push: true
