@@ -11,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
+	"github.com/tonkat-su/bot/handlers/pinnedleaderboard"
+	"github.com/tonkat-su/bot/handlers/refreshable"
 	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/users"
 )
@@ -51,9 +53,11 @@ func main() {
 		log.Fatalf("error setting up leaderboard service: %s", err)
 	}
 
-	leaderboardHandler := &leaderboardHandlerService{
-		leaderboard: leaderboardService,
-		messages:    make(map[string]string),
+	refreshableLeaderboard := &refreshable.Handler{
+		Backend: &pinnedleaderboard.RefreshableBackend{
+			Leaderboard: leaderboardService,
+		},
+		PinnedChannelName: "leaderboard",
 	}
 
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
@@ -69,8 +73,7 @@ func main() {
 	dg.AddHandler(echo)
 	dg.AddHandler(lookupUser(usersService))
 	dg.AddHandler(leaderboardRequestHandler(leaderboardService))
-	dg.AddHandler(leaderboardHandler.onConnect)
-	dg.AddHandler(leaderboardHandler.updateLeaderboard)
+	refreshableLeaderboard.AddHandlers(dg)
 
 	err = dg.Open()
 	if err != nil {
