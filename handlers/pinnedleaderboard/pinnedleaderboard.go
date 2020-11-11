@@ -3,9 +3,9 @@ package pinnedleaderboard
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/tonkat-su/bot/handlers"
 	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/mcuser"
 )
@@ -27,15 +27,12 @@ func prepareStandingsEmbed(standings *leaderboard.Standings) (*discordgo.Message
 		}
 	}
 
-	tz, err := time.LoadLocation("America/Los_Angeles")
+	var err error
+	embed.Fields, err = handlers.AppendLastUpdatedEmbedField(embed.Fields, standings.LastUpdated)
 	if err != nil {
 		return nil, err
 	}
 
-	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-		Name:  "*last updated:*",
-		Value: standings.LastUpdated.In(tz).Format(time.UnixDate),
-	})
 	return embed, nil
 }
 

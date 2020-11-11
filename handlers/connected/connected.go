@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/emoji"
+	"github.com/tonkat-su/bot/handlers"
 	"github.com/tonkat-su/bot/imgur"
 	"github.com/tonkat-su/bot/mclookup"
 	"github.com/tonkat-su/bot/mcuser"
@@ -49,6 +51,8 @@ func prepareStatusEmbed(s *discordgo.Session, guildID, host, name string, imgurC
 		return embed, nil
 	}
 
+	lastUpdated := time.Now()
+
 	embed.Fields = []*discordgo.MessageEmbedField{
 		{
 			Name:  "host",
@@ -87,6 +91,14 @@ func prepareStatusEmbed(s *discordgo.Session, guildID, host, name string, imgurC
 		}
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
+
+	updatedFields, err := handlers.AppendLastUpdatedEmbedField(embed.Fields, lastUpdated)
+	if err != nil {
+		log.Printf("error appending last updated embed field: %s", err)
+	} else {
+		embed.Fields = updatedFields
+	}
+
 	embed.Color = 0x43b581
 
 	embed.Description = pong.Description.Text
