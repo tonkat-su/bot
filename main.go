@@ -81,7 +81,6 @@ func main() {
 	dg.AddHandler(registerMinecraftGamer(usersService))
 	dg.AddHandler(echo)
 	dg.AddHandler(lookupUser(usersService))
-	dg.AddHandler(leaderboardRequestHandler(leaderboardService))
 	refreshableLeaderboard.AddHandlers(dg)
 	whosConnected.AddHandlers(dg)
 

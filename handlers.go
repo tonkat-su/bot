@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
-	"github.com/tonkat-su/bot/leaderboard"
-	"github.com/tonkat-su/bot/mcuser"
 	"github.com/tonkat-su/bot/users"
 )
 
@@ -202,77 +199,6 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 		}
 	}
 }
-
-func leaderboardRequestHandler(lboard *leaderboard.Service) func(*discordgo.Session, *discordgo.MessageCreate) {
-	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) {
-			return
-		}
-
-		args := strings.Split(m.Content, " ")
-		if len(args) < 2 {
-			return
-		}
-		if args[1] != "leaderboard" {
-			return
-		}
-
-		standings, err := lboard.GetStandings(context.TODO())
-		if err != nil {
-			log.Printf("error getting standings: %s", err)
-			if sendErr := reply(s, m, "error fetching standings"); sendErr != nil {
-				log.Printf("error replying: %s", err)
-			}
-			return
-		}
-		if standings == nil {
-			return
-		}
-
-		_, err = sendStandingsMessage(s, m.ChannelID, standings)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-}
-
-func prepareStandingsEmbed(standings *leaderboard.Standings) (*discordgo.MessageEmbed, error) {
-	embed := &discordgo.MessageEmbed{
-		Title: `biggest nerds on the server
-(in the last 7 days)`,
-		Fields: make([]*discordgo.MessageEmbedField, len(standings.SortedStandings), len(standings.SortedStandings)+1),
-	}
-	for i, v := range standings.SortedStandings {
-		username, err := mcuser.GetUsername(v.PlayerId)
-		if err != nil {
-			return nil, fmt.Errorf("error getting username: %s", err)
-		}
-		embed.Fields[i] = &discordgo.MessageEmbedField{
-			Name:  username,
-			Value: fmt.Sprintf("%d cat treats", v.Score),
-		}
-	}
-
-	tz, err := time.LoadLocation("America/Los_Angeles")
-	if err != nil {
-		return nil, err
-	}
-
-	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-		Name:  "*last updated:*",
-		Value: standings.LastUpdated.In(tz).Format(time.UnixDate),
-	})
-	return embed, nil
-}
-
-func sendStandingsMessage(s *discordgo.Session, channelID string, standings *leaderboard.Standings) (*discordgo.Message, error) {
-	embed, err := prepareStandingsEmbed(standings)
-	if err != nil {
-		return nil, err
-	}
-	return s.ChannelMessageSendEmbed(channelID, embed)
-}
-
 func echo(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) || !strings.Contains(m.Content, "echo") {
 		return
