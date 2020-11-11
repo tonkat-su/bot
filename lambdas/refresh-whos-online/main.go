@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -46,28 +47,31 @@ func main() {
 		PinnedChannelName: "whos-online",
 	}
 
-	dg, err := discordgo.New("Bot " + aws.StringValue(sv.SecretString))
-	if err != nil {
-		log.Fatal(err)
-	}
+	lambda.Start(func() error {
+		dg, err := discordgo.New("Bot " + aws.StringValue(sv.SecretString))
+		if err != nil {
+			return err
+		}
 
-	dg.StateEnabled = true
-	dg.Identify.Compress = true
+		dg.StateEnabled = true
+		dg.Identify.Compress = true
 
-	closer := make(chan bool, 1)
-	dg.AddHandler(func(s *discordgo.Session, event *discordgo.Ready) {
-		connectedHandler.OnConnect(s, event)
-		closer <- true
+		closer := make(chan bool, 1)
+		dg.AddHandler(func(s *discordgo.Session, event *discordgo.Ready) {
+			connectedHandler.OnConnect(s, event)
+			closer <- true
+		})
+
+		err = dg.Open()
+		if err != nil {
+			return err
+		}
+
+		<-closer
+		err = dg.Close()
+		if err != nil {
+			return err
+		}
+		return nil
 	})
-
-	err = dg.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	<-closer
-	err = dg.Close()
-	if err != nil {
-		log.Println(err)
-	}
 }
