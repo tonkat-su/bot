@@ -16,7 +16,6 @@ import (
 type config struct {
 	MinecraftServerHost   string `split_words:"true" required:"true"`
 	MinecraftServerName   string `split_words:"true" required:"true"`
-	GuildId               string `split_words:"true" required:"true"`
 	DiscordTokenSecretArn string `split_words:"true" required:"true"`
 }
 
@@ -52,7 +51,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dg.ShouldReconnectOnError = true
 	dg.StateEnabled = true
 	dg.Identify.Compress = true
 
@@ -68,5 +66,8 @@ func main() {
 	}
 
 	<-closer
-	dg.Close()
+	err = dg.Close()
+	if err != nil {
+		log.Println(err)
+	}
 }

@@ -57,7 +57,6 @@ export class TonkatsuStack extends cdk.Stack {
       environment: {
         "MINECRAFT_SERVER_HOST": "mc.sep.gg",
         "MINECRAFT_SERVER_NAME": "NewPumpcraft",
-        "GUILD_ID": "764720442250100757",
         "DISCORD_TOKEN_SECRET_ARN": discordToken.secretArn,
       },
       logRetention: logs.RetentionDays.THREE_DAYS,
