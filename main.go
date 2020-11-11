@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
+	"github.com/tonkat-su/bot/handlers/connected"
 	"github.com/tonkat-su/bot/handlers/pinnedleaderboard"
 	"github.com/tonkat-su/bot/handlers/refreshable"
 	"github.com/tonkat-su/bot/leaderboard"
@@ -60,6 +61,14 @@ func main() {
 		PinnedChannelName: "leaderboard",
 	}
 
+	whosConnected := &refreshable.Handler{
+		Backend: &connected.RefreshableBackend{
+			MinecraftServerName: cfg.MinecraftServerName,
+			MinecraftServerHost: cfg.MinecraftServerHost,
+		},
+		PinnedChannelName: "whos-online",
+	}
+
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)
 	if err != nil {
 		log.Fatal(err)
@@ -74,6 +83,7 @@ func main() {
 	dg.AddHandler(lookupUser(usersService))
 	dg.AddHandler(leaderboardRequestHandler(leaderboardService))
 	refreshableLeaderboard.AddHandlers(dg)
+	whosConnected.AddHandlers(dg)
 
 	err = dg.Open()
 	if err != nil {

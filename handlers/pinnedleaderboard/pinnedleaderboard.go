@@ -59,7 +59,7 @@ func (h *RefreshableBackend) CreateRefreshableMessage(s *discordgo.Session, guil
 	return sendStandingsMessage(s, channelID, standings)
 }
 
-func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, channelID string, messageID string) error {
+func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, event *discordgo.MessageReaction) error {
 	standings, err := h.Leaderboard.GetStandings(context.TODO())
 	if err != nil {
 		return fmt.Errorf("error fetching leaderboard: %s", err)
@@ -68,9 +68,9 @@ func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, channelID stri
 	if err != nil {
 		return fmt.Errorf("error preparing standings embed: %s", err)
 	}
-	_, err = s.ChannelMessageEditEmbed(channelID, messageID, embed)
+	_, err = s.ChannelMessageEditEmbed(event.ChannelID, event.MessageID, embed)
 	if err != nil {
-		return fmt.Errorf("error updating leaderboard message in channel %s: %s", channelID, err)
+		return fmt.Errorf("error updating leaderboard message in channel %s: %s", event.ChannelID, err)
 	}
 	return nil
 }

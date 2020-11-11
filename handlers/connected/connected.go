@@ -1,4 +1,4 @@
-package main
+package connected
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"log"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/emoji"
 	"github.com/tonkat-su/bot/imgur"
@@ -14,18 +15,24 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
-func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Config, imgurClient *imgur.Client) error {
+type RefreshableBackend struct {
+	MinecraftServerHost string
+	MinecraftServerName string
+	Imgur               *imgur.Client
+}
+
+func prepareStatusEmbed(s *discordgo.Session, guildID, host, name string, imgurClient *imgur.Client) (*discordgo.MessageEmbed, error) {
 	ctx := context.Background()
-	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
+	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, host)
 	if err != nil {
-		return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
+		return nil, fmt.Errorf("error resolving server host '%s': %s", host, err.Error())
 	}
 	if len(hostports) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	embed := &discordgo.MessageEmbed{
-		Title: cfg.MinecraftServerName,
+		Title: name,
 	}
 
 	serverUrl := hostports[0].String()
@@ -39,14 +46,7 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 			},
 		}
 		embed.Color = 0xf04747
-		_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-			Content: "gamers?",
-			Embed:   embed,
-		})
-		if err != nil {
-			log.Printf("error sending message: %s", err.Error())
-		}
-		return nil
+		return embed, nil
 	}
 
 	embed.Fields = []*discordgo.MessageEmbedField{
@@ -73,12 +73,12 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 	if len(players) == 0 {
 		playersEmbedField = &discordgo.MessageEmbedField{
 			Name:  "nobody's online :(",
-			Value: "be the change u wanna see in the world",
+			Value: "https://www.youtube.com/watch?v=ypVpv-fEevk",
 		}
 	} else {
-		err = emoji.SyncMinecraftAvatarsToEmoji(s, m.GuildID, players)
+		err = emoji.SyncMinecraftAvatarsToEmoji(s, guildID, players)
 		if err != nil {
-			log.Printf("error syncing emoji: %s", err.Error())
+			log.Printf("error syncing avatars to emoji: %s", err)
 		}
 
 		playersEmbedField = &discordgo.MessageEmbedField{
@@ -94,7 +94,7 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 	if pong.Favicon != "" && imgurClient != nil {
 		favIcon, err := dataurl.DecodeString(pong.Favicon)
 		if err != nil {
-			return fmt.Errorf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
+			return nil, fmt.Errorf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
 		}
 
 		uploadRequest := &imgur.ImageUploadRequest{
@@ -103,20 +103,38 @@ func sendServerStatus(s *discordgo.Session, m *discordgo.MessageCreate, cfg Conf
 		}
 		img, err := imgurClient.Upload(ctx, uploadRequest)
 		if err != nil {
-			return fmt.Errorf("error uploading favicon for server '%s' to imgur: %s", serverUrl, err.Error())
+			return nil, fmt.Errorf("error uploading favicon for server '%s' to imgur: %s", serverUrl, err.Error())
 		}
 		embed.Image = &discordgo.MessageEmbedImage{
 			URL: img.Link,
 		}
 	}
+	return embed, nil
+}
 
-	_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-		Content: "gamers?",
-		Embed:   embed,
-	})
+func (h *RefreshableBackend) CreateRefreshableMessage(s *discordgo.Session, guildID string, channelID string) (*discordgo.Message, error) {
+	embed, err := prepareStatusEmbed(s, guildID, h.MinecraftServerHost, h.MinecraftServerName, h.Imgur)
 	if err != nil {
-		log.Printf("error sending message: %s", err.Error())
+		return nil, err
 	}
 
-	return nil
+	return s.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
+		Content: "gamers currently online",
+		Embed:   embed,
+	})
+}
+
+func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, event *discordgo.MessageReaction) error {
+	embed, err := prepareStatusEmbed(s, event.GuildID, h.MinecraftServerHost, h.MinecraftServerName, h.Imgur)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.ChannelMessageEditComplex(&discordgo.MessageEdit{
+		Content: aws.String("gamers currently online"),
+		Embed:   embed,
+		ID:      event.MessageID,
+		Channel: event.ChannelID,
+	})
+	return err
 }

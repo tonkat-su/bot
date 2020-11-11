@@ -1,4 +1,4 @@
-package main
+package emoji
 
 import (
 	"fmt"
@@ -60,7 +60,7 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) error {
 	}
 }
 
-func syncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, players []*Player) error {
+func SyncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, players []*Player) error {
 	guild, err := session.Guild(guildId)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func syncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, pla
 	return fillPlayerEmojis(guild.Emojis, players, fillEmoji(session, guildId))
 }
 
-func playerListEmojis(players []*Player) string {
+func PlayerListEmojis(players []*Player) string {
 	emojis := make([]string, len(players))
 	for i, p := range players {
 		emojis[i] = p.EmojiTextCode()
