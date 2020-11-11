@@ -54,8 +54,6 @@ func main() {
 		if err != nil {
 			return err
 		}
-
-		dg.StateEnabled = true
 		dg.Identify.Compress = true
 
 		closer := make(chan bool, 1)
