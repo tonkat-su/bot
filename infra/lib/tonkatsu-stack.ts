@@ -4,6 +4,7 @@ import events = require("@aws-cdk/aws-events");
 import events_targets = require("@aws-cdk/aws-events-targets");
 import iam = require("@aws-cdk/aws-iam");
 import lambda = require("@aws-cdk/aws-lambda");
+import logs = require("@aws-cdk/aws-logs");
 import path = require("path");
 import { Duration } from '@aws-cdk/core';
 
@@ -27,6 +28,7 @@ export class TonkatsuStack extends cdk.Stack {
         "MINECRAFT_SERVER_NAME": "NewPumpcraft",
         "MINECRAFT_SERVER_HOST": "mc.sep.gg",
       },
+      logRetention: logs.RetentionDays.THREE_DAYS,
     })
 
     giveCatTreatsLambda.addToRolePolicy(new iam.PolicyStatement({
