@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
@@ -21,6 +22,29 @@ type RefreshableBackend struct {
 	MinecraftServerHost string
 	MinecraftServerName string
 	Imgur               *imgur.Client
+}
+
+func ReplyWithServerStatus(host, name string, imgurClient *imgur.Client) func(*discordgo.Session, *discordgo.MessageCreate) {
+	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		if m.Author.ID == s.State.User.ID || !(strings.HasPrefix(m.Content, "any gamers") || strings.HasPrefix(m.Content, "Any gamers")) {
+			return
+		}
+
+		embed, err := prepareStatusEmbed(s, m.GuildID, host, name, imgurClient)
+		if err != nil {
+			log.Printf("error preparing status embed: %s", err)
+			return
+		}
+
+		_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+			Content: "gamers?",
+			Embed:   embed,
+		})
+		if err != nil {
+			log.Printf("error replying with server status: %s", err)
+			return
+		}
+	}
 }
 
 func prepareStatusEmbed(s *discordgo.Session, guildID, host, name string, imgurClient *imgur.Client) (*discordgo.MessageEmbed, error) {

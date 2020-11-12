@@ -77,7 +77,7 @@ func main() {
 	dg.StateEnabled = true
 	dg.Identify.Compress = true
 
-	dg.AddHandler(anyGamers(cfg))
+	dg.AddHandler(connected.ReplyWithServerStatus(cfg.MinecraftServerHost, cfg.MinecraftServerName, nil))
 	dg.AddHandler(registerMinecraftGamer(usersService))
 	dg.AddHandler(echo)
 	dg.AddHandler(lookupUser(usersService))
