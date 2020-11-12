@@ -1,4 +1,4 @@
-package main
+package register
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/tonkat-su/bot/users"
 )
 
-func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discordgo.MessageCreate) {
+func RegisterMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if m.Author.ID == s.State.User.ID || !handlers.MentionsUser(s.State.User, m.Mentions) {
 			return
@@ -80,7 +80,7 @@ func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 	}
 }
 
-func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *discordgo.MessageCreate) {
+func LookupUser(usersService *users.Service) func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if m.Author.ID == s.State.User.ID || !handlers.MentionsUser(s.State.User, m.Mentions) {
 			return

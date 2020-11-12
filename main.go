@@ -15,6 +15,7 @@ import (
 	"github.com/tonkat-su/bot/handlers/echo"
 	"github.com/tonkat-su/bot/handlers/pinnedleaderboard"
 	"github.com/tonkat-su/bot/handlers/refreshable"
+	"github.com/tonkat-su/bot/handlers/register"
 	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/users"
 )
@@ -78,10 +79,10 @@ func main() {
 	dg.StateEnabled = true
 	dg.Identify.Compress = true
 
-	dg.AddHandler(connected.ReplyWithServerStatus(cfg.MinecraftServerHost, cfg.MinecraftServerName, nil))
-	dg.AddHandler(registerMinecraftGamer(usersService))
 	dg.AddHandler(echo.Echo)
-	dg.AddHandler(lookupUser(usersService))
+	dg.AddHandler(connected.ReplyWithServerStatus(cfg.MinecraftServerHost, cfg.MinecraftServerName, nil))
+	dg.AddHandler(register.RegisterMinecraftGamer(usersService))
+	dg.AddHandler(register.LookupUser(usersService))
 	refreshableLeaderboard.AddHandlers(dg)
 	whosConnected.AddHandlers(dg)
 
