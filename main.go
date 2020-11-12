@@ -30,7 +30,7 @@ type Config struct {
 	MinecraftServerName string `required:"true" split_words:"true"`
 	MinecraftServerHost string `required:"true" split_words:"true"`
 	GuildId             string `required:"true" split_words:"true"`
-	PresenceInterval    int64  `default:"5" split_words:"true"`
+	PresenceInterval    string `default:"5m" split_words:"true"`
 
 	UsersServiceRedisUrl string `required:"true" split_words:"true"`
 }
@@ -92,8 +92,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	presenceTicker := time.NewTicker(time.Duration(cfg.PresenceInterval) * time.Minute)
-	go func(presenceTicker *time.Ticker) {
+	go func() {
+		interval, err := time.ParseDuration(cfg.PresenceInterval)
+		if err != nil {
+			log.Printf("invalid presence interval: %s", err)
+			interval = 5 * time.Minute
+		}
+
+		presenceTicker := time.NewTicker(interval)
 		for {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			err := presence.Update(ctx, cfg.MinecraftServerHost, dg)
@@ -103,10 +109,11 @@ func main() {
 			cancel()
 			<-presenceTicker.C
 		}
-	}(presenceTicker)
+	}()
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+
 	<-sc
 	dg.Close()
 }
