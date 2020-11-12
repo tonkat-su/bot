@@ -47,7 +47,7 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'diff'
-          cdk_version: '1.72.0'
+          cdk_version: '1.73.0'
           working_dir: 'infra'
         env:
           AWS_DEFAULT_REGION: 'us-west-2'
@@ -71,7 +71,7 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'deploy --require-approval never'
-          cdk_version: '1.72.0'
+          cdk_version: '1.73.0'
           working_dir: 'infra'
         env:
           AWS_DEFAULT_REGION: 'us-west-2'
