@@ -1,23 +1,21 @@
-package main
+package presence
 
 import (
 	"context"
 	"fmt"
-	"log"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/mclookup"
 )
 
-func updatePresence(ctx context.Context, cfg Config, s *discordgo.Session) error {
-	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, cfg.MinecraftServerHost)
+func Update(ctx context.Context, host string, s *discordgo.Session) error {
+	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, host)
 	if err != nil {
-		return fmt.Errorf("error resolving server host '%s': %s", cfg.MinecraftServerHost, err.Error())
+		return fmt.Errorf("error resolving server host '%s': %s", host, err.Error())
 	}
 	if len(hostports) == 0 {
-		log.Printf("no records for %s", cfg.MinecraftServerHost)
-		return nil
+		return s.UpdateStatus(0, "")
 	}
 
 	pong, err := mcpinger.New(hostports[0].Host, hostports[0].Port).Ping()

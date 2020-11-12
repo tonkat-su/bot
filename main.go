@@ -17,6 +17,7 @@ import (
 	"github.com/tonkat-su/bot/handlers/refreshable"
 	"github.com/tonkat-su/bot/handlers/register"
 	"github.com/tonkat-su/bot/leaderboard"
+	"github.com/tonkat-su/bot/presence"
 	"github.com/tonkat-su/bot/users"
 )
 
@@ -95,7 +96,7 @@ func main() {
 	go func(presenceTicker *time.Ticker) {
 		for {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			err := updatePresence(ctx, cfg, dg)
+			err := presence.Update(ctx, cfg.MinecraftServerHost, dg)
 			if err != nil {
 				log.Printf("failed to update presence: %s", err.Error())
 			}
