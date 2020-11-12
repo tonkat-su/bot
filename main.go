@@ -12,6 +12,7 @@ import (
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/handlers/connected"
+	"github.com/tonkat-su/bot/handlers/echo"
 	"github.com/tonkat-su/bot/handlers/pinnedleaderboard"
 	"github.com/tonkat-su/bot/handlers/refreshable"
 	"github.com/tonkat-su/bot/leaderboard"
@@ -79,7 +80,7 @@ func main() {
 
 	dg.AddHandler(connected.ReplyWithServerStatus(cfg.MinecraftServerHost, cfg.MinecraftServerName, nil))
 	dg.AddHandler(registerMinecraftGamer(usersService))
-	dg.AddHandler(echo)
+	dg.AddHandler(echo.Echo)
 	dg.AddHandler(lookupUser(usersService))
 	refreshableLeaderboard.AddHandlers(dg)
 	whosConnected.AddHandlers(dg)

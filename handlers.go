@@ -2,32 +2,18 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
+	"github.com/tonkat-su/bot/handlers"
 	"github.com/tonkat-su/bot/users"
 )
 
-func mentionsUser(user *discordgo.User, users []*discordgo.User) bool {
-	for _, v := range users {
-		if v.ID == user.ID {
-			return true
-		}
-	}
-	return false
-}
-
-func reply(s *discordgo.Session, m *discordgo.MessageCreate, message string) error {
-	_, err := s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s %s", m.Author.Mention(), message))
-	return err
-}
-
 func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) {
+		if m.Author.ID == s.State.User.ID || !handlers.MentionsUser(s.State.User, m.Mentions) {
 			return
 		}
 
@@ -38,7 +24,7 @@ func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 
 		const helptext = "register @discorduser <minecraft username or uuid>"
 		if len(args) != 4 {
-			err := reply(s, m, helptext)
+			err := handlers.Reply(s, m, helptext)
 			if err != nil {
 				log.Printf("error sending message: %s", err)
 			}
@@ -46,7 +32,7 @@ func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 		}
 
 		if len(m.Mentions) != 2 {
-			err := reply(s, m, helptext)
+			err := handlers.Reply(s, m, helptext)
 			if err != nil {
 				log.Printf("error sending message: %s", err)
 			}
@@ -55,7 +41,7 @@ func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 
 		input := &users.RegisterInput{}
 		if args[3] == "" {
-			err := reply(s, m, helptext)
+			err := handlers.Reply(s, m, helptext)
 			if err != nil {
 				log.Printf("error sending message: %s", err)
 			}
@@ -80,14 +66,14 @@ func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 		err = svc.Register(context.TODO(), input)
 		if err != nil {
 			log.Printf("error registering user: %s", err)
-			sendErr := reply(s, m, "got an error registering user, try again later")
+			sendErr := handlers.Reply(s, m, "got an error registering user, try again later")
 			if sendErr != nil {
 				log.Printf("error sending message: %s", sendErr)
 			}
 			return
 		}
 
-		err = reply(s, m, "registration succeeded!")
+		err = handlers.Reply(s, m, "registration succeeded!")
 		if err != nil {
 			log.Printf("error sending message: %s", err)
 		}
@@ -96,7 +82,7 @@ func registerMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 
 func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) {
+		if m.Author.ID == s.State.User.ID || !handlers.MentionsUser(s.State.User, m.Mentions) {
 			return
 		}
 
@@ -110,8 +96,8 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 
 		const helptext = "lookup <@discordUser or minecraftUsername>"
 		if len(args) == 2 || len(args) > 3 {
-			if sendErr := reply(s, m, helptext); sendErr != nil {
-				log.Printf("error sending reply: %s", sendErr)
+			if sendErr := handlers.Reply(s, m, helptext); sendErr != nil {
+				log.Printf("error sending handlers.Reply: %s", sendErr)
 			}
 			return
 		}
@@ -129,8 +115,8 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 			storedUserInfo, err = usersService.LookupByDiscordId(context.TODO(), &users.LookupInput{Id: targetDiscordUser.ID})
 			if err != nil {
 				log.Printf("error looking up user: %s", err)
-				if sendErr := reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
-					log.Printf("error sending reply: %s", sendErr)
+				if sendErr := handlers.Reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
+					log.Printf("error sending handlers.Reply: %s", sendErr)
 				}
 				return
 			}
@@ -139,16 +125,16 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 			storedUserInfo, err = usersService.LookupByMinecraftUsername(context.TODO(), &users.LookupInput{Id: args[2]})
 			if err != nil {
 				log.Printf("error looking up user: %s", err)
-				if sendErr := reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
-					log.Printf("error sending reply: %s", sendErr)
+				if sendErr := handlers.Reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
+					log.Printf("error sending handlers.Reply: %s", sendErr)
 				}
 				return
 			}
 		}
 
 		if storedUserInfo == nil {
-			if sendErr := reply(s, m, "user not found"); sendErr != nil {
-				log.Printf("error sending reply: %s", sendErr)
+			if sendErr := handlers.Reply(s, m, "user not found"); sendErr != nil {
+				log.Printf("error sending handlers.Reply: %s", sendErr)
 			}
 			return
 		}
@@ -156,8 +142,8 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 		discordUser, err := s.User(storedUserInfo.DiscordUserId)
 		if err != nil {
 			log.Printf("error looking up discord username by id: %s", err)
-			if sendErr := reply(s, m, "error looking up discord username"); sendErr != nil {
-				log.Printf("error sending reply: %s", sendErr)
+			if sendErr := handlers.Reply(s, m, "error looking up discord username"); sendErr != nil {
+				log.Printf("error sending handlers.Reply: %s", sendErr)
 			}
 			return
 		}
@@ -181,17 +167,7 @@ func lookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 			},
 		}
 		if _, sendErr := s.ChannelMessageSendEmbed(m.ChannelID, msg); sendErr != nil {
-			log.Printf("error sending reply: %s", sendErr)
+			log.Printf("error sending handlers.Reply: %s", sendErr)
 		}
-	}
-}
-func echo(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID || !mentionsUser(s.State.User, m.Mentions) || !strings.Contains(m.Content, "echo") {
-		return
-	}
-
-	_, err := s.ChannelMessageSend(m.ChannelID, "```\n"+m.Content+"\n```")
-	if err != nil {
-		log.Println(err)
 	}
 }
