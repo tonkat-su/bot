@@ -9,7 +9,7 @@ jobs:
   build_lambdas:
     strategy:
       matrix:
-        go-version: [^1.x]
+        go-version: [1.5.5]
     runs-on: ubuntu-latest
     steps:
       - name: install go
