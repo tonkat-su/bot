@@ -39,11 +39,6 @@ export class TonkatsuStack extends cdk.Stack {
       resources: ["*"],
     }))
 
-    new events.Rule(this, "giveCatTreatsSchedule", {
-      schedule: events.Schedule.rate(Duration.minutes(5)),
-      targets: [new events_targets.LambdaFunction(giveCatTreatsLambda)],
-    })
-
     const discordToken = secretsManager.Secret.fromSecretCompleteArn(this, "discordToken", "arn:aws:secretsmanager:us-west-2:635281304921:secret:tonkatsu/bot/prod/discordToken-SGeL0l")
 
     const refreshWhosOnlineLambda = new lambda.Function(this, "refreshWhosOnlineLambda", {
@@ -72,9 +67,12 @@ export class TonkatsuStack extends cdk.Stack {
       resources: [discordToken.secretArn],
     }))
 
-    new events.Rule(this, "refreshWhosOnlineSchedule", {
+    new events.Rule(this, "everyFiveMinutes", {
       schedule: events.Schedule.rate(Duration.minutes(5)),
-      targets: [new events_targets.LambdaFunction(refreshWhosOnlineLambda)],
+      targets: [
+        new events_targets.LambdaFunction(giveCatTreatsLambda),
+        new events_targets.LambdaFunction(refreshWhosOnlineLambda),
+      ],
     })
   }
 }
