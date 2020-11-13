@@ -71,7 +71,6 @@ export class TonkatsuStack extends cdk.Stack {
       schedule: events.Schedule.rate(Duration.minutes(5)),
       targets: [
         new events_targets.LambdaFunction(giveCatTreatsLambda),
-        new events_targets.LambdaFunction(refreshWhosOnlineLambda),
       ],
     })
   }
