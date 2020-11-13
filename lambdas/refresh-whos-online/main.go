@@ -57,6 +57,7 @@ func main() {
 		closer := make(chan bool, 1)
 		dg.AddHandler(func(s *discordgo.Session, event *discordgo.Ready) {
 			connectedHandler.OnConnect(s, event)
+			log.Println("refreshed whos online")
 			closer <- true
 		})
 
