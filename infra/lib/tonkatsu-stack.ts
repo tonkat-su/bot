@@ -25,6 +25,12 @@ export class TonkatsuStack extends cdk.Stack {
       target: route53.RecordTarget.fromIpAddresses("45.33.41.248"),
     })
 
+    new route53.AaaaRecord(this, 'botAAAARecord', {
+      zone: tonkatsuZone,
+      recordName: "bot",
+      target: route53.RecordTarget.fromIpAddresses("2600:3c01::f03c:92ff:fe64:e48f"),
+    })
+
     const lambdasAsset = new assets.Asset(this, "lambdasZip", {
       path: path.join(__dirname, "../../build/"),
     })
