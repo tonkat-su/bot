@@ -6,12 +6,24 @@ import iam = require("@aws-cdk/aws-iam");
 import lambda = require("@aws-cdk/aws-lambda");
 import logs = require("@aws-cdk/aws-logs");
 import path = require("path");
+import route53 = require("@aws-cdk/aws-route53");
 import secretsManager = require("@aws-cdk/aws-secretsmanager");
 import { Duration } from '@aws-cdk/core';
 
 export class TonkatsuStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    
+    const tonkatsuZone = route53.HostedZone.fromHostedZoneAttributes(this, 'tonkatsuZone', {
+      hostedZoneId: 'ZVAMW53PNR70P',
+      zoneName: 'tonkat.su',
+    })
+
+    new route53.ARecord(this, 'botRecord', {
+      zone: tonkatsuZone,
+      recordName: "bot",
+      target: route53.RecordTarget.fromIpAddresses("45.33.41.248"),
+    })
 
     const lambdasAsset = new assets.Asset(this, "lambdasZip", {
       path: path.join(__dirname, "../../build/"),
