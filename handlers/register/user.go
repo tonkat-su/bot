@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
 	"github.com/tonkat-su/bot/handlers"
+	"github.com/tonkat-su/bot/mcuser"
 	"github.com/tonkat-su/bot/users"
 )
 
@@ -49,9 +50,17 @@ func RegisterMinecraftGamer(svc *users.Service) func(*discordgo.Session, *discor
 		}
 		_, err := uuid.Parse(args[3])
 		if err != nil {
-			input.MinecraftUsername = &args[3]
+			input.MinecraftUserId, err = mcuser.GetUuid(args[3])
+			if err != nil {
+				log.Printf("error looking up minecraft uuid: %s", err)
+				sendErr := handlers.Reply(s, m, "error looking up minecraft uuid")
+				if sendErr != nil {
+					log.Printf("error sending message: %s", err)
+				}
+				return
+			}
 		} else {
-			input.MinecraftUserId = &args[3]
+			input.MinecraftUserId = args[3]
 		}
 
 		var targetDiscordUser *discordgo.User
@@ -121,8 +130,15 @@ func LookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 				return
 			}
 		} else {
-			var err error
-			storedUserInfo, err = usersService.LookupByMinecraftUsername(context.TODO(), &users.LookupInput{Id: args[2]})
+			minecraftUuid, err := mcuser.GetUuid(args[2])
+			if err != nil {
+				log.Printf("error getting minecraft uuid: %s", err)
+				if sendErr := handlers.Reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
+					log.Printf("error sending handlers.Reply: %s", sendErr)
+				}
+				return
+			}
+			storedUserInfo, err = usersService.LookupByMinecraftId(context.TODO(), &users.LookupInput{Id: minecraftUuid})
 			if err != nil {
 				log.Printf("error looking up user: %s", err)
 				if sendErr := handlers.Reply(s, m, "got an error looking up user, try again later"); sendErr != nil {
@@ -148,6 +164,15 @@ func LookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 			return
 		}
 
+		minecraftUsername, err := mcuser.GetUsername(storedUserInfo.MinecraftUserId)
+		if err != nil {
+			log.Printf("error looking up minecraft username: %s", err)
+			if sendErr := handlers.Reply(s, m, "error looking up minecraft username"); sendErr != nil {
+				log.Printf("error sending handlers.Reply: %s", sendErr)
+			}
+			return
+		}
+
 		msg := &discordgo.MessageEmbed{
 			Title: "user registration result",
 			Color: 0x43b581,
@@ -158,7 +183,7 @@ func LookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 				},
 				{
 					Name:  "minecraft name",
-					Value: storedUserInfo.MinecraftUsername,
+					Value: minecraftUsername,
 				},
 				{
 					Name:  "minecraft id",
