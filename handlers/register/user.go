@@ -178,11 +178,15 @@ func LookupUser(usersService *users.Service) func(s *discordgo.Session, m *disco
 			Color: 0x43b581,
 			Fields: []*discordgo.MessageEmbedField{
 				{
-					Name:  "discord user",
+					Name:  "discord username",
 					Value: discordUser.Username,
 				},
 				{
-					Name:  "minecraft name",
+					Name:  "discord id",
+					Value: storedUserInfo.DiscordUserId,
+				},
+				{
+					Name:  "minecraft username",
 					Value: minecraftUsername,
 				},
 				{
