@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.15.5]
+        cdk-version: [1.75.0]
     runs-on: ubuntu-latest
     steps:
       - name: install go
@@ -47,7 +48,7 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'diff'
-          cdk_version: '1.73.0'
+          cdk_version: ${{ matrix.cdk-version }}
           working_dir: 'infra'
         env:
           AWS_DEFAULT_REGION: 'us-west-2'
@@ -71,7 +72,7 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v1
         with:
           cdk_subcommand: 'deploy --require-approval never'
-          cdk_version: '1.73.0'
+          cdk_version: ${{ matrix.cdk-version }}
           working_dir: 'infra'
         env:
           AWS_DEFAULT_REGION: 'us-west-2'
