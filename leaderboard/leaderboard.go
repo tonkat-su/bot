@@ -133,19 +133,26 @@ func (svc *Service) fetchStandingsFromLastWeek(ctx context.Context, endTime time
 
 func transformCloudwatchResultsToStandings(results []*cloudwatch.MetricDataResult) *Standings {
 	standings := &Standings{
-		SortedStandings: make([]*PlayerScore, len(results)),
+		SortedStandings: make([]*PlayerScore, 0, len(results)),
 	}
-	for i, v := range results {
-		standings.SortedStandings[i] = &PlayerScore{
+
+	for _, v := range results {
+		score := &PlayerScore{
 			PlayerId: aws.StringValue(v.Label),
 		}
 		for _, value := range v.Values {
-			standings.SortedStandings[i].Score += int64(aws.Float64Value(value))
+			score.Score += int64(aws.Float64Value(value))
+		}
+
+		if score.Score > 0 {
+			standings.SortedStandings = append(standings.SortedStandings, score)
 		}
 	}
+
 	sort.SliceStable(standings.SortedStandings, func(i, j int) bool {
 		return standings.SortedStandings[i].Score > standings.SortedStandings[j].Score
 	})
+
 	return standings
 }
 
