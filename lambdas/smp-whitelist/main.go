@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/bsdlp/envconfig"
 	"github.com/bsdlp/interactions"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type Config struct {
@@ -50,6 +51,8 @@ func main() {
 			}, err
 		}
 		defer req.Body.Close()
+
+		spew.Dump(req)
 
 		if req.Method != http.MethodPost {
 			return events.APIGatewayV2HTTPResponse{
