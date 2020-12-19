@@ -66,8 +66,17 @@ func main() {
 			}, nil
 		}
 
+		body, err := req.GetBody()
+		if err != nil {
+			log.Printf("error getting body from request: %s", err)
+			return events.APIGatewayV2HTTPResponse{
+				Body:       err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}, err
+		}
+
 		var data interactions.Data
-		err = json.NewDecoder(req.Body).Decode(&data)
+		err = json.NewDecoder(body).Decode(&data)
 		if err != nil {
 			log.Println("invalid data")
 			return events.APIGatewayV2HTTPResponse{
