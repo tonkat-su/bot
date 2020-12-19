@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/bsdlp/envconfig"
 	"github.com/bsdlp/interactions"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type Config struct {
@@ -52,8 +51,6 @@ func main() {
 		}
 		defer req.Body.Close()
 
-		spew.Dump(req)
-
 		if req.Method != http.MethodPost {
 			return events.APIGatewayV2HTTPResponse{
 				StatusCode: http.StatusMethodNotAllowed,
@@ -62,6 +59,7 @@ func main() {
 
 		verified := interactions.Verify(ctx, req, discordPubkey)
 		if !verified {
+			log.Println("invalid signature")
 			return events.APIGatewayV2HTTPResponse{
 				Body:       "invalid signature",
 				StatusCode: http.StatusUnauthorized,
@@ -71,6 +69,7 @@ func main() {
 		var data interactions.Data
 		err = json.NewDecoder(req.Body).Decode(&data)
 		if err != nil {
+			log.Println("invalid data")
 			return events.APIGatewayV2HTTPResponse{
 				Body:       "error decoding json request",
 				StatusCode: http.StatusBadRequest,
@@ -78,6 +77,7 @@ func main() {
 		}
 
 		if data.Type == interactions.Ping {
+			log.Println("ping received")
 			return events.APIGatewayV2HTTPResponse{
 				Body:       `{"type":1}`,
 				StatusCode: http.StatusOK,
