@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as apigatewayv2 from '@aws-cdk/aws-apigatewayv2';
 import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
 import * as assets from '@aws-cdk/aws-s3-assets';
+import * as certificatemanager from '@aws-cdk/aws-certificatemanager';
 import * as events from '@aws-cdk/aws-events';
 import * as events_targets from '@aws-cdk/aws-events-targets';
 import * as iam from '@aws-cdk/aws-iam';
@@ -96,7 +97,7 @@ export class TonkatsuStack extends cdk.Stack {
 
     const smpRconPassword = secretsManager.Secret.fromSecretCompleteArn(this, "smpRconPassword", "arn:aws:secretsmanager:us-west-2:635281304921:secret:prod/mc.tonkat.su/rconpassword-dEsrPy")
 
-    const smpWhitelistLambda = new lambda.Function(this, 'smpWhitelistLambda', {
+    const interactionsWhitelistLambda = new lambda.Function(this, 'interactionsWhitelistLambda', {
       code: lambda.Code.fromBucket(
         lambdasAsset.bucket,
         lambdasAsset.s3ObjectKey,
@@ -112,7 +113,7 @@ export class TonkatsuStack extends cdk.Stack {
       logRetention: logs.RetentionDays.THREE_DAYS,
     })
 
-    smpWhitelistLambda.addToRolePolicy(new iam.PolicyStatement({
+    interactionsWhitelistLambda.addToRolePolicy(new iam.PolicyStatement({
       actions: [
         "secretsmanager:GetResourcePolicy",
         "secretsmanager:GetSecretValue",
@@ -122,13 +123,26 @@ export class TonkatsuStack extends cdk.Stack {
       resources: [smpRconPassword.secretArn],
     }))
 
-    const smpWhitelistApi = new apigatewayv2.HttpApi(this, 'smpWhitelistApi')
+    const interactionsCert = new certificatemanager.DnsValidatedCertificate(this, 'interactionsCert', {
+      domainName: 'interactions.tonkat.su',
+      hostedZone: tonkatsuZone,
+      region: 'us-west-2',
+    })
 
-    smpWhitelistApi.addRoutes({
+    const interactionsWhitelistApi = new apigatewayv2.HttpApi(this, 'interactionsWhitelistApi', {
+      defaultDomainMapping: {
+        domainName: new apigatewayv2.DomainName(this, 'interactionsDomainName', {
+          domainName: 'interactions.tonkat.su',
+          certificate: interactionsCert,
+        }),
+      }
+    })
+
+    interactionsWhitelistApi.addRoutes({
       path: '/whitelist',
       methods: [apigatewayv2.HttpMethod.POST],
       integration: new LambdaProxyIntegration({
-        handler: smpWhitelistLambda,
+        handler: interactionsWhitelistLambda,
       })
     })
   }
