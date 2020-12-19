@@ -3,6 +3,9 @@
 github.com/Raqbit/mc-pinger
 github.com/Raqbit/mc-pinger/encoding
 github.com/Raqbit/mc-pinger/packet
+# github.com/apex/gateway/v2 v2.0.0
+## explicit
+github.com/apex/gateway/v2
 # github.com/aws/aws-lambda-go v1.20.0
 ## explicit
 github.com/aws/aws-lambda-go/events
@@ -54,6 +57,9 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/bsdlp/envconfig v1.5.0
 ## explicit
 github.com/bsdlp/envconfig
+# github.com/bsdlp/interactions v0.0.0-20201219091125-e3928a72fcf8
+## explicit
+github.com/bsdlp/interactions
 # github.com/bwmarrin/discordgo v0.22.0
 ## explicit
 github.com/bwmarrin/discordgo
@@ -77,6 +83,10 @@ github.com/google/uuid
 github.com/gorilla/websocket
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
+# github.com/kevinburke/nacl v0.0.0-20201212185859-3ef16edae976
+github.com/kevinburke/nacl/sign
+# github.com/pkg/errors v0.9.1
+github.com/pkg/errors
 # github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 ## explicit
 github.com/vincent-petithory/dataurl
@@ -93,7 +103,9 @@ go.opentelemetry.io/otel/internal/baggage
 go.opentelemetry.io/otel/internal/trace/noop
 go.opentelemetry.io/otel/label
 go.opentelemetry.io/otel/unit
-# golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+# golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/nacl/secretbox
 golang.org/x/crypto/poly1305

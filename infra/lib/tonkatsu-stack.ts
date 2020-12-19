@@ -1,13 +1,15 @@
 import * as cdk from '@aws-cdk/core';
-import assets = require("@aws-cdk/aws-s3-assets");
-import events = require("@aws-cdk/aws-events");
-import events_targets = require("@aws-cdk/aws-events-targets");
-import iam = require("@aws-cdk/aws-iam");
-import lambda = require("@aws-cdk/aws-lambda");
-import logs = require("@aws-cdk/aws-logs");
-import path = require("path");
-import route53 = require("@aws-cdk/aws-route53");
-import secretsManager = require("@aws-cdk/aws-secretsmanager");
+import * as apigatewayv2 from '@aws-cdk/aws-apigatewayv2';
+import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
+import * as assets from '@aws-cdk/aws-s3-assets';
+import * as events from '@aws-cdk/aws-events';
+import * as events_targets from '@aws-cdk/aws-events-targets';
+import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as logs from '@aws-cdk/aws-logs';
+import * as path from 'path';
+import * as route53 from '@aws-cdk/aws-route53';
+import * as secretsManager from '@aws-cdk/aws-secretsmanager';
 import { Duration } from '@aws-cdk/core';
 
 export class TonkatsuStack extends cdk.Stack {
@@ -90,6 +92,44 @@ export class TonkatsuStack extends cdk.Stack {
       targets: [
         new events_targets.LambdaFunction(giveCatTreatsLambda),
       ],
+    })
+
+    const smpRconPassword = secretsManager.Secret.fromSecretCompleteArn(this, "smpRconPassword", "arn:aws:secretsmanager:us-west-2:635281304921:secret:prod/mc.tonkat.su/rconpassword-dEsrPy")
+
+    const smpWhitelistLambda = new lambda.Function(this, 'smpWhitelistLambda', {
+      code: lambda.Code.fromBucket(
+        lambdasAsset.bucket,
+        lambdasAsset.s3ObjectKey,
+      ),
+      runtime: lambda.Runtime.GO_1_X,
+      handler: "smp-whitelist",
+      timeout: cdk.Duration.seconds(15),
+      environment: {
+        "MINECRAFT_SERVER_RCON_ADDRESS": "mc.tonkat.su:25575",
+        "DISCORD_APPLICATION_PUBKEY": "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c",
+        "RCON_PASSWORD_SECRET_ARN": smpRconPassword.secretArn,
+      },
+      logRetention: logs.RetentionDays.THREE_DAYS,
+    })
+
+    smpWhitelistLambda.addToRolePolicy(new iam.PolicyStatement({
+      actions: [
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:ListSecretVersionIds"
+      ],
+      resources: [smpRconPassword.secretArn],
+    }))
+
+    const smpWhitelistApi = new apigatewayv2.HttpApi(this, 'smpWhitelistApi')
+
+    smpWhitelistApi.addRoutes({
+      path: '/whitelist',
+      methods: [apigatewayv2.HttpMethod.POST],
+      integration: new LambdaProxyIntegration({
+        handler: smpWhitelistLambda,
+      })
     })
   }
 }
