@@ -11,6 +11,7 @@ import * as logs from '@aws-cdk/aws-logs';
 import * as path from 'path';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as secretsManager from '@aws-cdk/aws-secretsmanager';
+import * as targets from '@aws-cdk/aws-route53-targets';
 import { Duration } from '@aws-cdk/core';
 
 export class TonkatsuStack extends cdk.Stack {
@@ -129,12 +130,14 @@ export class TonkatsuStack extends cdk.Stack {
       region: 'us-west-2',
     })
 
+    const interactionsDomainName = new apigatewayv2.DomainName(this, 'interactionsDomainName', {
+      domainName: 'interactions.tonkat.su',
+      certificate: interactionsCert,
+    })
+
     const interactionsWhitelistApi = new apigatewayv2.HttpApi(this, 'interactionsWhitelistApi', {
       defaultDomainMapping: {
-        domainName: new apigatewayv2.DomainName(this, 'interactionsDomainName', {
-          domainName: 'interactions.tonkat.su',
-          certificate: interactionsCert,
-        }),
+        domainName: interactionsDomainName,
       }
     })
 
@@ -144,6 +147,11 @@ export class TonkatsuStack extends cdk.Stack {
       integration: new LambdaProxyIntegration({
         handler: interactionsWhitelistLambda,
       })
+    })
+
+    new route53.ARecord(this, 'interactionsWhitelistAliasRecord', {
+      zone: tonkatsuZone,
+      target: route53.RecordTarget.fromAlias(new targets.ApiGatewayv2Domain(interactionsDomainName))
     })
   }
 }
