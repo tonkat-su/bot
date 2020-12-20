@@ -57,7 +57,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/bsdlp/envconfig v1.5.0
 ## explicit
 github.com/bsdlp/envconfig
-# github.com/bsdlp/interactions v0.0.0-20201219184244-4de5a0c0c408
+# github.com/bsdlp/interactions v0.0.0-20201220003525-2c14ffdd038f
 ## explicit
 github.com/bsdlp/interactions
 # github.com/bwmarrin/discordgo v0.22.0
