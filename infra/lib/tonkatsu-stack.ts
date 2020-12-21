@@ -107,7 +107,7 @@ export class TonkatsuStack extends cdk.Stack {
       handler: "smp-whitelist",
       timeout: cdk.Duration.seconds(15),
       environment: {
-        "MINECRAFT_SERVER_RCON_ADDRESS": "mc.tonkat.su:25575",
+        "MINECRAFT_SERVER_RCON_ADDRESS": "45.33.41.248:25575",
         "DISCORD_APPLICATION_PUBKEY": "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c",
         "RCON_PASSWORD_SECRET_ARN": smpRconPassword.secretArn,
       },
