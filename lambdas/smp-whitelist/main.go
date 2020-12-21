@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -98,6 +99,12 @@ func main() {
 				StatusCode: http.StatusInternalServerError,
 			}, err
 		}
+
+		bs, err := ioutil.ReadAll(body)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		log.Println(string(bs))
 
 		// marshal interaction webhook data
 		var data interactions.Data
