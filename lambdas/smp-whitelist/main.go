@@ -103,11 +103,11 @@ func main() {
 		var data interactions.Data
 		err = json.NewDecoder(body).Decode(&data)
 		if err != nil {
-			log.Println("invalid data")
+			log.Printf("invalid data: %s", err.Error())
 			return events.APIGatewayV2HTTPResponse{
 				Body:       "error decoding json request",
 				StatusCode: http.StatusBadRequest,
-			}, nil
+			}, err
 		}
 
 		// reply with a pong when discord pings us
