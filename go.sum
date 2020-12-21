@@ -1,4 +1,8 @@
+filippo.io/edwards25519 v1.0.0-beta.2 h1:/BZRNzm8N4K4eWfK28dL4yescorxtO7YG1yun8fy+pI=
+filippo.io/edwards25519 v1.0.0-beta.2/go.mod h1:X+pm78QAUPtFLi1z9PYIlS/bdDnvbCOGKtZ+ACWEf7o=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/Kelwing/mc-rcon v0.0.0-20191221214055-1f327b337f77 h1:4iotpbMl1dl6h/htbqKCnYQFCIxyV7F1ce+anGXLyCY=
+github.com/Kelwing/mc-rcon v0.0.0-20191221214055-1f327b337f77/go.mod h1:wlXY/EO9CBjMViEh95JOQhp//RMnHs4ZUBhYhx43LdM=
 github.com/Raqbit/mc-pinger v0.0.0-20191220212142-2843d3222bd5 h1:BpFQdgs2FL6mMOG699aODzkbAiC17l3NPXJeKlfZRqY=
 github.com/Raqbit/mc-pinger v0.0.0-20191220212142-2843d3222bd5/go.mod h1:r2rVvqOwaYCU3rYUNeSmCiJbcX2wJkDisXH7rZsjjuM=
 github.com/apex/gateway/v2 v2.0.0 h1:tJwKiB7ObbXuF3yoqTf/CfmaZRhHB+GfilTNSCf1Wnc=
@@ -8,10 +12,10 @@ github.com/aws/aws-lambda-go v1.20.0 h1:ZSweJx/Hy9BoIDXKBEh16vbHH0t0dehnF8MKpMiO
 github.com/aws/aws-lambda-go v1.20.0/go.mod h1:jJmlefzPfGnckuHdXX7/80O3BvUUi12XOkbv4w9SGLU=
 github.com/aws/aws-sdk-go v1.35.23 h1:SCP0d0XvyJTDmfnHEQPvBaYi3kea1VNUo7uQmkVgFts=
 github.com/aws/aws-sdk-go v1.35.23/go.mod h1:tlPOdRjfxPBpNIwqDj61rmsnA85v9jc0Ps9+muhnW+k=
+github.com/bsdlp/discord-interactions-go v0.0.0-20201220203031-0a0ee0b7b9a0 h1:hLVynbqyMc6nQdgxNCV5b0sTuXTB0SocZz1CppkdsSQ=
+github.com/bsdlp/discord-interactions-go v0.0.0-20201220203031-0a0ee0b7b9a0/go.mod h1:qsec+uJJns+bZGX2yiU6zjK4vIlx7ue+WmL66dQOsr4=
 github.com/bsdlp/envconfig v1.5.0 h1:/hcPMPrLUBeYI2sI646TTmDno0JYJaZv5+zdI1kya/M=
 github.com/bsdlp/envconfig v1.5.0/go.mod h1:7PGb+QixX1SKIWlM4r/k9FuGsiG1wFMgB7pM30+qAqI=
-github.com/bsdlp/interactions v0.0.0-20201220003525-2c14ffdd038f h1:nOL7hAIMHFzA+LB3CSx3zknOh7ryKf3nFdN3vP19xzg=
-github.com/bsdlp/interactions v0.0.0-20201220003525-2c14ffdd038f/go.mod h1:nI4Ybh1ekstJI5PW/P2xnqJr2I3/EnuRk6E8jB0UMl0=
 github.com/bwmarrin/discordgo v0.22.0 h1:uBxY1HmlVCsW1IuaPjpCGT6A2DBwRn0nvOguQIxDdFM=
 github.com/bwmarrin/discordgo v0.22.0/go.mod h1:c1WtWUGN6nREDmzIpyTp/iD3VYt4Fpx+bVyfBG7JE+M=
 github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=
@@ -51,6 +55,8 @@ github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9Y
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
+github.com/kevinburke/nacl v0.0.0-20201212185859-3ef16edae976 h1:LySR6tOhTi7NdeGcaTpk6M8b1yX/+Oy9jXClK9hek2E=
+github.com/kevinburke/nacl v0.0.0-20201212185859-3ef16edae976/go.mod h1:VUp2yfq+wAk8hMl3NNN34fXjzUD9xMpGvUL8eSJz9Ns=
 github.com/nxadm/tail v1.4.4 h1:DQuhQpB1tVlglWS2hLQ5OV6B5r8aGxSrPc5Qo6uTN78=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=

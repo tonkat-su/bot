@@ -23,6 +23,11 @@
                             "type": 6,
                             "name": "discord_user",
                             "description": "discord user"
+                        },
+                        {
+                            "type": 3,
+                            "name": "mc_user",
+                            "description": "minecraft username"
                         }
                     ]
                 },
@@ -35,6 +40,11 @@
                             "type": 6,
                             "name": "discord_user",
                             "description": "discord user"
+                        },
+                        {
+                            "type": 3,
+                            "name": "mc_user",
+                            "description": "minecraft username"
                         }
                     ]
                 },
