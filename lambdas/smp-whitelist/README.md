@@ -20,14 +20,15 @@
                     "description": "add user to whitelist",
                     "options": [
                         {
+                            "type": 3,
+                            "name": "mc_user",
+                            "description": "minecraft username",
+                            "required": true
+                        },
+                        {
                             "type": 6,
                             "name": "discord_user",
                             "description": "discord user"
-                        },
-                        {
-                            "type": 3,
-                            "name": "mc_user",
-                            "description": "minecraft username"
                         }
                     ]
                 },
@@ -37,14 +38,15 @@
                     "description": "remove user from whitelist",
                     "options": [
                         {
+                            "type": 3,
+                            "name": "mc_user",
+                            "description": "minecraft username",
+                            "required": true
+                        },
+                        {
                             "type": 6,
                             "name": "discord_user",
                             "description": "discord user"
-                        },
-                        {
-                            "type": 3,
-                            "name": "mc_user",
-                            "description": "minecraft username"
                         }
                     ]
                 },

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -100,12 +99,6 @@ func main() {
 			}, err
 		}
 
-		bs, err := ioutil.ReadAll(body)
-		if err != nil {
-			log.Println(err.Error())
-		}
-		log.Println(string(bs))
-
 		// marshal interaction webhook data
 		var data interactions.Data
 		err = json.NewDecoder(body).Decode(&data)
@@ -151,7 +144,7 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 	}
 
 	var rconCommand string
-	subcommand := data.Data.Options[0]
+	subcommand := data.Data.Options[0].Options[0]
 	switch subcommand.Name {
 	case "add":
 		for _, v := range subcommand.Options {
