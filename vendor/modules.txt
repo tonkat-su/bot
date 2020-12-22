@@ -57,7 +57,7 @@ github.com/aws/aws-sdk-go/service/cloudwatch/cloudwatchiface
 github.com/aws/aws-sdk-go/service/secretsmanager
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-# github.com/bsdlp/discord-interactions-go v0.0.0-20201222001939-3e5532ea75f3
+# github.com/bsdlp/discord-interactions-go v0.0.0-20201222010524-e59a8fa5a98c
 ## explicit
 github.com/bsdlp/discord-interactions-go/interactions
 # github.com/bsdlp/envconfig v1.5.0
@@ -86,8 +86,6 @@ github.com/google/uuid
 github.com/gorilla/websocket
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
-# github.com/kevinburke/nacl v0.0.0-20201212185859-3ef16edae976
-github.com/kevinburke/nacl/sign
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
@@ -107,9 +105,7 @@ go.opentelemetry.io/otel/metric/registry
 go.opentelemetry.io/otel/propagation
 go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/unit
-# golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
-golang.org/x/crypto/ed25519
-golang.org/x/crypto/ed25519/internal/edwards25519
+# golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/nacl/secretbox
 golang.org/x/crypto/poly1305

@@ -8,7 +8,7 @@ require (
 	github.com/apex/gateway/v2 v2.0.0
 	github.com/aws/aws-lambda-go v1.20.0
 	github.com/aws/aws-sdk-go v1.36.12
-	github.com/bsdlp/discord-interactions-go v0.0.0-20201222001939-3e5532ea75f3
+	github.com/bsdlp/discord-interactions-go v0.0.0-20201222010524-e59a8fa5a98c
 	github.com/bsdlp/envconfig v1.5.0
 	github.com/bwmarrin/discordgo v0.22.0
 	github.com/go-redis/redis/v8 v8.4.4
