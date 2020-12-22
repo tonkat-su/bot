@@ -12,8 +12,8 @@ github.com/aws/aws-lambda-go v1.20.0 h1:ZSweJx/Hy9BoIDXKBEh16vbHH0t0dehnF8MKpMiO
 github.com/aws/aws-lambda-go v1.20.0/go.mod h1:jJmlefzPfGnckuHdXX7/80O3BvUUi12XOkbv4w9SGLU=
 github.com/aws/aws-sdk-go v1.36.12 h1:YJpKFEMbqEoo+incs5qMe61n1JH3o4O1IMkMexLzJG8=
 github.com/aws/aws-sdk-go v1.36.12/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
-github.com/bsdlp/discord-interactions-go v0.0.0-20201221045919-3dfad4c32da8 h1:S9UxK2PXMl4gLTLP7SadCpdPOnzyk9k/ezcYOkYWDqA=
-github.com/bsdlp/discord-interactions-go v0.0.0-20201221045919-3dfad4c32da8/go.mod h1:NrbpxopuqDvS8rr53ZrtYhqiD0sfQoHaFAnU7SfnAno=
+github.com/bsdlp/discord-interactions-go v0.0.0-20201222001747-ab8b44e160b2 h1:+zu3Zp4J11172H+SjE+G1dZXYBXXEvkC+JYatrRnbAg=
+github.com/bsdlp/discord-interactions-go v0.0.0-20201222001747-ab8b44e160b2/go.mod h1:fiPedhPna3VoFL1uf5BqYPa8RT0ReAgdc1xRLbDLttw=
 github.com/bsdlp/envconfig v1.5.0 h1:/hcPMPrLUBeYI2sI646TTmDno0JYJaZv5+zdI1kya/M=
 github.com/bsdlp/envconfig v1.5.0/go.mod h1:7PGb+QixX1SKIWlM4r/k9FuGsiG1wFMgB7pM30+qAqI=
 github.com/bwmarrin/discordgo v0.22.0 h1:uBxY1HmlVCsW1IuaPjpCGT6A2DBwRn0nvOguQIxDdFM=
