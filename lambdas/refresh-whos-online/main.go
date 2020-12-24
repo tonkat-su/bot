@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/andersfylling/disgord"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -48,11 +49,10 @@ func main() {
 	}
 
 	lambda.Start(func() error {
-		dg, err := discordgo.New("Bot " + aws.StringValue(sv.SecretString))
-		if err != nil {
-			return err
-		}
-		dg.Identify.Compress = true
+		dg := disgord.New(disgord.Config{
+			BotToken: aws.StringValue(sv.SecretString),
+		})
+		defer dg.Gateway().StayConnectedUntilInterrupted()
 
 		closer := make(chan bool, 1)
 		dg.AddHandler(func(s *discordgo.Session, event *discordgo.Ready) {

@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/Kelwing/mc-rcon v0.0.0-20191221214055-1f327b337f77
 	github.com/Raqbit/mc-pinger v0.0.0-20191220212142-2843d3222bd5
+	github.com/andersfylling/disgord v0.23.2
 	github.com/apex/gateway/v2 v2.0.0
 	github.com/aws/aws-lambda-go v1.20.0
 	github.com/aws/aws-sdk-go v1.36.12
