@@ -6,7 +6,7 @@ import (
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
-	"github.com/tonkat-su/bot/mclookup"
+	"github.com/tonkat-su/bot/v2/mclookup"
 )
 
 func Update(ctx context.Context, host string, s *discordgo.Session) error {
