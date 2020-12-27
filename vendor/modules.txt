@@ -6,24 +6,6 @@ github.com/Kelwing/mc-rcon
 github.com/Raqbit/mc-pinger
 github.com/Raqbit/mc-pinger/encoding
 github.com/Raqbit/mc-pinger/packet
-# github.com/andersfylling/disgord v0.23.2
-## explicit
-github.com/andersfylling/disgord
-github.com/andersfylling/disgord/internal/constant
-github.com/andersfylling/disgord/internal/crs
-github.com/andersfylling/disgord/internal/disgorderr
-github.com/andersfylling/disgord/internal/endpoint
-github.com/andersfylling/disgord/internal/event
-github.com/andersfylling/disgord/internal/gateway
-github.com/andersfylling/disgord/internal/gateway/cmd
-github.com/andersfylling/disgord/internal/gateway/event
-github.com/andersfylling/disgord/internal/gateway/opcode
-github.com/andersfylling/disgord/internal/httd
-github.com/andersfylling/disgord/internal/logger
-github.com/andersfylling/disgord/internal/util
-github.com/andersfylling/disgord/json
-# github.com/andersfylling/snowflake/v4 v4.0.2
-github.com/andersfylling/snowflake/v4
 # github.com/apex/gateway/v2 v2.0.0
 ## explicit
 github.com/apex/gateway/v2
@@ -100,12 +82,10 @@ github.com/go-redis/redis/v8/internal/util
 # github.com/google/uuid v1.1.2
 ## explicit
 github.com/google/uuid
-# github.com/gorilla/websocket v1.4.1
+# github.com/gorilla/websocket v1.4.0
 github.com/gorilla/websocket
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
-# github.com/klauspost/compress v1.10.3
-github.com/klauspost/compress/flate
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
@@ -125,21 +105,10 @@ go.opentelemetry.io/otel/metric/registry
 go.opentelemetry.io/otel/propagation
 go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/unit
-# go.uber.org/atomic v1.4.0
-go.uber.org/atomic
 # golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/nacl/secretbox
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/salsa20/salsa
-# golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb
-golang.org/x/net/internal/socks
-golang.org/x/net/proxy
 # golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
 golang.org/x/sys/cpu
-# nhooyr.io/websocket v1.8.6
-nhooyr.io/websocket
-nhooyr.io/websocket/internal/bpool
-nhooyr.io/websocket/internal/errd
-nhooyr.io/websocket/internal/wsjs
-nhooyr.io/websocket/internal/xsync
