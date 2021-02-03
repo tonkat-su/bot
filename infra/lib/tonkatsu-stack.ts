@@ -48,8 +48,8 @@ export class TonkatsuStack extends cdk.Stack {
       handler: "give-cat-treats",
       timeout: cdk.Duration.seconds(45),
       environment: {
-        "MINECRAFT_SERVER_NAME": "NewPumpcraft",
-        "MINECRAFT_SERVER_HOST": "mc.sep.gg",
+        "MINECRAFT_SERVER_NAME": "Tonkatsu",
+        "MINECRAFT_SERVER_HOST": "mc.tonkat.su",
       },
       logRetention: logs.RetentionDays.THREE_DAYS,
     })
@@ -72,8 +72,8 @@ export class TonkatsuStack extends cdk.Stack {
       handler: "refresh-whos-online",
       timeout: cdk.Duration.seconds(30),
       environment: {
-        "MINECRAFT_SERVER_HOST": "mc.sep.gg",
-        "MINECRAFT_SERVER_NAME": "NewPumpcraft",
+        "MINECRAFT_SERVER_HOST": "mc.tonkat.su",
+        "MINECRAFT_SERVER_NAME": "Tonkatsu",
         "DISCORD_TOKEN_SECRET_ARN": discordToken.secretArn,
       },
       logRetention: logs.RetentionDays.THREE_DAYS,
