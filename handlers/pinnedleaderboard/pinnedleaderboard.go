@@ -21,9 +21,14 @@ func prepareStandingsEmbed(standings *leaderboard.Standings) (*discordgo.Message
 		if err != nil {
 			return nil, fmt.Errorf("error getting username: %s", err)
 		}
+
+		line := "%d cat treats"
+		if v.Score == 1 {
+			line = "%d cat treat"
+		}
 		embed.Fields[i] = &discordgo.MessageEmbedField{
 			Name:  username,
-			Value: fmt.Sprintf("%d cat treats", v.Score),
+			Value: fmt.Sprintf(line, v.Score),
 		}
 	}
 
