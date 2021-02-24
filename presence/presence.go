@@ -15,7 +15,7 @@ func Update(ctx context.Context, host string, s *discordgo.Session) error {
 		return fmt.Errorf("error resolving server host '%s': %s", host, err.Error())
 	}
 	if len(hostports) == 0 {
-		return s.UpdateStatus(0, "")
+		return s.UpdateGameStatus(0, "")
 	}
 
 	pong, err := mcpinger.New(hostports[0].Host, hostports[0].Port).Ping()
@@ -24,7 +24,7 @@ func Update(ctx context.Context, host string, s *discordgo.Session) error {
 	}
 
 	if pong.Players.Online > 0 {
-		return s.UpdateStatus(0, fmt.Sprintf("currently online: (%d/%d)", pong.Players.Online, pong.Players.Max))
+		return s.UpdateGameStatus(0, fmt.Sprintf("currently online: (%d/%d)", pong.Players.Online, pong.Players.Max))
 	}
-	return s.UpdateStatus(0, "")
+	return s.UpdateGameStatus(0, "")
 }

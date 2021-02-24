@@ -10,8 +10,11 @@ require (
 	github.com/aws/aws-sdk-go v1.36.12
 	github.com/bsdlp/discord-interactions-go v0.0.0-20201222010524-e59a8fa5a98c
 	github.com/bsdlp/envconfig v1.5.0
-	github.com/bwmarrin/discordgo v0.22.0
+	github.com/bwmarrin/discordgo v0.23.2
 	github.com/go-redis/redis/v8 v8.4.4
 	github.com/google/uuid v1.1.2
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
+	golang.org/x/sys v0.0.0-20210223212115-eede4237b368 // indirect
 )
