@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"strconv"
+	"strings"
 )
 
 // Server is host port
@@ -39,7 +40,7 @@ func ResolveMinecraftHostPort(ctx context.Context, resolver *net.Resolver, serve
 	servers = make([]Server, len(addrs))
 	for i := range servers {
 		servers[i] = Server{
-			Host: addrs[i].Target,
+			Host: strings.TrimRight(addrs[i].Target, "."),
 			Port: addrs[i].Port,
 		}
 	}
