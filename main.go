@@ -32,7 +32,7 @@ type Config struct {
 	GuildId             string `required:"true" split_words:"true"`
 	PresenceInterval    string `default:"5m" split_words:"true"`
 
-	UsersServiceRedisUrl string `required:"true" split_words:"true"`
+	UsersServiceTableName string `default:"TonkatsuStack-users9E3E6EF7-19OQ46A0WAOHQ" split_words:"true"`
 }
 
 func main() {
@@ -42,14 +42,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	usersService, err := users.New(context.TODO(), cfg.UsersServiceRedisUrl)
-	if err != nil {
-		log.Fatalf("error setting up users service: %s", err)
-	}
-
 	sess, err := session.NewSession()
 	if err != nil {
 		log.Fatalf("error setting up aws session: %s", err)
+	}
+
+	usersService, err := users.New(sess, cfg.UsersServiceTableName)
+	if err != nil {
+		log.Fatalf("error setting up users service: %s", err)
 	}
 
 	leaderboardService, err := leaderboard.New(sess, &leaderboard.Config{NamespacePrefix: cfg.MinecraftServerName})

@@ -3,26 +3,12 @@ services:
   bot:
     build:
       context: ./
-    depends_on:
-      - bot_redis
     restart: unless-stopped
     env_file: ./secrets.env
     init: true
     environment:
-      USERS_SERVICE_REDIS_URL: redis://bot_redis/0
-      LEADERBOARD_SERVICE_REDIS_URL: redis://bot_redis/1
+      USERS_SERVICE_TABLE_NAME: TonkatsuStack-users9E3E6EF7-19OQ46A0WAOHQ
       LEADERBOARD_CHANNEL_ID: 775577260127158282
       MINECRAFT_SERVER_NAME: Tonkatsu
       MINECRAFT_SERVER_HOST: mc.tonkat.su
       AWS_REGION: us-west-2
-  bot_redis:
-    image: redis:6-alpine
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - type: volume
-        source: bot_redis
-        target: /data
-
-volumes:
-  bot_redis:

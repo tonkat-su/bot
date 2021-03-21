@@ -4,40 +4,28 @@ import (
 	"context"
 	"errors"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 )
 
 type Service struct {
-	Redis *redis.Client
+	DB        dynamodbiface.DynamoDBAPI
+	TableName string
 }
 
-func New(ctx context.Context, redisUrl string) (*Service, error) {
-	redisOptions, err := redis.ParseURL(redisUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	redis := redis.NewClient(redisOptions)
-	_, err = redis.Ping(ctx).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	return &Service{Redis: redis}, nil
+func New(sess *session.Session, tableName string) (*Service, error) {
+	return &Service{
+		DB:        dynamodb.New(sess),
+		TableName: tableName,
+	}, nil
 }
 
-// if MinecraftUserId and MinecraftUsername are both not-nil, username is ignored and we store the uuid
-// if MinecraftUserId is nil and MinecraftUsername is not-nil, we call a service to look up the uuid and store that
 type RegisterInput struct {
 	MinecraftUserId string
 	DiscordUserId   string
-}
-
-func (input *RegisterInput) redisInput() map[string]interface{} {
-	return map[string]interface{}{
-		minecraftUserIdRedisKey(input.MinecraftUserId): input.DiscordUserId,
-		discordUserIdRedisKey(input.DiscordUserId):     input.MinecraftUserId,
-	}
 }
 
 func (svc *Service) Register(ctx context.Context, input *RegisterInput) error {
@@ -53,7 +41,15 @@ func (svc *Service) Register(ctx context.Context, input *RegisterInput) error {
 		return errors.New("DiscordUserId is required")
 	}
 
-	return svc.Redis.MSet(ctx, input.redisInput()).Err()
+	av, err := dynamodbattribute.MarshalMap(input)
+	if err != nil {
+		return err
+	}
+	_, err = svc.DB.PutItemWithContext(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(svc.TableName),
+		Item:      av,
+	})
+	return err
 }
 
 type LookupInput struct {
@@ -69,43 +65,52 @@ func (svc *Service) LookupByDiscordId(ctx context.Context, input *LookupInput) (
 	if input == nil {
 		return nil, errors.New("input must not be nil")
 	}
-	result, err := svc.Redis.Get(ctx, discordUserIdRedisKey(input.Id)).Result()
+	result, err := svc.DB.GetItemWithContext(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(svc.TableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"DiscordUserId": {
+				S: aws.String(input.Id),
+			},
+		},
+	})
 	if err != nil {
-		if err == redis.Nil {
-			return nil, nil
-		}
 		return nil, err
 	}
 
-	return &LookupOutput{
-		DiscordUserId:   input.Id,
-		MinecraftUserId: result,
-	}, nil
+	var output LookupOutput
+	err = dynamodbattribute.UnmarshalMap(result.Item, &output)
+	if err != nil {
+		return nil, err
+	}
+
+	return &output, nil
 }
 
 func (svc *Service) LookupByMinecraftId(ctx context.Context, input *LookupInput) (*LookupOutput, error) {
 	if input == nil {
 		return nil, errors.New("input must not be nil")
 	}
-
-	result, err := svc.Redis.Get(ctx, minecraftUserIdRedisKey(input.Id)).Result()
+	result, err := svc.DB.QueryWithContext(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(svc.TableName),
+		IndexName:              aws.String("MinecraftIdIndex"),
+		KeyConditionExpression: aws.String("MinecraftUserId = :user_id"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":user_id": {S: aws.String(input.Id)},
+		},
+	})
 	if err != nil {
-		if err == redis.Nil {
-			return nil, nil
-		}
 		return nil, err
 	}
 
-	return &LookupOutput{
-		DiscordUserId:   result,
-		MinecraftUserId: input.Id,
-	}, nil
-}
+	if len(result.Items) != 1 {
+		return nil, nil
+	}
 
-func minecraftUserIdRedisKey(minecraftId string) string {
-	return "minecraft-user-id:" + minecraftId
-}
+	var output LookupOutput
+	err = dynamodbattribute.UnmarshalMap(result.Items[0], &output)
+	if err != nil {
+		return nil, err
+	}
 
-func discordUserIdRedisKey(discordId string) string {
-	return "discord-user-id:" + discordId
+	return &output, nil
 }
