@@ -3,6 +3,7 @@ import * as apigatewayv2 from '@aws-cdk/aws-apigatewayv2';
 import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
 import * as assets from '@aws-cdk/aws-s3-assets';
 import * as certificatemanager from '@aws-cdk/aws-certificatemanager';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as events from '@aws-cdk/aws-events';
 import * as events_targets from '@aws-cdk/aws-events-targets';
 import * as iam from '@aws-cdk/aws-iam';
@@ -35,6 +36,22 @@ export class TonkatsuStack extends cdk.Stack {
     const botUser = new iam.User(this, 'tonkatsuBotUser', {
       groups: [botGroup],
     })
+
+    const usersTable = new dynamodb.Table(this, 'users', {
+      partitionKey: {
+        name: 'DiscordUserId',
+        type: dynamodb.AttributeType.STRING,
+      }
+    })
+
+    usersTable.addGlobalSecondaryIndex({
+      indexName: 'MinecraftIdIndex',
+      partitionKey: {
+        name: 'MinecraftUserId',
+        type: dynamodb.AttributeType.STRING,
+      }
+    })
+    usersTable.grantReadWriteData(botGroup)
 
     const tonkatsuZone = route53.HostedZone.fromHostedZoneAttributes(this, 'tonkatsuZone', {
       hostedZoneId: 'ZVAMW53PNR70P',
