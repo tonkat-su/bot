@@ -17,7 +17,25 @@ import { Duration } from '@aws-cdk/core';
 export class TonkatsuStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    
+
+    const botGroup = new iam.Group(this, 'tonkatsuBotGroup', {})
+
+    botGroup.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "cloudwatch:PutMetricData",
+        "cloudwatch:ListMetrics",
+        "cloudwatch:GetMetricData",
+      ],
+      resources: ["*"],
+    }))
+
+    const botUser = new iam.User(this, 'tonkatsuBotUser', {
+      groups: [botGroup],
+    })
+
     const tonkatsuZone = route53.HostedZone.fromHostedZoneAttributes(this, 'tonkatsuZone', {
       hostedZoneId: 'ZVAMW53PNR70P',
       zoneName: 'tonkat.su',
@@ -153,6 +171,18 @@ export class TonkatsuStack extends cdk.Stack {
       zone: tonkatsuZone,
       recordName: 'interactions',
       target: route53.RecordTarget.fromAlias(new targets.ApiGatewayv2Domain(interactionsDomainName))
+    })
+
+    new route53.CnameRecord(this, 'mapCname', {
+      zone: tonkatsuZone,
+      recordName: 'map',
+      domainName: 'map.tonkat.su.website-us-east-1.linodeobjects.com',
+    })
+
+    new route53.CnameRecord(this, 'oldmapCname', {
+      zone: tonkatsuZone,
+      recordName: 'oldmap',
+      domainName: 'oldmap.tonkat.su.website-us-east-1.linodeobjects.com',
     })
   }
 }
