@@ -103,13 +103,13 @@ func (svc *Service) fetchStandingsFromLastWeek(ctx context.Context, endTime time
 
 	queries := make([]types.MetricDataQuery, len(metrics))
 	for i, v := range metrics {
+		v := v
 		var playerName string
 		for _, dimension := range v.Dimensions {
 			if *dimension.Name == "PlayerId" {
 				playerName = *dimension.Value
 			}
 		}
-		v := v
 		queries[i] = types.MetricDataQuery{
 			Id:    aws.String(fmt.Sprintf("query%d", i)),
 			Label: &playerName,
