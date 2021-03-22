@@ -5,34 +5,35 @@ import (
 	"log"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/handlers/connected"
 	"github.com/tonkat-su/bot/handlers/refreshable"
 )
 
-type config struct {
+type Config struct {
 	MinecraftServerHost   string `split_words:"true" required:"true"`
 	MinecraftServerName   string `split_words:"true" required:"true"`
 	DiscordTokenSecretArn string `split_words:"true" required:"true"`
 }
 
 func main() {
-	var cfg config
+	var cfg Config
 	err := envconfig.Process("", &cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sess, err := session.NewSession()
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error loading aws config: %s", err)
 	}
-	secrets := secretsmanager.New(sess)
-	sv, err := secrets.GetSecretValueWithContext(context.TODO(), &secretsmanager.GetSecretValueInput{
+
+	secrets := secretsmanager.NewFromConfig(awsCfg)
+	sv, err := secrets.GetSecretValue(context.TODO(), &secretsmanager.GetSecretValueInput{
 		SecretId: aws.String(cfg.DiscordTokenSecretArn),
 	})
 	if err != nil {
@@ -48,7 +49,7 @@ func main() {
 	}
 
 	lambda.Start(func() error {
-		dg, err := discordgo.New("Bot " + aws.StringValue(sv.SecretString))
+		dg, err := discordgo.New("Bot " + *sv.SecretString)
 		if err != nil {
 			return err
 		}

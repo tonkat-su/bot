@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/bsdlp/envconfig"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/handlers/connected"
@@ -42,17 +42,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sess, err := session.NewSession()
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
-		log.Fatalf("error setting up aws session: %s", err)
+		log.Fatalf("error loading aws config: %s", err)
 	}
 
-	usersService, err := users.New(sess, cfg.UsersServiceTableName)
+	usersService, err := users.New(awsCfg, cfg.UsersServiceTableName)
 	if err != nil {
 		log.Fatalf("error setting up users service: %s", err)
 	}
 
-	leaderboardService, err := leaderboard.New(sess, &leaderboard.Config{NamespacePrefix: cfg.MinecraftServerName})
+	leaderboardService, err := leaderboard.New(awsCfg, &leaderboard.Config{NamespacePrefix: cfg.MinecraftServerName})
 	if err != nil {
 		log.Fatalf("error setting up leaderboard service: %s", err)
 	}

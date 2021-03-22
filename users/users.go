@@ -4,21 +4,27 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+type DynamoDBClient interface {
+	GetItem(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
+	PutItem(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
+	Query(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error)
+}
+
 type Service struct {
-	DB        dynamodbiface.DynamoDBAPI
+	DB        DynamoDBClient
 	TableName string
 }
 
-func New(sess *session.Session, tableName string) (*Service, error) {
+func New(awsCfg aws.Config, tableName string) (*Service, error) {
 	return &Service{
-		DB:        dynamodb.New(sess),
+		DB:        dynamodb.NewFromConfig(awsCfg),
 		TableName: tableName,
 	}, nil
 }
@@ -41,11 +47,11 @@ func (svc *Service) Register(ctx context.Context, input *RegisterInput) error {
 		return errors.New("DiscordUserId is required")
 	}
 
-	av, err := dynamodbattribute.MarshalMap(input)
+	av, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
 	}
-	_, err = svc.DB.PutItemWithContext(ctx, &dynamodb.PutItemInput{
+	_, err = svc.DB.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(svc.TableName),
 		Item:      av,
 	})
@@ -65,11 +71,11 @@ func (svc *Service) LookupByDiscordId(ctx context.Context, input *LookupInput) (
 	if input == nil {
 		return nil, errors.New("input must not be nil")
 	}
-	result, err := svc.DB.GetItemWithContext(ctx, &dynamodb.GetItemInput{
+	result, err := svc.DB.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(svc.TableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"DiscordUserId": {
-				S: aws.String(input.Id),
+		Key: map[string]types.AttributeValue{
+			"DiscordUserId": &types.AttributeValueMemberS{
+				Value: input.Id,
 			},
 		},
 	})
@@ -78,7 +84,7 @@ func (svc *Service) LookupByDiscordId(ctx context.Context, input *LookupInput) (
 	}
 
 	var output LookupOutput
-	err = dynamodbattribute.UnmarshalMap(result.Item, &output)
+	err = attributevalue.UnmarshalMap(result.Item, &output)
 	if err != nil {
 		return nil, err
 	}
@@ -90,13 +96,17 @@ func (svc *Service) LookupByMinecraftId(ctx context.Context, input *LookupInput)
 	if input == nil {
 		return nil, errors.New("input must not be nil")
 	}
-	result, err := svc.DB.QueryWithContext(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(svc.TableName),
-		IndexName:              aws.String("MinecraftIdIndex"),
-		KeyConditionExpression: aws.String("MinecraftUserId = :user_id"),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":user_id": {S: aws.String(input.Id)},
-		},
+
+	expr, err := expression.NewBuilder().WithKeyCondition(expression.KeyEqual(expression.Key("MinecraftUserId"), expression.Value(input.Id))).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := svc.DB.Query(ctx, &dynamodb.QueryInput{
+		TableName:                 aws.String(svc.TableName),
+		IndexName:                 aws.String("MinecraftIdIndex"),
+		KeyConditionExpression:    expr.KeyCondition(),
+		ExpressionAttributeValues: expr.Values(),
 	})
 	if err != nil {
 		return nil, err
@@ -107,7 +117,7 @@ func (svc *Service) LookupByMinecraftId(ctx context.Context, input *LookupInput)
 	}
 
 	var output LookupOutput
-	err = dynamodbattribute.UnmarshalMap(result.Items[0], &output)
+	err = attributevalue.UnmarshalMap(result.Items[0], &output)
 	if err != nil {
 		return nil, err
 	}

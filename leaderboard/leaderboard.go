@@ -8,14 +8,19 @@ import (
 	"sort"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/aws/aws-sdk-go/service/cloudwatch/cloudwatchiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 )
 
+type CloudwatchClient interface {
+	cloudwatch.ListMetricsAPIClient
+	cloudwatch.GetMetricDataAPIClient
+	PutMetricData(ctx context.Context, params *cloudwatch.PutMetricDataInput, optFns ...func(*cloudwatch.Options)) (*cloudwatch.PutMetricDataOutput, error)
+}
+
 type Service struct {
-	cloudwatch      cloudwatchiface.CloudWatchAPI
+	cloudwatch      CloudwatchClient
 	namespacePrefix string
 }
 
@@ -23,9 +28,9 @@ type Config struct {
 	NamespacePrefix string
 }
 
-func New(session *session.Session, cfg *Config) (*Service, error) {
+func New(awsCfg aws.Config, cfg *Config) (*Service, error) {
 	return &Service{
-		cloudwatch:      cloudwatch.New(session),
+		cloudwatch:      cloudwatch.NewFromConfig(awsCfg),
 		namespacePrefix: cfg.NamespacePrefix,
 	}, nil
 }
@@ -39,9 +44,9 @@ type PlayerScore struct {
 	Score    int64
 }
 
-func (score *PlayerScore) metricDatum() *cloudwatch.MetricDatum {
-	return &cloudwatch.MetricDatum{
-		Dimensions: []*cloudwatch.Dimension{
+func (score *PlayerScore) metricDatum() types.MetricDatum {
+	return types.MetricDatum{
+		Dimensions: []types.Dimension{
 			{
 				Name:  aws.String("PlayerId"),
 				Value: aws.String(score.PlayerId),
@@ -59,7 +64,7 @@ func (svc *Service) metricsNamespace() string {
 func (svc *Service) RecordScores(ctx context.Context, input *RecordScoresInput) error {
 	metricInput := &cloudwatch.PutMetricDataInput{
 		Namespace:  aws.String(svc.metricsNamespace()),
-		MetricData: make([]*cloudwatch.MetricDatum, len(input.Scores)),
+		MetricData: make([]types.MetricDatum, len(input.Scores)),
 	}
 
 	for i, v := range input.Scores {
@@ -69,7 +74,7 @@ func (svc *Service) RecordScores(ctx context.Context, input *RecordScoresInput) 
 		metricInput.MetricData[i] = v.metricDatum()
 	}
 
-	_, err := svc.cloudwatch.PutMetricDataWithContext(ctx, metricInput)
+	_, err := svc.cloudwatch.PutMetricData(ctx, metricInput)
 	if err != nil {
 		return err
 	}
@@ -81,34 +86,36 @@ type Standings struct {
 	LastUpdated     time.Time
 }
 
-func (svc *Service) fetchStandingsFromLastWeek(ctx context.Context, endTime time.Time) ([]*cloudwatch.MetricDataResult, error) {
+func (svc *Service) fetchStandingsFromLastWeek(ctx context.Context, endTime time.Time) ([]types.MetricDataResult, error) {
 	listMetricsInput := &cloudwatch.ListMetricsInput{
 		Namespace:  aws.String(svc.metricsNamespace()),
 		MetricName: aws.String("PlayerScore"),
 	}
-	metrics := []*cloudwatch.Metric{}
-	err := svc.cloudwatch.ListMetricsPagesWithContext(ctx, listMetricsInput, func(output *cloudwatch.ListMetricsOutput, more bool) bool {
+	metrics := []types.Metric{}
+	paginator := cloudwatch.NewListMetricsPaginator(svc.cloudwatch, listMetricsInput)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		metrics = append(metrics, output.Metrics...)
-		return more
-	})
-	if err != nil {
-		return nil, err
 	}
 
-	queries := make([]*cloudwatch.MetricDataQuery, len(metrics))
+	queries := make([]types.MetricDataQuery, len(metrics))
 	for i, v := range metrics {
-		var playerName *string
+		var playerName string
 		for _, dimension := range v.Dimensions {
-			if aws.StringValue(dimension.Name) == "PlayerId" {
-				playerName = dimension.Value
+			if *dimension.Name == "PlayerId" {
+				playerName = *dimension.Value
 			}
 		}
-		queries[i] = &cloudwatch.MetricDataQuery{
+		v := v
+		queries[i] = types.MetricDataQuery{
 			Id:    aws.String(fmt.Sprintf("query%d", i)),
-			Label: playerName,
-			MetricStat: &cloudwatch.MetricStat{
-				Metric: v,
-				Period: aws.Int64(21600),
+			Label: &playerName,
+			MetricStat: &types.MetricStat{
+				Metric: &v,
+				Period: aws.Int32(21600),
 				Stat:   aws.String("Sum"),
 			},
 		}
@@ -119,29 +126,29 @@ func (svc *Service) fetchStandingsFromLastWeek(ctx context.Context, endTime time
 		StartTime:         aws.Time(endTime.Add(-1 * 7 * 24 * time.Hour)),
 		MetricDataQueries: queries,
 	}
-	results := []*cloudwatch.MetricDataResult{}
-	err = svc.cloudwatch.GetMetricDataPagesWithContext(ctx, getMetricDataInput, func(output *cloudwatch.GetMetricDataOutput, more bool) bool {
+	results := []types.MetricDataResult{}
+	getPaginator := cloudwatch.NewGetMetricDataPaginator(svc.cloudwatch, getMetricDataInput)
+	for getPaginator.HasMorePages() {
+		output, err := getPaginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, output.MetricDataResults...)
-		return more
-	})
-	if err != nil {
-		return nil, err
 	}
-
 	return results, nil
 }
 
-func transformCloudwatchResultsToStandings(results []*cloudwatch.MetricDataResult) *Standings {
+func transformCloudwatchResultsToStandings(results []types.MetricDataResult) *Standings {
 	standings := &Standings{
 		SortedStandings: make([]*PlayerScore, 0, len(results)),
 	}
 
 	for _, v := range results {
 		score := &PlayerScore{
-			PlayerId: aws.StringValue(v.Label),
+			PlayerId: *v.Label,
 		}
 		for _, value := range v.Values {
-			score.Score += int64(aws.Float64Value(value))
+			score.Score += int64(value)
 		}
 
 		if score.Score > 0 {

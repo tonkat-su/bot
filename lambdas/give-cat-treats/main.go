@@ -8,7 +8,7 @@ import (
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/bsdlp/envconfig"
 	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/mclookup"
@@ -59,12 +59,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	session, err := session.NewSession()
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error loading aws config: %s", err)
 	}
 
-	leaderboardService, err := leaderboard.New(session, &leaderboard.Config{
+	leaderboardService, err := leaderboard.New(awsCfg, &leaderboard.Config{
 		NamespacePrefix: cfg.MinecraftServerName,
 	})
 	if err != nil {

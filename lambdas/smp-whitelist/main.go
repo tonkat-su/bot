@@ -14,9 +14,9 @@ import (
 	"github.com/apex/gateway/v2"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/bsdlp/discord-interactions-go/interactions"
 	"github.com/bsdlp/envconfig"
 )
@@ -44,17 +44,17 @@ func main() {
 	}
 
 	// retrieve rcon password from aws secrets manager
-	sess, err := session.NewSession()
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error loading aws config: %s", err)
 	}
-	sv, err := secretsmanager.New(sess).GetSecretValueWithContext(context.TODO(), &secretsmanager.GetSecretValueInput{
+	sv, err := secretsmanager.NewFromConfig(awsCfg).GetSecretValue(context.TODO(), &secretsmanager.GetSecretValueInput{
 		SecretId: aws.String(cfg.RconPasswordSecretArn),
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	cfg.rconPassword = aws.StringValue(sv.SecretString)
+	cfg.rconPassword = *sv.SecretString
 
 	// hex decode discord pubkey
 	discordPubkey, err := decodePubkey(cfg.DiscordApplicationPubkey)
