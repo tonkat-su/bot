@@ -42,14 +42,12 @@ func (h *Handler) OnConnect(s *discordgo.Session, event *discordgo.Ready) {
 		for _, channel := range channels {
 			if channel.Name == h.PinnedChannelName {
 				boardChannel = channel.ID
-				log.Printf("found refreshable %s guild:%s channel:%s", h.PinnedChannelName, guild.ID, channel.ID)
 				pinnedMessages, err := s.ChannelMessagesPinned(channel.ID)
 				if err != nil {
 					log.Fatalf("unable to fetch pinned messages for %s channel '%s': %s", h.PinnedChannelName, channel.ID, err)
 				}
 				for _, message := range pinnedMessages {
 					if message.Author.ID == s.State.User.ID {
-						log.Printf("found %s channel:%s message:%s", h.PinnedChannelName, channel.ID, message.ID)
 						h.Lock()
 						h.messages[guild.ID] = message.ID
 						h.Unlock()
@@ -61,7 +59,6 @@ func (h *Handler) OnConnect(s *discordgo.Session, event *discordgo.Ready) {
 		}
 
 		if boardChannel == "" {
-			log.Printf("creating refreshable %s channel for guild:%s", h.PinnedChannelName, guild.ID)
 			channel, err := s.GuildChannelCreate(guild.ID, h.PinnedChannelName, discordgo.ChannelTypeGuildText)
 			if err != nil {
 				log.Printf("unable to create pinned %s channel for guild (%s:%s): %s", h.PinnedChannelName, guild.Name, guild.ID, err)
