@@ -187,7 +187,7 @@ export class TonkatsuStack extends cdk.Stack {
     new route53.ARecord(this, 'interactionsWhitelistAliasRecord', {
       zone: tonkatsuZone,
       recordName: 'interactions',
-      target: route53.RecordTarget.fromAlias(new targets.ApiGatewayv2Domain(interactionsDomainName))
+      target: route53.RecordTarget.fromAlias(new targets.ApiGatewayv2DomainProperties(interactionsDomainName.regionalDomainName, tonkatsuZone.hostedZoneId))
     })
 
     new route53.CnameRecord(this, 'mapCname', {
