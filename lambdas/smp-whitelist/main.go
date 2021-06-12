@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	mcrcon "github.com/Kelwing/mc-rcon"
 	"github.com/apex/gateway/v2"
@@ -148,6 +149,11 @@ func main() {
 
 		log.Printf("response: %s", resp)
 		writeResponse(w, http.StatusOK, resp)
+
+		err = replyToInteraction(data.ID, data.Token, resp)
+		if err != nil {
+			log.Printf("error replying to interaction: %s", err.Error())
+		}
 	})
 
 	log.Fatal(gateway.ListenAndServe(":3000", nil))
@@ -166,4 +172,12 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 		return
 	}
 	w.WriteHeader(statusCode)
+}
+
+func replyToInteraction(id string, token string, body string) error {
+	_, err := http.Post(fmt.Sprintf("https://discord.com/api/v8/interactions/%s/%s/callback", id, token), "application/json", strings.NewReader(body))
+	if err != nil {
+		return err
+	}
+	return nil
 }
