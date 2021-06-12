@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
@@ -8,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	mcrcon "github.com/Kelwing/mc-rcon"
 	"github.com/apex/gateway/v2"
@@ -148,12 +148,12 @@ func main() {
 		}
 
 		log.Printf("response: %s", resp)
-		writeResponse(w, http.StatusOK, resp)
-
 		err = replyToInteraction(data.ID, data.Token, resp)
 		if err != nil {
 			log.Printf("error replying to interaction: %s", err.Error())
 		}
+
+		writeResponse(w, http.StatusOK, resp)
 	})
 
 	log.Fatal(gateway.ListenAndServe(":3000", nil))
@@ -175,7 +175,18 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 }
 
 func replyToInteraction(id string, token string, body string) error {
-	_, err := http.Post(fmt.Sprintf("https://discord.com/api/v8/interactions/%s/%s/callback", id, token), "application/json", strings.NewReader(body))
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(interactions.InteractionResponse{
+		Type: 4,
+		Data: &interactions.InteractionApplicationCommandCallbackData{
+			Content: body,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = http.Post(fmt.Sprintf("https://discord.com/api/v8/interactions/%s/%s/callback", id, token), "application/json", &buf)
 	if err != nil {
 		return err
 	}
