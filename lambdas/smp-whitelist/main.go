@@ -1,20 +1,16 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 
 	mcrcon "github.com/Kelwing/mc-rcon"
 	"github.com/apex/gateway/v2"
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -63,156 +59,112 @@ func main() {
 		log.Fatalf("error decoding discord pubkey: %s", err.Error())
 	}
 
-	// register lambda function
-	lambda.Start(func(ctx context.Context, e events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-		// convert a proxied api gateway v2 http request into an *http.Request
-		req, err := gateway.NewRequest(ctx, e)
-		if err != nil {
-			return events.APIGatewayV2HTTPResponse{
-				Body:       err.Error(),
-				StatusCode: http.StatusBadRequest,
-			}, err
-		}
-		defer req.Body.Close()
-
-		if req.Method != http.MethodPost {
-			return events.APIGatewayV2HTTPResponse{
-				StatusCode: http.StatusMethodNotAllowed,
-			}, nil
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
 		}
 
 		// validate signature from discord and return 401 if invalid
-		verified := interactions.Verify(req, discordPubkey)
+		verified := interactions.Verify(r, discordPubkey)
 		if !verified {
 			log.Println("invalid signature")
-			return events.APIGatewayV2HTTPResponse{
-				Body:       "invalid signature",
-				StatusCode: http.StatusUnauthorized,
-			}, nil
-		}
-
-		body, err := req.GetBody()
-		if err != nil {
-			log.Printf("error getting body from request: %s", err)
-			return events.APIGatewayV2HTTPResponse{
-				Body:       err.Error(),
-				StatusCode: http.StatusInternalServerError,
-			}, err
+			writeResponse(w, http.StatusUnauthorized, "invalid signature")
+			return
 		}
 
 		// marshal interaction webhook data
 		var data interactions.Data
-		err = json.NewDecoder(body).Decode(&data)
+		err = json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
 			log.Printf("invalid data: %s", err.Error())
-			return events.APIGatewayV2HTTPResponse{
-				Body:       "error decoding json request",
-				StatusCode: http.StatusBadRequest,
-			}, err
+			writeResponse(w, http.StatusBadRequest, "error decoding json request")
+			return
 		}
 
 		// reply with a pong when discord pings us
 		if data.Type == interactions.Ping {
 			log.Println("ping received")
-			return events.APIGatewayV2HTTPResponse{
-				Body:       `{"type":1}`,
-				StatusCode: http.StatusOK,
-			}, nil
+			writeResponse(w, http.StatusOK, `{"type":1}`)
+			return
 		}
 
-		// actual handler
-		return handle(&cfg, data)
+		conn := &mcrcon.MCConn{}
+		err := conn.Open(cfg.MinecraftServerRconAddress, cfg.rconPassword)
+		if err != nil {
+			log.Printf("unable to connect: %s", err.Error())
+			writeResponse(w, http.StatusFailedDependency, err.Error())
+			return
+		}
+		defer conn.Close()
+
+		err = conn.Authenticate()
+		if err != nil {
+			log.Printf("unable to authenticate: %s", err.Error())
+			writeResponse(w, http.StatusFailedDependency, "unable to authenticate by rcon")
+			return
+		}
+
+		var rconCommand string
+		subcommand := data.Data.Options[0].Options[0]
+		switch subcommand.Name {
+		case "add":
+			for _, v := range subcommand.Options {
+				if v.Name == "mc_user" {
+					if username, ok := v.Value.(string); ok {
+						rconCommand = fmt.Sprintf("whitelist add %s", username)
+					}
+				}
+			}
+		case "list":
+			rconCommand = "whitelist list"
+		case "remove":
+			for _, v := range subcommand.Options {
+				if v.Name == "mc_user" {
+					if username, ok := v.Value.(string); ok {
+						rconCommand = fmt.Sprintf("whitelist remove %s", username)
+					}
+				}
+			}
+		default:
+			writeResponse(w, http.StatusUnprocessableEntity, fmt.Sprintf("unrecognized whitelist subcommand: %s", subcommand.Name))
+			return
+		}
+
+		if rconCommand == "" {
+			writeResponse(w, http.StatusUnprocessableEntity, "missing minecraft username parameter")
+			return
+		}
+
+		log.Printf("sending rcon command: %s", rconCommand)
+
+		resp, err := conn.SendCommand(rconCommand)
+		if err != nil {
+			log.Printf("error sending command: %s", err.Error())
+			writeResponse(w, http.StatusFailedDependency, err.Error())
+			return
+		}
+
+		log.Printf("response: %s", resp)
+		writeResponse(w, http.StatusOK, resp)
 	})
+
+	log.Fatal(gateway.ListenAndServe(":3000", nil))
 }
 
-func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPResponse, error) {
-	conn := &mcrcon.MCConn{}
-	err := conn.Open(cfg.MinecraftServerRconAddress, cfg.rconPassword)
-	if err != nil {
-		log.Printf("unable to connect: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: http.StatusFailedDependency,
-			Body:       err.Error(),
-		}, err
-	}
-	defer conn.Close()
-
-	err = conn.Authenticate()
-	if err != nil {
-		log.Printf("unable to authenticate: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: http.StatusFailedDependency,
-			Body:       "unable to authenticate by rcon",
-		}, err
-	}
-
-	var rconCommand string
-	subcommand := data.Data.Options[0].Options[0]
-	switch subcommand.Name {
-	case "add":
-		for _, v := range subcommand.Options {
-			if v.Name == "mc_user" {
-				if username, ok := v.Value.(string); ok {
-					rconCommand = fmt.Sprintf("whitelist add %s", username)
-				}
-			}
-		}
-	case "list":
-		rconCommand = "whitelist list"
-	case "remove":
-		for _, v := range subcommand.Options {
-			if v.Name == "mc_user" {
-				if username, ok := v.Value.(string); ok {
-					rconCommand = fmt.Sprintf("whitelist remove %s", username)
-				}
-			}
-		}
-	default:
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Body:       fmt.Sprintf("unrecognized whitelist subcommand: %s", subcommand.Name),
-		}, nil
-	}
-
-	if rconCommand == "" {
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Body:       errMinecraftUsernameRequired.Error(),
-		}, errMinecraftUsernameRequired
-	}
-
-	log.Printf("sending rcon command: %s", rconCommand)
-
-	resp, err := conn.SendCommand(rconCommand)
-	if err != nil {
-		log.Printf("error sending command: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: http.StatusFailedDependency,
-			Body:       err.Error(),
-		}, err
-	}
-	log.Printf("response: %s", resp)
-	var responseBody bytes.Buffer
-	err = json.NewEncoder(&responseBody).Encode(interactions.InteractionResponse{
+func writeResponse(w http.ResponseWriter, statusCode int, body string) {
+	err := json.NewEncoder(w).Encode(interactions.InteractionResponse{
 		Type: 4,
 		Data: &interactions.InteractionApplicationCommandCallbackData{
-			Content: resp,
+			Content: body,
 		},
 	})
 	if err != nil {
-		log.Printf("error encoding response: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: http.StatusFailedDependency,
-			Body:       err.Error(),
-		}, err
+		log.Printf("failed to encode body: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	return events.APIGatewayV2HTTPResponse{
-		StatusCode: http.StatusOK,
-		Body:       responseBody.String(),
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-	}, nil
+	w.WriteHeader(statusCode)
+	return
 }
-
-var errMinecraftUsernameRequired = errors.New("missing username parameter")
