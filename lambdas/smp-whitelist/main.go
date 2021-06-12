@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
@@ -191,9 +192,23 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 		}, err
 	}
 	log.Printf("response: %s", resp)
+	var responseBody bytes.Buffer
+	err = json.NewEncoder(&responseBody).Encode(interactions.InteractionResponse{
+		Type: 4,
+		Data: &interactions.InteractionApplicationCommandCallbackData{
+			Content: resp,
+		},
+	})
+	if err != nil {
+		log.Printf("error encoding response: %s", err.Error())
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: http.StatusFailedDependency,
+			Body:       err.Error(),
+		}, err
+	}
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: http.StatusOK,
-		Body:       resp,
+		Body:       responseBody.String(),
 	}, nil
 }
 
