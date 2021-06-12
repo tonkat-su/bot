@@ -9,8 +9,8 @@ jobs:
   build_lambdas:
     strategy:
       matrix:
-        go-version: [1.16.5]
-        cdk-version: [1.107.0]
+        go-version: [1.16.2]
+        cdk-version: [1.94.1]
     runs-on: ubuntu-latest
     steps:
       - name: install go
