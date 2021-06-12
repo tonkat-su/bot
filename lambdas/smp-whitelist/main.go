@@ -190,6 +190,7 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 			Body:       err.Error(),
 		}, err
 	}
+	log.Printf("response: %s", resp)
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: http.StatusOK,
 		Body:       resp,
