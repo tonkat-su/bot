@@ -128,6 +128,7 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 	conn := &mcrcon.MCConn{}
 	err := conn.Open(cfg.MinecraftServerRconAddress, cfg.rconPassword)
 	if err != nil {
+		log.Printf("unable to connect: %s", err.Error())
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: http.StatusFailedDependency,
 			Body:       err.Error(),
@@ -137,6 +138,7 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 
 	err = conn.Authenticate()
 	if err != nil {
+		log.Printf("unable to authenticate: %s", err.Error())
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: http.StatusFailedDependency,
 			Body:       "unable to authenticate by rcon",
@@ -180,6 +182,7 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 
 	resp, err := conn.SendCommand(rconCommand)
 	if err != nil {
+		log.Printf("error sending command: %s", err.Error())
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: http.StatusFailedDependency,
 			Body:       err.Error(),
