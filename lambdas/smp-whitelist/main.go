@@ -209,6 +209,9 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: http.StatusOK,
 		Body:       responseBody.String(),
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
 	}, nil
 }
 
