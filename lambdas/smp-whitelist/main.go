@@ -166,5 +166,4 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 		return
 	}
 	w.WriteHeader(statusCode)
-	return
 }
