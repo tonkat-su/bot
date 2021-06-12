@@ -64,11 +64,11 @@ func main() {
 	}
 
 	// register lambda function
-	lambda.Start(func(ctx context.Context, e events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	lambda.Start(func(ctx context.Context, e events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 		// convert a proxied api gateway v2 http request into an *http.Request
 		req, err := gateway.NewRequest(ctx, e)
 		if err != nil {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				Body:       err.Error(),
 				StatusCode: http.StatusBadRequest,
 			}, err
@@ -76,7 +76,7 @@ func main() {
 		defer req.Body.Close()
 
 		if req.Method != http.MethodPost {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: http.StatusMethodNotAllowed,
 			}, nil
 		}
@@ -85,7 +85,7 @@ func main() {
 		verified := interactions.Verify(req, discordPubkey)
 		if !verified {
 			log.Println("invalid signature")
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				Body:       "invalid signature",
 				StatusCode: http.StatusUnauthorized,
 			}, nil
@@ -94,7 +94,7 @@ func main() {
 		body, err := req.GetBody()
 		if err != nil {
 			log.Printf("error getting body from request: %s", err)
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				Body:       err.Error(),
 				StatusCode: http.StatusInternalServerError,
 			}, err
@@ -105,7 +105,7 @@ func main() {
 		err = json.NewDecoder(body).Decode(&data)
 		if err != nil {
 			log.Printf("invalid data: %s", err.Error())
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				Body:       "error decoding json request",
 				StatusCode: http.StatusBadRequest,
 			}, err
@@ -114,7 +114,7 @@ func main() {
 		// reply with a pong when discord pings us
 		if data.Type == interactions.Ping {
 			log.Println("ping received")
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				Body:       `{"type":1}`,
 				StatusCode: http.StatusOK,
 			}, nil
@@ -125,12 +125,12 @@ func main() {
 	})
 }
 
-func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPResponse, error) {
+func handle(cfg *Config, data interactions.Data) (events.APIGatewayProxyResponse, error) {
 	conn := &mcrcon.MCConn{}
 	err := conn.Open(cfg.MinecraftServerRconAddress, cfg.rconPassword)
 	if err != nil {
 		log.Printf("unable to connect: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusFailedDependency,
 			Body:       err.Error(),
 		}, err
@@ -140,7 +140,7 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 	err = conn.Authenticate()
 	if err != nil {
 		log.Printf("unable to authenticate: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusFailedDependency,
 			Body:       "unable to authenticate by rcon",
 		}, err
@@ -168,14 +168,14 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 			}
 		}
 	default:
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusUnprocessableEntity,
 			Body:       fmt.Sprintf("unrecognized whitelist subcommand: %s", subcommand.Name),
 		}, nil
 	}
 
 	if rconCommand == "" {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusUnprocessableEntity,
 			Body:       errMinecraftUsernameRequired.Error(),
 		}, errMinecraftUsernameRequired
@@ -186,7 +186,7 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 	resp, err := conn.SendCommand(rconCommand)
 	if err != nil {
 		log.Printf("error sending command: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusFailedDependency,
 			Body:       err.Error(),
 		}, err
@@ -201,12 +201,13 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 	})
 	if err != nil {
 		log.Printf("error encoding response: %s", err.Error())
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusFailedDependency,
 			Body:       err.Error(),
 		}, err
 	}
-	return events.APIGatewayV2HTTPResponse{
+	log.Println("ok")
+	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Body:       responseBody.String(),
 	}, nil
