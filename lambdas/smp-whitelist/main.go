@@ -180,6 +180,8 @@ func handle(cfg *Config, data interactions.Data) (events.APIGatewayV2HTTPRespons
 		}, errMinecraftUsernameRequired
 	}
 
+	log.Printf("sending rcon command: %s", rconCommand)
+
 	resp, err := conn.SendCommand(rconCommand)
 	if err != nil {
 		log.Printf("error sending command: %s", err.Error())
