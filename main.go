@@ -81,7 +81,6 @@ func main() {
 	dg.Identify.Compress = true
 
 	dg.AddHandler(echo.Echo)
-	dg.AddHandler(connected.ReplyWithServerStatus(cfg.MinecraftServerHost, cfg.MinecraftServerName, nil))
 	dg.AddHandler(register.RegisterMinecraftGamer(usersService))
 	dg.AddHandler(register.LookupUser(usersService))
 	refreshableLeaderboard.AddHandlers(dg)
