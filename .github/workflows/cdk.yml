@@ -46,7 +46,7 @@ jobs:
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
       - name: cdk diff
-        uses: youyo/aws-cdk-github-actions@v1
+        uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: 'diff'
           cdk_version: ${{ matrix.cdk-version }}
@@ -70,7 +70,7 @@ jobs:
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
       - name: cdk deploy
-        uses: youyo/aws-cdk-github-actions@v1
+        uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: 'deploy --require-approval never'
           cdk_version: ${{ matrix.cdk-version }}
