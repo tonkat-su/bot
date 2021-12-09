@@ -23,7 +23,7 @@ func (c *Client) ListDashboards(ctx context.Context, params *ListDashboardsInput
 		params = &ListDashboardsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ListDashboards", params, optFns, addOperationListDashboardsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ListDashboards", params, optFns, c.addOperationListDashboardsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +43,8 @@ type ListDashboardsInput struct {
 	// The token returned by a previous call to indicate that there is more data
 	// available.
 	NextToken *string
+
+	noSmithyDocumentSerde
 }
 
 type ListDashboardsOutput struct {
@@ -55,9 +57,11 @@ type ListDashboardsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationListDashboardsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationListDashboardsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpListDashboards{}, middleware.After)
 	if err != nil {
 		return err

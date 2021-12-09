@@ -4,9 +4,11 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -25,7 +27,7 @@ func (c *Client) DeleteItem(ctx context.Context, params *DeleteItemInput, optFns
 		params = &DeleteItemInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DeleteItem", params, optFns, addOperationDeleteItemMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DeleteItem", params, optFns, c.addOperationDeleteItemMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -137,14 +139,14 @@ type DeleteItemInput struct {
 	// in the Amazon DynamoDB Developer Guide.
 	ExpressionAttributeValues map[string]types.AttributeValue
 
-	// Determines the level of detail about provisioned throughput consumption that is
-	// returned in the response:
+	// Determines the level of detail about either provisioned or on-demand throughput
+	// consumption that is returned in the response:
 	//
-	// * INDEXES - The response includes the aggregate
-	// ConsumedCapacity for the operation, together with ConsumedCapacity for each
-	// table and secondary index that was accessed. Note that some operations, such as
-	// GetItem and BatchGetItem, do not access any indexes at all. In these cases,
-	// specifying INDEXES will only return ConsumedCapacity information for
+	// * INDEXES - The response includes
+	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
+	// for each table and secondary index that was accessed. Note that some operations,
+	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
+	// cases, specifying INDEXES will only return ConsumedCapacity information for
 	// table(s).
 	//
 	// * TOTAL - The response includes only the aggregate ConsumedCapacity
@@ -174,6 +176,8 @@ type DeleteItemInput struct {
 	// several DynamoDB operations; however, DeleteItem does not recognize any values
 	// other than NONE or ALL_OLD.
 	ReturnValues types.ReturnValue
+
+	noSmithyDocumentSerde
 }
 
 // Represents the output of a DeleteItem operation.
@@ -215,9 +219,11 @@ type DeleteItemOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDeleteItemMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDeleteItemMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDeleteItem{}, middleware.After)
 	if err != nil {
 		return err
@@ -262,6 +268,9 @@ func addOperationDeleteItemMiddlewares(stack *middleware.Stack, options Options)
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpDeleteItemDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = addOpDeleteItemValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -284,6 +293,46 @@ func addOperationDeleteItemMiddlewares(stack *middleware.Stack, options Options)
 		return err
 	}
 	return nil
+}
+
+func addOpDeleteItemDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpDeleteItemDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpDeleteItemDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*DeleteItemInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 func newServiceMetadataMiddleware_opDeleteItem(region string) *awsmiddleware.RegisterServiceMetadata {

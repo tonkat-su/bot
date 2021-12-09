@@ -17,7 +17,7 @@ func (c *Client) DeleteAnomalyDetector(ctx context.Context, params *DeleteAnomal
 		params = &DeleteAnomalyDetectorInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DeleteAnomalyDetector", params, optFns, addOperationDeleteAnomalyDetectorMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DeleteAnomalyDetector", params, optFns, c.addOperationDeleteAnomalyDetectorMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -29,31 +29,77 @@ func (c *Client) DeleteAnomalyDetector(ctx context.Context, params *DeleteAnomal
 
 type DeleteAnomalyDetectorInput struct {
 
+	// The metric dimensions associated with the anomaly detection model to delete.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.
+	Dimensions []types.Dimension
+
+	// The metric math anomaly detector to be deleted. When using
+	// MetricMathAnomalyDetector, you cannot include following parameters in the same
+	// operation:
+	//
+	// * Dimensions,
+	//
+	// * MetricName
+	//
+	// * Namespace
+	//
+	// * Stat
+	//
+	// * the
+	// SingleMetricAnomalyDetector parameters of DeleteAnomalyDetectorInput
+	//
+	// Instead,
+	// specify the metric math anomaly detector attributes as part of the
+	// MetricMathAnomalyDetector property.
+	MetricMathAnomalyDetector *types.MetricMathAnomalyDetector
+
 	// The metric name associated with the anomaly detection model to delete.
 	//
-	// This member is required.
+	// Deprecated: Use SingleMetricAnomalyDetector.
 	MetricName *string
 
 	// The namespace associated with the anomaly detection model to delete.
 	//
-	// This member is required.
+	// Deprecated: Use SingleMetricAnomalyDetector.
 	Namespace *string
+
+	// A single metric anomaly detector to be deleted. When using
+	// SingleMetricAnomalyDetector, you cannot include the following parameters in the
+	// same operation:
+	//
+	// * Dimensions,
+	//
+	// * MetricName
+	//
+	// * Namespace
+	//
+	// * Stat
+	//
+	// * the
+	// MetricMathAnomalyDetector parameters of DeleteAnomalyDetectorInput
+	//
+	// Instead,
+	// specify the single metric anomaly detector attributes as part of the
+	// SingleMetricAnomalyDetector property.
+	SingleMetricAnomalyDetector *types.SingleMetricAnomalyDetector
 
 	// The statistic associated with the anomaly detection model to delete.
 	//
-	// This member is required.
+	// Deprecated: Use SingleMetricAnomalyDetector.
 	Stat *string
 
-	// The metric dimensions associated with the anomaly detection model to delete.
-	Dimensions []types.Dimension
+	noSmithyDocumentSerde
 }
 
 type DeleteAnomalyDetectorOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDeleteAnomalyDetectorMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDeleteAnomalyDetectorMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDeleteAnomalyDetector{}, middleware.After)
 	if err != nil {
 		return err

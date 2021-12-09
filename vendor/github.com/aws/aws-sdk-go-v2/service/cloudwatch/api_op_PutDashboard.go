@@ -30,7 +30,7 @@ func (c *Client) PutDashboard(ctx context.Context, params *PutDashboardInput, op
 		params = &PutDashboardInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "PutDashboard", params, optFns, addOperationPutDashboardMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "PutDashboard", params, optFns, c.addOperationPutDashboardMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,8 @@ type PutDashboardInput struct {
 	//
 	// This member is required.
 	DashboardName *string
+
+	noSmithyDocumentSerde
 }
 
 type PutDashboardOutput struct {
@@ -71,9 +73,11 @@ type PutDashboardOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationPutDashboardMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationPutDashboardMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpPutDashboard{}, middleware.After)
 	if err != nil {
 		return err

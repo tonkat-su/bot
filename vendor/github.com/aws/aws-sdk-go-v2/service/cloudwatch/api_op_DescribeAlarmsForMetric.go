@@ -21,7 +21,7 @@ func (c *Client) DescribeAlarmsForMetric(ctx context.Context, params *DescribeAl
 		params = &DescribeAlarmsForMetricInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DescribeAlarmsForMetric", params, optFns, addOperationDescribeAlarmsForMetricMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DescribeAlarmsForMetric", params, optFns, c.addOperationDescribeAlarmsForMetricMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +59,8 @@ type DescribeAlarmsForMetricInput struct {
 
 	// The unit for the metric.
 	Unit types.StandardUnit
+
+	noSmithyDocumentSerde
 }
 
 type DescribeAlarmsForMetricOutput struct {
@@ -68,9 +70,11 @@ type DescribeAlarmsForMetricOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDescribeAlarmsForMetricMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDescribeAlarmsForMetricMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDescribeAlarmsForMetric{}, middleware.After)
 	if err != nil {
 		return err

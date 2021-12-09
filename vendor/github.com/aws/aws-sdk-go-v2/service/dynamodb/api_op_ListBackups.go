@@ -4,27 +4,29 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
 )
 
-// List backups associated with an AWS account. To list backups for a given table,
-// specify TableName. ListBackups returns a paginated list of results with at most
-// 1 MB worth of items in a page. You can also specify a maximum number of entries
-// to be returned in a page. In the request, start time is inclusive, but end time
-// is exclusive. Note that these boundaries are for the time at which the original
-// backup was requested. You can call ListBackups a maximum of five times per
-// second.
+// List backups associated with an Amazon Web Services account. To list backups for
+// a given table, specify TableName. ListBackups returns a paginated list of
+// results with at most 1 MB worth of items in a page. You can also specify a
+// maximum number of entries to be returned in a page. In the request, start time
+// is inclusive, but end time is exclusive. Note that these boundaries are for the
+// time at which the original backup was requested. You can call ListBackups a
+// maximum of five times per second.
 func (c *Client) ListBackups(ctx context.Context, params *ListBackupsInput, optFns ...func(*Options)) (*ListBackupsOutput, error) {
 	if params == nil {
 		params = &ListBackupsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ListBackups", params, optFns, addOperationListBackupsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ListBackups", params, optFns, c.addOperationListBackupsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +70,8 @@ type ListBackupsInput struct {
 	// Only backups created before this time are listed. TimeRangeUpperBound is
 	// exclusive.
 	TimeRangeUpperBound *time.Time
+
+	noSmithyDocumentSerde
 }
 
 type ListBackupsOutput struct {
@@ -87,9 +91,11 @@ type ListBackupsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationListBackupsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationListBackupsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpListBackups{}, middleware.After)
 	if err != nil {
 		return err
@@ -134,6 +140,9 @@ func addOperationListBackupsMiddlewares(stack *middleware.Stack, options Options
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpListBackupsDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListBackups(options.Region), middleware.Before); err != nil {
 		return err
 	}
@@ -153,6 +162,46 @@ func addOperationListBackupsMiddlewares(stack *middleware.Stack, options Options
 		return err
 	}
 	return nil
+}
+
+func addOpListBackupsDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpListBackupsDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpListBackupsDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*ListBackupsInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 func newServiceMetadataMiddleware_opListBackups(region string) *awsmiddleware.RegisterServiceMetadata {

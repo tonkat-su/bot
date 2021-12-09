@@ -16,10 +16,11 @@ import (
 // the policy statement's Resources element. You can also use a combination of both
 // identity-based and resource-based policies. The affected users and roles receive
 // the permissions that are permitted by all of the relevant policies. For more
-// information, see Using Resource-Based Policies for AWS Secrets Manager
+// information, see Using Resource-Based Policies for Amazon Web Services Secrets
+// Manager
 // (http://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_resource-based-policies.html).
-// For the complete description of the AWS policy syntax and grammar, see IAM JSON
-// Policy Reference
+// For the complete description of the Amazon Web Services policy syntax and
+// grammar, see IAM JSON Policy Reference
 // (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html) in
 // the IAM User Guide. Minimum permissions To run this command, you must have the
 // following permissions:
@@ -42,7 +43,7 @@ func (c *Client) PutResourcePolicy(ctx context.Context, params *PutResourcePolic
 		params = &PutResourcePolicyInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "PutResourcePolicy", params, optFns, addOperationPutResourcePolicyMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "PutResourcePolicy", params, optFns, c.addOperationPutResourcePolicyMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -55,33 +56,19 @@ func (c *Client) PutResourcePolicy(ctx context.Context, params *PutResourcePolic
 type PutResourcePolicyInput struct {
 
 	// A JSON-formatted string constructed according to the grammar and syntax for an
-	// AWS resource-based policy. The policy in the string identifies who can access or
-	// manage this secret and its versions. For information on how to format a JSON
-	// parameter for the various command line tool environments, see Using JSON for
-	// Parameters
+	// Amazon Web Services resource-based policy. The policy in the string identifies
+	// who can access or manage this secret and its versions. For information on how to
+	// format a JSON parameter for the various command line tool environments, see
+	// Using JSON for Parameters
 	// (http://docs.aws.amazon.com/cli/latest/userguide/cli-using-param.html#cli-using-param-json)
-	// in the AWS CLI User Guide.
+	// in the CLI User Guide.
 	//
 	// This member is required.
 	ResourcePolicy *string
 
 	// Specifies the secret that you want to attach the resource-based policy. You can
-	// specify either the ARN or the friendly name of the secret. If you specify an
-	// ARN, we generally recommend that you specify a complete ARN. You can specify a
-	// partial ARN too—for example, if you don’t include the final hyphen and six
-	// random characters that Secrets Manager adds at the end of the ARN when you
-	// created the secret. A partial ARN match can work as long as it uniquely matches
-	// only one secret. However, if your secret has a name that ends in a hyphen
-	// followed by six characters (before Secrets Manager adds the hyphen and six
-	// characters to the ARN) and you try to use that as a partial ARN, then those
-	// characters cause Secrets Manager to assume that you’re specifying a complete
-	// ARN. This confusion can cause unexpected results. To avoid this situation, we
-	// recommend that you don’t create secret names ending with a hyphen followed by
-	// six characters. If you specify an incomplete ARN without the random suffix, and
-	// instead provide the 'friendly name', you must not include the random suffix. If
-	// you do include the random suffix added by Secrets Manager, you receive either a
-	// ResourceNotFoundException or an AccessDeniedException error, depending on your
-	// permissions.
+	// specify either the ARN or the friendly name of the secret. For an ARN, we
+	// recommend that you specify a complete ARN rather than a partial ARN.
 	//
 	// This member is required.
 	SecretId *string
@@ -89,6 +76,8 @@ type PutResourcePolicyInput struct {
 	// (Optional) If you set the parameter, BlockPublicPolicy to true, then you block
 	// resource-based policies that allow broad access to the secret.
 	BlockPublicPolicy bool
+
+	noSmithyDocumentSerde
 }
 
 type PutResourcePolicyOutput struct {
@@ -101,9 +90,11 @@ type PutResourcePolicyOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationPutResourcePolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationPutResourcePolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutResourcePolicy{}, middleware.After)
 	if err != nil {
 		return err

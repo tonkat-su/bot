@@ -29,7 +29,7 @@ func (c *Client) DeleteAlarms(ctx context.Context, params *DeleteAlarmsInput, op
 		params = &DeleteAlarmsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DeleteAlarms", params, optFns, addOperationDeleteAlarmsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DeleteAlarms", params, optFns, c.addOperationDeleteAlarmsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +45,18 @@ type DeleteAlarmsInput struct {
 	//
 	// This member is required.
 	AlarmNames []string
+
+	noSmithyDocumentSerde
 }
 
 type DeleteAlarmsOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDeleteAlarmsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDeleteAlarmsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDeleteAlarms{}, middleware.After)
 	if err != nil {
 		return err

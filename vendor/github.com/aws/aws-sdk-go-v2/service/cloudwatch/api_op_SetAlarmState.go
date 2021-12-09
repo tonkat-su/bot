@@ -31,7 +31,7 @@ func (c *Client) SetAlarmState(ctx context.Context, params *SetAlarmStateInput, 
 		params = &SetAlarmStateInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "SetAlarmState", params, optFns, addOperationSetAlarmStateMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "SetAlarmState", params, optFns, c.addOperationSetAlarmStateMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -63,14 +63,18 @@ type SetAlarmStateInput struct {
 	// or application Auto Scaling alarm actions, the Auto Scaling policy uses the
 	// information in this field to take the correct action.
 	StateReasonData *string
+
+	noSmithyDocumentSerde
 }
 
 type SetAlarmStateOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationSetAlarmStateMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationSetAlarmStateMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpSetAlarmState{}, middleware.After)
 	if err != nil {
 		return err

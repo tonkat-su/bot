@@ -12,10 +12,10 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Lists all of the secrets that are stored by Secrets Manager in the AWS account.
-// To list the versions currently stored for a specific secret, use
-// ListSecretVersionIds. The encrypted fields SecretString and SecretBinary are not
-// included in the output. To get that information, call the GetSecretValue
+// Lists all of the secrets that are stored by Secrets Manager in the Amazon Web
+// Services account. To list the versions currently stored for a specific secret,
+// use ListSecretVersionIds. The encrypted fields SecretString and SecretBinary are
+// not included in the output. To get that information, call the GetSecretValue
 // operation. Always check the NextToken response parameter when calling any of the
 // List* operations. These operations can occasionally return an empty or shorter
 // than expected list of results even when there more results become available.
@@ -35,7 +35,7 @@ func (c *Client) ListSecrets(ctx context.Context, params *ListSecretsInput, optF
 		params = &ListSecretsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ListSecrets", params, optFns, addOperationListSecretsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ListSecrets", params, optFns, c.addOperationListSecretsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +69,8 @@ type ListSecretsInput struct {
 
 	// Lists secrets in the requested order.
 	SortOrder types.SortOrderType
+
+	noSmithyDocumentSerde
 }
 
 type ListSecretsOutput struct {
@@ -87,9 +89,11 @@ type ListSecretsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationListSecretsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationListSecretsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListSecrets{}, middleware.After)
 	if err != nil {
 		return err

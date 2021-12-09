@@ -17,7 +17,7 @@ func (c *Client) DescribeExport(ctx context.Context, params *DescribeExportInput
 		params = &DescribeExportInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DescribeExport", params, optFns, addOperationDescribeExportMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DescribeExport", params, optFns, c.addOperationDescribeExportMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +33,8 @@ type DescribeExportInput struct {
 	//
 	// This member is required.
 	ExportArn *string
+
+	noSmithyDocumentSerde
 }
 
 type DescribeExportOutput struct {
@@ -42,9 +44,11 @@ type DescribeExportOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDescribeExportMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDescribeExportMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDescribeExport{}, middleware.After)
 	if err != nil {
 		return err

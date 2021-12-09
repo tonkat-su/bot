@@ -12,12 +12,18 @@ import (
 )
 
 // Updates the status for contributor insights for a specific table or index.
+// CloudWatch Contributor Insights for DynamoDB graphs display the partition key
+// and (if applicable) sort key of frequently accessed items and frequently
+// throttled items in plaintext. If you require the use of AWS Key Management
+// Service (KMS) to encrypt this table’s partition key and sort key data with an
+// AWS managed key or customer managed key, you should not enable CloudWatch
+// Contributor Insights for DynamoDB for this table.
 func (c *Client) UpdateContributorInsights(ctx context.Context, params *UpdateContributorInsightsInput, optFns ...func(*Options)) (*UpdateContributorInsightsOutput, error) {
 	if params == nil {
 		params = &UpdateContributorInsightsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "UpdateContributorInsights", params, optFns, addOperationUpdateContributorInsightsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "UpdateContributorInsights", params, optFns, c.addOperationUpdateContributorInsightsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +47,8 @@ type UpdateContributorInsightsInput struct {
 
 	// The global secondary index name, if applicable.
 	IndexName *string
+
+	noSmithyDocumentSerde
 }
 
 type UpdateContributorInsightsOutput struct {
@@ -56,9 +64,11 @@ type UpdateContributorInsightsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationUpdateContributorInsightsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationUpdateContributorInsightsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpUpdateContributorInsights{}, middleware.After)
 	if err != nil {
 		return err

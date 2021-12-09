@@ -19,7 +19,7 @@ func (c *Client) GetDashboard(ctx context.Context, params *GetDashboardInput, op
 		params = &GetDashboardInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "GetDashboard", params, optFns, addOperationGetDashboardMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "GetDashboard", params, optFns, c.addOperationGetDashboardMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +35,8 @@ type GetDashboardInput struct {
 	//
 	// This member is required.
 	DashboardName *string
+
+	noSmithyDocumentSerde
 }
 
 type GetDashboardOutput struct {
@@ -53,9 +55,11 @@ type GetDashboardOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationGetDashboardMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationGetDashboardMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpGetDashboard{}, middleware.After)
 	if err != nil {
 		return err

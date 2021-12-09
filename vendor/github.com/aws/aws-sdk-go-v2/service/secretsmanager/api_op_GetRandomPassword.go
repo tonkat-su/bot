@@ -23,7 +23,7 @@ func (c *Client) GetRandomPassword(ctx context.Context, params *GetRandomPasswor
 		params = &GetRandomPasswordInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "GetRandomPassword", params, optFns, addOperationGetRandomPasswordMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "GetRandomPassword", params, optFns, c.addOperationGetRandomPasswordMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +74,8 @@ type GetRandomPasswordInput struct {
 	// least one of every allowed character type. The default value is True and the
 	// operation requires at least one of every character type.
 	RequireEachIncludedType bool
+
+	noSmithyDocumentSerde
 }
 
 type GetRandomPasswordOutput struct {
@@ -83,9 +85,11 @@ type GetRandomPasswordOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationGetRandomPasswordMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationGetRandomPasswordMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetRandomPassword{}, middleware.After)
 	if err != nil {
 		return err

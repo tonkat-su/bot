@@ -18,7 +18,7 @@ func (c *Client) DisableInsightRules(ctx context.Context, params *DisableInsight
 		params = &DisableInsightRulesInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DisableInsightRules", params, optFns, addOperationDisableInsightRulesMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DisableInsightRules", params, optFns, c.addOperationDisableInsightRulesMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +36,8 @@ type DisableInsightRulesInput struct {
 	//
 	// This member is required.
 	RuleNames []string
+
+	noSmithyDocumentSerde
 }
 
 type DisableInsightRulesOutput struct {
@@ -46,9 +48,11 @@ type DisableInsightRulesOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDisableInsightRulesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDisableInsightRulesMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDisableInsightRules{}, middleware.After)
 	if err != nil {
 		return err

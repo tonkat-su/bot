@@ -51,7 +51,7 @@ func (c *Client) DeleteSecret(ctx context.Context, params *DeleteSecretInput, op
 		params = &DeleteSecretInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DeleteSecret", params, optFns, addOperationDeleteSecretMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DeleteSecret", params, optFns, c.addOperationDeleteSecretMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -64,22 +64,8 @@ func (c *Client) DeleteSecret(ctx context.Context, params *DeleteSecretInput, op
 type DeleteSecretInput struct {
 
 	// Specifies the secret to delete. You can specify either the Amazon Resource Name
-	// (ARN) or the friendly name of the secret. If you specify an ARN, we generally
-	// recommend that you specify a complete ARN. You can specify a partial ARN too—for
-	// example, if you don’t include the final hyphen and six random characters that
-	// Secrets Manager adds at the end of the ARN when you created the secret. A
-	// partial ARN match can work as long as it uniquely matches only one secret.
-	// However, if your secret has a name that ends in a hyphen followed by six
-	// characters (before Secrets Manager adds the hyphen and six characters to the
-	// ARN) and you try to use that as a partial ARN, then those characters cause
-	// Secrets Manager to assume that you’re specifying a complete ARN. This confusion
-	// can cause unexpected results. To avoid this situation, we recommend that you
-	// don’t create secret names ending with a hyphen followed by six characters. If
-	// you specify an incomplete ARN without the random suffix, and instead provide the
-	// 'friendly name', you must not include the random suffix. If you do include the
-	// random suffix added by Secrets Manager, you receive either a
-	// ResourceNotFoundException or an AccessDeniedException error, depending on your
-	// permissions.
+	// (ARN) or the friendly name of the secret. For an ARN, we recommend that you
+	// specify a complete ARN rather than a partial ARN.
 	//
 	// This member is required.
 	SecretId *string
@@ -91,12 +77,12 @@ type DeleteSecretInput struct {
 	// write code to delete and then immediately recreate a secret with the same name,
 	// ensure that your code includes appropriate back off and retry logic. Use this
 	// parameter with caution. This parameter causes the operation to skip the normal
-	// waiting period before the permanent deletion that AWS would normally impose with
-	// the RecoveryWindowInDays parameter. If you delete a secret with the
-	// ForceDeleteWithouRecovery parameter, then you have no opportunity to recover the
-	// secret. You lose the secret permanently. If you use this parameter and include a
-	// previously deleted or nonexistent secret, the operation does not return the
-	// error ResourceNotFoundException in order to correctly handle retries.
+	// waiting period before the permanent deletion that Amazon Web Services would
+	// normally impose with the RecoveryWindowInDays parameter. If you delete a secret
+	// with the ForceDeleteWithouRecovery parameter, then you have no opportunity to
+	// recover the secret. You lose the secret permanently. If you use this parameter
+	// and include a previously deleted or nonexistent secret, the operation does not
+	// return the error ResourceNotFoundException in order to correctly handle retries.
 	ForceDeleteWithoutRecovery bool
 
 	// (Optional) Specifies the number of days that Secrets Manager waits before
@@ -104,6 +90,8 @@ type DeleteSecretInput struct {
 	// ForceDeleteWithoutRecovery parameter in the same API call. This value can range
 	// from 7 to 30 days with a default value of 30.
 	RecoveryWindowInDays int64
+
+	noSmithyDocumentSerde
 }
 
 type DeleteSecretOutput struct {
@@ -121,9 +109,11 @@ type DeleteSecretOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDeleteSecretMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDeleteSecretMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDeleteSecret{}, middleware.After)
 	if err != nil {
 		return err

@@ -18,7 +18,7 @@ func (c *Client) ReplicateSecretToRegions(ctx context.Context, params *Replicate
 		params = &ReplicateSecretToRegionsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ReplicateSecretToRegions", params, optFns, addOperationReplicateSecretToRegionsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ReplicateSecretToRegions", params, optFns, c.addOperationReplicateSecretToRegionsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +43,8 @@ type ReplicateSecretToRegionsInput struct {
 	// (Optional) If set, Secrets Manager replication overwrites a secret with the same
 	// name in the destination region.
 	ForceOverwriteReplicaSecret bool
+
+	noSmithyDocumentSerde
 }
 
 type ReplicateSecretToRegionsOutput struct {
@@ -57,9 +59,11 @@ type ReplicateSecretToRegionsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationReplicateSecretToRegionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationReplicateSecretToRegionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpReplicateSecretToRegions{}, middleware.After)
 	if err != nil {
 		return err

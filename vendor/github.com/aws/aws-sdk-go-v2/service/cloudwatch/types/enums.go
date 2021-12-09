@@ -40,6 +40,24 @@ func (AnomalyDetectorStateValue) Values() []AnomalyDetectorStateValue {
 	}
 }
 
+type AnomalyDetectorType string
+
+// Enum values for AnomalyDetectorType
+const (
+	AnomalyDetectorTypeSingleMetric AnomalyDetectorType = "SINGLE_METRIC"
+	AnomalyDetectorTypeMetricMath   AnomalyDetectorType = "METRIC_MATH"
+)
+
+// Values returns all known values for AnomalyDetectorType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (AnomalyDetectorType) Values() []AnomalyDetectorType {
+	return []AnomalyDetectorType{
+		"SINGLE_METRIC",
+		"METRIC_MATH",
+	}
+}
+
 type ComparisonOperator string
 
 // Enum values for ComparisonOperator
@@ -85,6 +103,24 @@ func (HistoryItemType) Values() []HistoryItemType {
 		"ConfigurationUpdate",
 		"StateUpdate",
 		"Action",
+	}
+}
+
+type MetricStreamOutputFormat string
+
+// Enum values for MetricStreamOutputFormat
+const (
+	MetricStreamOutputFormatJson            MetricStreamOutputFormat = "json"
+	MetricStreamOutputFormatOpenTelemetry07 MetricStreamOutputFormat = "opentelemetry0.7"
+)
+
+// Values returns all known values for MetricStreamOutputFormat. Note that this can
+// be expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (MetricStreamOutputFormat) Values() []MetricStreamOutputFormat {
+	return []MetricStreamOutputFormat{
+		"json",
+		"opentelemetry0.7",
 	}
 }
 

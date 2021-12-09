@@ -17,7 +17,7 @@ func (c *Client) DeleteDashboards(ctx context.Context, params *DeleteDashboardsI
 		params = &DeleteDashboardsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DeleteDashboards", params, optFns, addOperationDeleteDashboardsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DeleteDashboards", params, optFns, c.addOperationDeleteDashboardsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -33,14 +33,18 @@ type DeleteDashboardsInput struct {
 	//
 	// This member is required.
 	DashboardNames []string
+
+	noSmithyDocumentSerde
 }
 
 type DeleteDashboardsOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDeleteDashboardsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDeleteDashboardsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDeleteDashboards{}, middleware.After)
 	if err != nil {
 		return err

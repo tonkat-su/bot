@@ -19,23 +19,23 @@ import (
 // secretsmanager:GetSecretValue
 //
 // * kms:Decrypt - required only if you use a
-// customer-managed AWS KMS key to encrypt the secret. You do not need this
-// permission to use the account's default AWS managed CMK for Secrets
-// Manager.
+// customer-managed Amazon Web Services KMS key to encrypt the secret. You do not
+// need this permission to use the account's default Amazon Web Services managed
+// CMK for Secrets Manager.
 //
 // Related operations
 //
-// * To create a new version of the secret with
-// different encrypted information, use PutSecretValue.
+// * To create a new version of the
+// secret with different encrypted information, use PutSecretValue.
 //
-// * To retrieve the
-// non-encrypted details for the secret, use DescribeSecret.
+// * To retrieve
+// the non-encrypted details for the secret, use DescribeSecret.
 func (c *Client) GetSecretValue(ctx context.Context, params *GetSecretValueInput, optFns ...func(*Options)) (*GetSecretValueOutput, error) {
 	if params == nil {
 		params = &GetSecretValueInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "GetSecretValue", params, optFns, addOperationGetSecretValueMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "GetSecretValue", params, optFns, c.addOperationGetSecretValueMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -49,21 +49,8 @@ type GetSecretValueInput struct {
 
 	// Specifies the secret containing the version that you want to retrieve. You can
 	// specify either the Amazon Resource Name (ARN) or the friendly name of the
-	// secret. If you specify an ARN, we generally recommend that you specify a
-	// complete ARN. You can specify a partial ARN too—for example, if you don’t
-	// include the final hyphen and six random characters that Secrets Manager adds at
-	// the end of the ARN when you created the secret. A partial ARN match can work as
-	// long as it uniquely matches only one secret. However, if your secret has a name
-	// that ends in a hyphen followed by six characters (before Secrets Manager adds
-	// the hyphen and six characters to the ARN) and you try to use that as a partial
-	// ARN, then those characters cause Secrets Manager to assume that you’re
-	// specifying a complete ARN. This confusion can cause unexpected results. To avoid
-	// this situation, we recommend that you don’t create secret names ending with a
-	// hyphen followed by six characters. If you specify an incomplete ARN without the
-	// random suffix, and instead provide the 'friendly name', you must not include the
-	// random suffix. If you do include the random suffix added by Secrets Manager, you
-	// receive either a ResourceNotFoundException or an AccessDeniedException error,
-	// depending on your permissions.
+	// secret. For an ARN, we recommend that you specify a complete ARN rather than a
+	// partial ARN.
 	//
 	// This member is required.
 	SecretId *string
@@ -84,6 +71,8 @@ type GetSecretValueInput struct {
 	// don't specify either a VersionStage or VersionId, then the default is to perform
 	// the operation on the version with the VersionStage value of AWSCURRENT.
 	VersionStage *string
+
+	noSmithyDocumentSerde
 }
 
 type GetSecretValueOutput struct {
@@ -127,9 +116,11 @@ type GetSecretValueOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationGetSecretValueMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationGetSecretValueMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetSecretValue{}, middleware.After)
 	if err != nil {
 		return err

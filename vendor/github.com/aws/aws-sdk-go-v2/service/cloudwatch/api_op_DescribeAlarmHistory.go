@@ -16,13 +16,17 @@ import (
 // Retrieves the history for the specified alarm. You can filter the results by
 // date range or item type. If an alarm name is not specified, the histories for
 // either all metric alarms or all composite alarms are returned. CloudWatch
-// retains the history of an alarm even if you delete the alarm.
+// retains the history of an alarm even if you delete the alarm. To use this
+// operation and return information about a composite alarm, you must be signed on
+// with the cloudwatch:DescribeAlarmHistory permission that is scoped to *. You
+// can't return information about composite alarms if your
+// cloudwatch:DescribeAlarmHistory permission has a narrower scope.
 func (c *Client) DescribeAlarmHistory(ctx context.Context, params *DescribeAlarmHistoryInput, optFns ...func(*Options)) (*DescribeAlarmHistoryOutput, error) {
 	if params == nil {
 		params = &DescribeAlarmHistoryInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DescribeAlarmHistory", params, optFns, addOperationDescribeAlarmHistoryMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DescribeAlarmHistory", params, optFns, c.addOperationDescribeAlarmHistoryMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +66,8 @@ type DescribeAlarmHistoryInput struct {
 
 	// The starting date to retrieve alarm history.
 	StartDate *time.Time
+
+	noSmithyDocumentSerde
 }
 
 type DescribeAlarmHistoryOutput struct {
@@ -74,9 +80,11 @@ type DescribeAlarmHistoryOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDescribeAlarmHistoryMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDescribeAlarmHistoryMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDescribeAlarmHistory{}, middleware.After)
 	if err != nil {
 		return err

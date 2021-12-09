@@ -40,7 +40,7 @@ func (c *Client) ValidateResourcePolicy(ctx context.Context, params *ValidateRes
 		params = &ValidateResourcePolicyInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ValidateResourcePolicy", params, optFns, addOperationValidateResourcePolicyMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ValidateResourcePolicy", params, optFns, c.addOperationValidateResourcePolicyMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -53,34 +53,23 @@ func (c *Client) ValidateResourcePolicy(ctx context.Context, params *ValidateRes
 type ValidateResourcePolicyInput struct {
 
 	// A JSON-formatted string constructed according to the grammar and syntax for an
-	// AWS resource-based policy. The policy in the string identifies who can access or
-	// manage this secret and its versions. For information on how to format a JSON
-	// parameter for the various command line tool environments, see Using JSON for
-	// Parameters
+	// Amazon Web Services resource-based policy. The policy in the string identifies
+	// who can access or manage this secret and its versions. For information on how to
+	// format a JSON parameter for the various command line tool environments, see
+	// Using JSON for Parameters
 	// (http://docs.aws.amazon.com/cli/latest/userguide/cli-using-param.html#cli-using-param-json)
-	// in the AWS CLI User Guide.publi
+	// in the CLI User Guide.publi
 	//
 	// This member is required.
 	ResourcePolicy *string
 
 	// (Optional) The identifier of the secret with the resource-based policy you want
 	// to validate. You can specify either the Amazon Resource Name (ARN) or the
-	// friendly name of the secret. If you specify an ARN, we generally recommend that
-	// you specify a complete ARN. You can specify a partial ARN too—for example, if
-	// you don’t include the final hyphen and six random characters that Secrets
-	// Manager adds at the end of the ARN when you created the secret. A partial ARN
-	// match can work as long as it uniquely matches only one secret. However, if your
-	// secret has a name that ends in a hyphen followed by six characters (before
-	// Secrets Manager adds the hyphen and six characters to the ARN) and you try to
-	// use that as a partial ARN, then those characters cause Secrets Manager to assume
-	// that you’re specifying a complete ARN. This confusion can cause unexpected
-	// results. To avoid this situation, we recommend that you don’t create secret
-	// names ending with a hyphen followed by six characters. If you specify an
-	// incomplete ARN without the random suffix, and instead provide the 'friendly
-	// name', you must not include the random suffix. If you do include the random
-	// suffix added by Secrets Manager, you receive either a ResourceNotFoundException
-	// or an AccessDeniedException error, depending on your permissions.
+	// friendly name of the secret. For an ARN, we recommend that you specify a
+	// complete ARN rather than a partial ARN.
 	SecretId *string
+
+	noSmithyDocumentSerde
 }
 
 type ValidateResourcePolicyOutput struct {
@@ -93,9 +82,11 @@ type ValidateResourcePolicyOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationValidateResourcePolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationValidateResourcePolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpValidateResourcePolicy{}, middleware.After)
 	if err != nil {
 		return err

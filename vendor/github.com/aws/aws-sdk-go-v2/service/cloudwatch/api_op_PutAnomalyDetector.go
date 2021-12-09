@@ -20,7 +20,7 @@ func (c *Client) PutAnomalyDetector(ctx context.Context, params *PutAnomalyDetec
 		params = &PutAnomalyDetectorInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "PutAnomalyDetector", params, optFns, addOperationPutAnomalyDetectorMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "PutAnomalyDetector", params, optFns, c.addOperationPutAnomalyDetectorMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -32,21 +32,6 @@ func (c *Client) PutAnomalyDetector(ctx context.Context, params *PutAnomalyDetec
 
 type PutAnomalyDetectorInput struct {
 
-	// The name of the metric to create the anomaly detection model for.
-	//
-	// This member is required.
-	MetricName *string
-
-	// The namespace of the metric to create the anomaly detection model for.
-	//
-	// This member is required.
-	Namespace *string
-
-	// The statistic to use for the metric and the anomaly detection model.
-	//
-	// This member is required.
-	Stat *string
-
 	// The configuration specifies details about how the anomaly detection model is to
 	// be trained, including time ranges to exclude when training and updating the
 	// model. You can specify as many as 10 time ranges. The configuration can also
@@ -54,15 +39,76 @@ type PutAnomalyDetectorInput struct {
 	Configuration *types.AnomalyDetectorConfiguration
 
 	// The metric dimensions to create the anomaly detection model for.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.
 	Dimensions []types.Dimension
+
+	// The metric math anomaly detector to be created. When using
+	// MetricMathAnomalyDetector, you cannot include the following parameters in the
+	// same operation:
+	//
+	// * Dimensions
+	//
+	// * MetricName
+	//
+	// * Namespace
+	//
+	// * Stat
+	//
+	// * the
+	// SingleMetricAnomalyDetector parameters of PutAnomalyDetectorInput
+	//
+	// Instead,
+	// specify the metric math anomaly detector attributes as part of the property
+	// MetricMathAnomalyDetector.
+	MetricMathAnomalyDetector *types.MetricMathAnomalyDetector
+
+	// The name of the metric to create the anomaly detection model for.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.
+	MetricName *string
+
+	// The namespace of the metric to create the anomaly detection model for.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.
+	Namespace *string
+
+	// A single metric anomaly detector to be created. When using
+	// SingleMetricAnomalyDetector, you cannot include the following parameters in the
+	// same operation:
+	//
+	// * Dimensions
+	//
+	// * MetricName
+	//
+	// * Namespace
+	//
+	// * Stat
+	//
+	// * the
+	// MetricMatchAnomalyDetector parameters of PutAnomalyDetectorInput
+	//
+	// Instead,
+	// specify the single metric anomaly detector attributes as part of the property
+	// SingleMetricAnomalyDetector.
+	SingleMetricAnomalyDetector *types.SingleMetricAnomalyDetector
+
+	// The statistic to use for the metric and the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.
+	Stat *string
+
+	noSmithyDocumentSerde
 }
 
 type PutAnomalyDetectorOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationPutAnomalyDetectorMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationPutAnomalyDetectorMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpPutAnomalyDetector{}, middleware.After)
 	if err != nil {
 		return err

@@ -34,7 +34,7 @@ func (c *Client) ListMetrics(ctx context.Context, params *ListMetricsInput, optF
 		params = &ListMetricsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ListMetrics", params, optFns, addOperationListMetricsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ListMetrics", params, optFns, c.addOperationListMetricsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +69,8 @@ type ListMetricsInput struct {
 	// returned results include metrics with last published data as much as 40 minutes
 	// more than the specified time interval.
 	RecentlyActive types.RecentlyActive
+
+	noSmithyDocumentSerde
 }
 
 type ListMetricsOutput struct {
@@ -81,9 +83,11 @@ type ListMetricsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationListMetricsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationListMetricsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpListMetrics{}, middleware.After)
 	if err != nil {
 		return err

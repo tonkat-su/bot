@@ -8,31 +8,33 @@ import (
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// The Query operation finds items based on primary key values. You can query any
-// table or secondary index that has a composite primary key (a partition key and a
-// sort key). Use the KeyConditionExpression parameter to provide a specific value
-// for the partition key. The Query operation will return all of the items from the
-// table or index with that partition key value. You can optionally narrow the
-// scope of the Query operation by specifying a sort key value and a comparison
-// operator in KeyConditionExpression. To further refine the Query results, you can
-// optionally provide a FilterExpression. A FilterExpression determines which items
-// within the results should be returned to you. All of the other results are
-// discarded. A Query operation always returns a result set. If no matching items
-// are found, the result set will be empty. Queries that do not return results
-// consume the minimum number of read capacity units for that type of read
-// operation. DynamoDB calculates the number of read capacity units consumed based
-// on item size, not on the amount of data that is returned to an application. The
-// number of capacity units consumed will be the same whether you request all of
-// the attributes (the default behavior) or just some of them (using a projection
-// expression). The number will also be the same whether or not you use a
-// FilterExpression. Query results are always sorted by the sort key value. If the
-// data type of the sort key is Number, the results are returned in numeric order;
-// otherwise, the results are returned in order of UTF-8 bytes. By default, the
-// sort order is ascending. To reverse the order, set the ScanIndexForward
+// You must provide the name of the partition key attribute and a single value for
+// that attribute. Query returns all items with that partition key value.
+// Optionally, you can provide a sort key attribute and use a comparison operator
+// to refine the search results. Use the KeyConditionExpression parameter to
+// provide a specific value for the partition key. The Query operation will return
+// all of the items from the table or index with that partition key value. You can
+// optionally narrow the scope of the Query operation by specifying a sort key
+// value and a comparison operator in KeyConditionExpression. To further refine the
+// Query results, you can optionally provide a FilterExpression. A FilterExpression
+// determines which items within the results should be returned to you. All of the
+// other results are discarded. A Query operation always returns a result set. If
+// no matching items are found, the result set will be empty. Queries that do not
+// return results consume the minimum number of read capacity units for that type
+// of read operation. DynamoDB calculates the number of read capacity units
+// consumed based on item size, not on the amount of data that is returned to an
+// application. The number of capacity units consumed will be the same whether you
+// request all of the attributes (the default behavior) or just some of them (using
+// a projection expression). The number will also be the same whether or not you
+// use a FilterExpression. Query results are always sorted by the sort key value.
+// If the data type of the sort key is Number, the results are returned in numeric
+// order; otherwise, the results are returned in order of UTF-8 bytes. By default,
+// the sort order is ascending. To reverse the order, set the ScanIndexForward
 // parameter to false. A single Query operation will read up to the maximum number
 // of items set (if using the Limit parameter) or a maximum of 1 MB of data and
 // then apply any filtering to the results using FilterExpression. If
@@ -54,7 +56,7 @@ func (c *Client) Query(ctx context.Context, params *QueryInput, optFns ...func(*
 		params = &QueryInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "Query", params, optFns, addOperationQueryMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "Query", params, optFns, c.addOperationQueryMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -278,14 +280,14 @@ type QueryInput struct {
 	// in the Amazon DynamoDB Developer Guide.
 	QueryFilter map[string]types.Condition
 
-	// Determines the level of detail about provisioned throughput consumption that is
-	// returned in the response:
+	// Determines the level of detail about either provisioned or on-demand throughput
+	// consumption that is returned in the response:
 	//
-	// * INDEXES - The response includes the aggregate
-	// ConsumedCapacity for the operation, together with ConsumedCapacity for each
-	// table and secondary index that was accessed. Note that some operations, such as
-	// GetItem and BatchGetItem, do not access any indexes at all. In these cases,
-	// specifying INDEXES will only return ConsumedCapacity information for
+	// * INDEXES - The response includes
+	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
+	// for each table and secondary index that was accessed. Note that some operations,
+	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
+	// cases, specifying INDEXES will only return ConsumedCapacity information for
 	// table(s).
 	//
 	// * TOTAL - The response includes only the aggregate ConsumedCapacity
@@ -347,6 +349,8 @@ type QueryInput struct {
 	// you use the ProjectionExpression parameter, then the value for Select can only
 	// be SPECIFIC_ATTRIBUTES. Any other value for Select will return an error.
 	Select types.Select
+
+	noSmithyDocumentSerde
 }
 
 // Represents the output of a Query operation.
@@ -391,9 +395,11 @@ type QueryOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationQueryMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationQueryMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpQuery{}, middleware.After)
 	if err != nil {
 		return err
@@ -438,6 +444,9 @@ func addOperationQueryMiddlewares(stack *middleware.Stack, options Options) (err
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpQueryDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = addOpQueryValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -460,6 +469,46 @@ func addOperationQueryMiddlewares(stack *middleware.Stack, options Options) (err
 		return err
 	}
 	return nil
+}
+
+func addOpQueryDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpQueryDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpQueryDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*QueryInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 // QueryAPIClient is a client that implements the Query operation.

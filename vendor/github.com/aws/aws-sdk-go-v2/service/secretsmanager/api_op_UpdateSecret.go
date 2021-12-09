@@ -11,17 +11,23 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Modifies many of the details of the specified secret. If you include a
-// ClientRequestToken and either SecretString or SecretBinary then it also creates
-// a new version attached to the secret. To modify the rotation configuration of a
-// secret, use RotateSecret instead. The Secrets Manager console uses only the
-// SecretString parameter and therefore limits you to encrypting and storing only a
-// text string. To encrypt and store binary data as part of the version of a
-// secret, you must use either the AWS CLI or one of the AWS SDKs.
+// Modifies many of the details of the specified secret. To change the secret
+// value, you can also use PutSecretValue. To change the rotation configuration of
+// a secret, use RotateSecret instead. We recommend you avoid calling UpdateSecret
+// at a sustained rate of more than once every 10 minutes. When you call
+// UpdateSecret to update the secret value, Secrets Manager creates a new version
+// of the secret. Secrets Manager removes outdated versions when there are more
+// than 100, but it does not remove versions created less than 24 hours ago. If you
+// update the secret value more than once every 10 minutes, you create more
+// versions than Secrets Manager removes, and you will reach the quota for secret
+// versions. The Secrets Manager console uses only the SecretString parameter and
+// therefore limits you to encrypting and storing only a text string. To encrypt
+// and store binary data as part of the version of a secret, you must use either
+// the Amazon Web Services CLI or one of the Amazon Web Services SDKs.
 //
-// * If a version
-// with a VersionId with the same value as the ClientRequestToken parameter already
-// exists, the operation results in an error. You cannot modify an existing
+// * If a
+// version with a VersionId with the same value as the ClientRequestToken parameter
+// already exists, the operation results in an error. You cannot modify an existing
 // version, you can only create a new version.
 //
 // * If you include SecretString or
@@ -30,58 +36,62 @@ import (
 //
 // * If you call an
 // operation to encrypt or decrypt the SecretString or SecretBinary for a secret in
-// the same account as the calling user and that secret doesn't specify a AWS KMS
-// encryption key, Secrets Manager uses the account's default AWS managed customer
-// master key (CMK) with the alias aws/secretsmanager. If this key doesn't already
-// exist in your account then Secrets Manager creates it for you automatically. All
-// users and roles in the same AWS account automatically have access to use the
-// default CMK. Note that if an Secrets Manager API call results in AWS creating
-// the account's AWS-managed CMK, it can result in a one-time significant delay in
-// returning the result.
+// the same account as the calling user and that secret doesn't specify a Amazon
+// Web Services KMS encryption key, Secrets Manager uses the account's default
+// Amazon Web Services managed customer master key (CMK) with the alias
+// aws/secretsmanager. If this key doesn't already exist in your account then
+// Secrets Manager creates it for you automatically. All users and roles in the
+// same Amazon Web Services account automatically have access to use the default
+// CMK. Note that if an Secrets Manager API call results in Amazon Web Services
+// creating the account's Amazon Web Services-managed CMK, it can result in a
+// one-time significant delay in returning the result.
 //
-// * If the secret resides in a different AWS account from
-// the credentials calling an API that requires encryption or decryption of the
-// secret value then you must create and use a custom AWS KMS CMK because you can't
-// access the default CMK for the account using credentials from a different AWS
+// * If the secret resides in
+// a different Amazon Web Services account from the credentials calling an API that
+// requires encryption or decryption of the secret value then you must create and
+// use a custom Amazon Web Services KMS CMK because you can't access the default
+// CMK for the account using credentials from a different Amazon Web Services
 // account. Store the ARN of the CMK in the secret when you create the secret or
 // when you update it by including it in the KMSKeyId. If you call an API that must
 // encrypt or decrypt SecretString or SecretBinary using credentials from a
-// different account then the AWS KMS key policy must grant cross-account access to
-// that other account's user or role for both the kms:GenerateDataKey and
-// kms:Decrypt operations.
+// different account then the Amazon Web Services KMS key policy must grant
+// cross-account access to that other account's user or role for both the
+// kms:GenerateDataKey and kms:Decrypt operations.
 //
-// Minimum permissions To run this command, you must have
-// the following permissions:
+// Minimum permissions To run this
+// command, you must have the following permissions:
 //
-// * secretsmanager:UpdateSecret
+// *
+// secretsmanager:UpdateSecret
 //
-// * kms:GenerateDataKey
-// - needed only if you use a custom AWS KMS key to encrypt the secret. You do not
-// need this permission to use the account's AWS managed CMK for Secrets
+// * kms:GenerateDataKey - needed only if you use a
+// custom Amazon Web Services KMS key to encrypt the secret. You do not need this
+// permission to use the account's Amazon Web Services managed CMK for Secrets
 // Manager.
 //
-// * kms:Decrypt - needed only if you use a custom AWS KMS key to encrypt
-// the secret. You do not need this permission to use the account's AWS managed CMK
-// for Secrets Manager.
+// * kms:Decrypt - needed only if you use a custom Amazon Web Services
+// KMS key to encrypt the secret. You do not need this permission to use the
+// account's Amazon Web Services managed CMK for Secrets Manager.
 //
-// Related operations
+// Related
+// operations
 //
-// * To create a new secret, use
-// CreateSecret.
+// * To create a new secret, use CreateSecret.
 //
-// * To add only a new version to an existing secret, use
-// PutSecretValue.
+// * To add only a new
+// version to an existing secret, use PutSecretValue.
 //
-// * To get the details for a secret, use DescribeSecret.
+// * To get the details for a
+// secret, use DescribeSecret.
 //
-// * To
-// list the versions contained in a secret, use ListSecretVersionIds.
+// * To list the versions contained in a secret, use
+// ListSecretVersionIds.
 func (c *Client) UpdateSecret(ctx context.Context, params *UpdateSecretInput, optFns ...func(*Options)) (*UpdateSecretOutput, error) {
 	if params == nil {
 		params = &UpdateSecretInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "UpdateSecret", params, optFns, addOperationUpdateSecretMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "UpdateSecret", params, optFns, c.addOperationUpdateSecretMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -95,39 +105,26 @@ type UpdateSecretInput struct {
 
 	// Specifies the secret that you want to modify or to which you want to add a new
 	// version. You can specify either the Amazon Resource Name (ARN) or the friendly
-	// name of the secret. If you specify an ARN, we generally recommend that you
-	// specify a complete ARN. You can specify a partial ARN too—for example, if you
-	// don’t include the final hyphen and six random characters that Secrets Manager
-	// adds at the end of the ARN when you created the secret. A partial ARN match can
-	// work as long as it uniquely matches only one secret. However, if your secret has
-	// a name that ends in a hyphen followed by six characters (before Secrets Manager
-	// adds the hyphen and six characters to the ARN) and you try to use that as a
-	// partial ARN, then those characters cause Secrets Manager to assume that you’re
-	// specifying a complete ARN. This confusion can cause unexpected results. To avoid
-	// this situation, we recommend that you don’t create secret names ending with a
-	// hyphen followed by six characters. If you specify an incomplete ARN without the
-	// random suffix, and instead provide the 'friendly name', you must not include the
-	// random suffix. If you do include the random suffix added by Secrets Manager, you
-	// receive either a ResourceNotFoundException or an AccessDeniedException error,
-	// depending on your permissions.
+	// name of the secret. For an ARN, we recommend that you specify a complete ARN
+	// rather than a partial ARN.
 	//
 	// This member is required.
 	SecretId *string
 
 	// (Optional) If you want to add a new version to the secret, this parameter
 	// specifies a unique identifier for the new version that helps ensure idempotency.
-	// If you use the AWS CLI or one of the AWS SDK to call this operation, then you
-	// can leave this parameter empty. The CLI or SDK generates a random UUID for you
-	// and includes that in the request. If you don't use the SDK and instead generate
-	// a raw HTTP request to the Secrets Manager service endpoint, then you must
-	// generate a ClientRequestToken yourself for new versions and include that value
-	// in the request. You typically only need to interact with this value if you
-	// implement your own retry logic and want to ensure that a given secret is not
-	// created twice. We recommend that you generate a UUID-type
-	// (https://wikipedia.org/wiki/Universally_unique_identifier) value to ensure
-	// uniqueness within the specified secret. Secrets Manager uses this value to
-	// prevent the accidental creation of duplicate versions if there are failures and
-	// retries during the Lambda rotation function's processing.
+	// If you use the Amazon Web Services CLI or one of the Amazon Web Services SDK to
+	// call this operation, then you can leave this parameter empty. The CLI or SDK
+	// generates a random UUID for you and includes that in the request. If you don't
+	// use the SDK and instead generate a raw HTTP request to the Secrets Manager
+	// service endpoint, then you must generate a ClientRequestToken yourself for new
+	// versions and include that value in the request. You typically only need to
+	// interact with this value if you implement your own retry logic and want to
+	// ensure that a given secret is not created twice. We recommend that you generate
+	// a UUID-type (https://wikipedia.org/wiki/Universally_unique_identifier) value to
+	// ensure uniqueness within the specified secret. Secrets Manager uses this value
+	// to prevent the accidental creation of duplicate versions if there are failures
+	// and retries during the Lambda rotation function's processing.
 	//
 	// * If the
 	// ClientRequestToken value isn't already associated with a version of the secret
@@ -149,13 +146,18 @@ type UpdateSecretInput struct {
 	// (Optional) Specifies an updated user-provided description of the secret.
 	Description *string
 
-	// (Optional) Specifies an updated ARN or alias of the AWS KMS customer master key
-	// (CMK) to be used to encrypt the protected text in new versions of this secret.
-	// You can only use the account's default CMK to encrypt and decrypt if you call
-	// this operation using credentials from the same account that owns the secret. If
-	// the secret is in a different account, then you must create a custom CMK and
-	// provide the ARN of that CMK in this field. The user making the call must have
-	// permissions to both the secret and the CMK in their respective accounts.
+	// (Optional) Specifies an updated ARN or alias of the Amazon Web Services KMS
+	// customer master key (CMK) that Secrets Manager uses to encrypt the protected
+	// text in new versions of this secret as well as any existing versions of this
+	// secret that have the staging labels AWSCURRENT, AWSPENDING, or AWSPREVIOUS. For
+	// more information about staging labels, see Staging Labels
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/terms-concepts.html#term_staging-label)
+	// in the Amazon Web Services Secrets Manager User Guide. You can only use the
+	// account's default CMK to encrypt and decrypt if you call this operation using
+	// credentials from the same account that owns the secret. If the secret is in a
+	// different account, then you must create a custom CMK and provide the ARN of that
+	// CMK in this field. The user making the call must have permissions to both the
+	// secret and the CMK in their respective accounts.
 	KmsKeyId *string
 
 	// (Optional) Specifies updated binary data that you want to encrypt and store in
@@ -174,19 +176,13 @@ type UpdateSecretInput struct {
 	// text in only the SecretString parameter. The Secrets Manager console stores the
 	// information as a JSON structure of key/value pairs that the default Lambda
 	// rotation function knows how to parse. For storing multiple values, we recommend
-	// that you use a JSON text string argument and specify key/value pairs. For
-	// information on how to format a JSON parameter for the various command line tool
-	// environments, see Using JSON for Parameters
-	// (https://docs.aws.amazon.com/cli/latest/userguide/cli-using-param.html#cli-using-param-json)
-	// in the AWS CLI User Guide. For example:
-	// [{"username":"bob"},{"password":"abc123xyz456"}] If your command-line tool or
-	// SDK requires quotation marks around the parameter, you should use single quotes
-	// to avoid confusion with the double quotes required in the JSON text. You can
-	// also 'escape' the double quote character in the embedded JSON text by prefacing
-	// each with a backslash. For example, the following string is surrounded by
-	// double-quotes. All of the embedded double quotes are escaped:
-	// "[{\"username\":\"bob\"},{\"password\":\"abc123xyz456\"}]"
+	// that you use a JSON text string argument and specify key/value pairs. For more
+	// information, see Specifying parameter values for the Amazon Web Services CLI
+	// (https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-parameters.html) in
+	// the Amazon Web Services CLI User Guide.
 	SecretString *string
+
+	noSmithyDocumentSerde
 }
 
 type UpdateSecretOutput struct {
@@ -208,9 +204,11 @@ type UpdateSecretOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationUpdateSecretMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationUpdateSecretMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateSecret{}, middleware.After)
 	if err != nil {
 		return err

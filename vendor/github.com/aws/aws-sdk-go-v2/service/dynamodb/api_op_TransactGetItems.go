@@ -4,9 +4,11 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -16,27 +18,27 @@ import (
 // Region. A TransactGetItems call can contain up to 25 TransactGetItem objects,
 // each of which contains a Get structure that specifies an item to retrieve from a
 // table in the account and Region. A call to TransactGetItems cannot retrieve
-// items from tables in more than one AWS account or Region. The aggregate size of
-// the items in the transaction cannot exceed 4 MB. DynamoDB rejects the entire
-// TransactGetItems request if any of the following is true:
+// items from tables in more than one Amazon Web Services account or Region. The
+// aggregate size of the items in the transaction cannot exceed 4 MB. DynamoDB
+// rejects the entire TransactGetItems request if any of the following is true:
 //
-// * A conflicting
-// operation is in the process of updating an item to be read.
+// *
+// A conflicting operation is in the process of updating an item to be read.
 //
-// * There is
-// insufficient provisioned capacity for the transaction to be completed.
+// *
+// There is insufficient provisioned capacity for the transaction to be
+// completed.
 //
-// * There
-// is a user error, such as an invalid data format.
+// * There is a user error, such as an invalid data format.
 //
-// * The aggregate size of the
-// items in the transaction cannot exceed 4 MB.
+// * The
+// aggregate size of the items in the transaction cannot exceed 4 MB.
 func (c *Client) TransactGetItems(ctx context.Context, params *TransactGetItemsInput, optFns ...func(*Options)) (*TransactGetItemsOutput, error) {
 	if params == nil {
 		params = &TransactGetItemsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "TransactGetItems", params, optFns, addOperationTransactGetItemsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "TransactGetItems", params, optFns, c.addOperationTransactGetItemsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +60,8 @@ type TransactGetItemsInput struct {
 	// value of NONE prevents that information from being returned. No other value is
 	// valid.
 	ReturnConsumedCapacity types.ReturnConsumedCapacity
+
+	noSmithyDocumentSerde
 }
 
 type TransactGetItemsOutput struct {
@@ -79,9 +83,11 @@ type TransactGetItemsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationTransactGetItemsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationTransactGetItemsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpTransactGetItems{}, middleware.After)
 	if err != nil {
 		return err
@@ -126,6 +132,9 @@ func addOperationTransactGetItemsMiddlewares(stack *middleware.Stack, options Op
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpTransactGetItemsDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = addOpTransactGetItemsValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -148,6 +157,46 @@ func addOperationTransactGetItemsMiddlewares(stack *middleware.Stack, options Op
 		return err
 	}
 	return nil
+}
+
+func addOpTransactGetItemsDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpTransactGetItemsDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpTransactGetItemsDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*TransactGetItemsInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 func newServiceMetadataMiddleware_opTransactGetItems(region string) *awsmiddleware.RegisterServiceMetadata {

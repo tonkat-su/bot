@@ -10,6 +10,8 @@ import (
 // More than one process tried to modify a resource at the same time.
 type ConcurrentModificationException struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *ConcurrentModificationException) Error() string {
@@ -31,6 +33,8 @@ type DashboardInvalidInputError struct {
 	Message *string
 
 	DashboardValidationMessages []DashboardValidationMessage
+
+	noSmithyDocumentSerde
 }
 
 func (e *DashboardInvalidInputError) Error() string {
@@ -42,12 +46,14 @@ func (e *DashboardInvalidInputError) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *DashboardInvalidInputError) ErrorCode() string             { return "DashboardInvalidInputError" }
+func (e *DashboardInvalidInputError) ErrorCode() string             { return "InvalidParameterInput" }
 func (e *DashboardInvalidInputError) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The specified dashboard does not exist.
 type DashboardNotFoundError struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *DashboardNotFoundError) Error() string {
@@ -59,12 +65,14 @@ func (e *DashboardNotFoundError) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *DashboardNotFoundError) ErrorCode() string             { return "DashboardNotFoundError" }
+func (e *DashboardNotFoundError) ErrorCode() string             { return "ResourceNotFound" }
 func (e *DashboardNotFoundError) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // Request processing has failed due to some unknown error, exception, or failure.
 type InternalServiceFault struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *InternalServiceFault) Error() string {
@@ -76,12 +84,14 @@ func (e *InternalServiceFault) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *InternalServiceFault) ErrorCode() string             { return "InternalServiceFault" }
+func (e *InternalServiceFault) ErrorCode() string             { return "InternalServiceError" }
 func (e *InternalServiceFault) ErrorFault() smithy.ErrorFault { return smithy.FaultServer }
 
 // Data was not syntactically valid JSON.
 type InvalidFormatFault struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *InvalidFormatFault) Error() string {
@@ -93,12 +103,14 @@ func (e *InvalidFormatFault) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *InvalidFormatFault) ErrorCode() string             { return "InvalidFormatFault" }
+func (e *InvalidFormatFault) ErrorCode() string             { return "InvalidFormat" }
 func (e *InvalidFormatFault) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The next token specified is invalid.
 type InvalidNextToken struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *InvalidNextToken) Error() string {
@@ -116,6 +128,8 @@ func (e *InvalidNextToken) ErrorFault() smithy.ErrorFault { return smithy.FaultC
 // Parameters were used together that cannot be used together.
 type InvalidParameterCombinationException struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *InvalidParameterCombinationException) Error() string {
@@ -128,7 +142,7 @@ func (e *InvalidParameterCombinationException) ErrorMessage() string {
 	return *e.Message
 }
 func (e *InvalidParameterCombinationException) ErrorCode() string {
-	return "InvalidParameterCombinationException"
+	return "InvalidParameterCombination"
 }
 func (e *InvalidParameterCombinationException) ErrorFault() smithy.ErrorFault {
 	return smithy.FaultClient
@@ -137,6 +151,8 @@ func (e *InvalidParameterCombinationException) ErrorFault() smithy.ErrorFault {
 // The value of an input parameter is bad or out-of-range.
 type InvalidParameterValueException struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *InvalidParameterValueException) Error() string {
@@ -148,12 +164,14 @@ func (e *InvalidParameterValueException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *InvalidParameterValueException) ErrorCode() string             { return "InvalidParameterValueException" }
+func (e *InvalidParameterValueException) ErrorCode() string             { return "InvalidParameterValue" }
 func (e *InvalidParameterValueException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The operation exceeded one or more limits.
 type LimitExceededException struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *LimitExceededException) Error() string {
@@ -171,6 +189,8 @@ func (e *LimitExceededException) ErrorFault() smithy.ErrorFault { return smithy.
 // The quota for alarms for this customer has already been reached.
 type LimitExceededFault struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *LimitExceededFault) Error() string {
@@ -182,12 +202,14 @@ func (e *LimitExceededFault) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *LimitExceededFault) ErrorCode() string             { return "LimitExceededFault" }
+func (e *LimitExceededFault) ErrorCode() string             { return "LimitExceeded" }
 func (e *LimitExceededFault) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // An input parameter that is required is missing.
 type MissingRequiredParameterException struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *MissingRequiredParameterException) Error() string {
@@ -199,14 +221,14 @@ func (e *MissingRequiredParameterException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *MissingRequiredParameterException) ErrorCode() string {
-	return "MissingRequiredParameterException"
-}
+func (e *MissingRequiredParameterException) ErrorCode() string             { return "MissingParameter" }
 func (e *MissingRequiredParameterException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The named resource does not exist.
 type ResourceNotFound struct {
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *ResourceNotFound) Error() string {
@@ -227,6 +249,8 @@ type ResourceNotFoundException struct {
 
 	ResourceType *string
 	ResourceId   *string
+
+	noSmithyDocumentSerde
 }
 
 func (e *ResourceNotFoundException) Error() string {

@@ -4,9 +4,11 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -23,7 +25,7 @@ func (c *Client) GetItem(ctx context.Context, params *GetItemInput, optFns ...fu
 		params = &GetItemInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "GetItem", params, optFns, addOperationGetItemMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "GetItem", params, optFns, c.addOperationGetItemMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -112,14 +114,14 @@ type GetItemInput struct {
 	// in the Amazon DynamoDB Developer Guide.
 	ProjectionExpression *string
 
-	// Determines the level of detail about provisioned throughput consumption that is
-	// returned in the response:
+	// Determines the level of detail about either provisioned or on-demand throughput
+	// consumption that is returned in the response:
 	//
-	// * INDEXES - The response includes the aggregate
-	// ConsumedCapacity for the operation, together with ConsumedCapacity for each
-	// table and secondary index that was accessed. Note that some operations, such as
-	// GetItem and BatchGetItem, do not access any indexes at all. In these cases,
-	// specifying INDEXES will only return ConsumedCapacity information for
+	// * INDEXES - The response includes
+	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
+	// for each table and secondary index that was accessed. Note that some operations,
+	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
+	// cases, specifying INDEXES will only return ConsumedCapacity information for
 	// table(s).
 	//
 	// * TOTAL - The response includes only the aggregate ConsumedCapacity
@@ -128,6 +130,8 @@ type GetItemInput struct {
 	// * NONE - No ConsumedCapacity details are included in the
 	// response.
 	ReturnConsumedCapacity types.ReturnConsumedCapacity
+
+	noSmithyDocumentSerde
 }
 
 // Represents the output of a GetItem operation.
@@ -148,9 +152,11 @@ type GetItemOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationGetItemMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationGetItemMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpGetItem{}, middleware.After)
 	if err != nil {
 		return err
@@ -195,6 +201,9 @@ func addOperationGetItemMiddlewares(stack *middleware.Stack, options Options) (e
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpGetItemDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = addOpGetItemValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -217,6 +226,46 @@ func addOperationGetItemMiddlewares(stack *middleware.Stack, options Options) (e
 		return err
 	}
 	return nil
+}
+
+func addOpGetItemDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpGetItemDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpGetItemDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*GetItemInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 func newServiceMetadataMiddleware_opGetItem(region string) *awsmiddleware.RegisterServiceMetadata {

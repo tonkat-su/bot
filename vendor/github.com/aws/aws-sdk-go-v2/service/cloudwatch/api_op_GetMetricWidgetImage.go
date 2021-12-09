@@ -28,7 +28,7 @@ func (c *Client) GetMetricWidgetImage(ctx context.Context, params *GetMetricWidg
 		params = &GetMetricWidgetImageInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "GetMetricWidgetImage", params, optFns, addOperationGetMetricWidgetImageMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "GetMetricWidgetImage", params, optFns, c.addOperationGetMetricWidgetImageMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -64,10 +64,13 @@ type GetMetricWidgetImageInput struct {
 	// 6f0d4192-4d42-11e8-82c1-f539a07e0e3b
 	//
 	// The image/png setting is intended only for
-	// custom HTTP requests. For most use cases, and all actions using an AWS SDK, you
-	// should use png. If you specify image/png, the HTTP response has a content-type
-	// set to image/png, and the body of the response is a PNG image.
+	// custom HTTP requests. For most use cases, and all actions using an Amazon Web
+	// Services SDK, you should use png. If you specify image/png, the HTTP response
+	// has a content-type set to image/png, and the body of the response is a PNG
+	// image.
 	OutputFormat *string
+
+	noSmithyDocumentSerde
 }
 
 type GetMetricWidgetImageOutput struct {
@@ -78,9 +81,11 @@ type GetMetricWidgetImageOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationGetMetricWidgetImageMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationGetMetricWidgetImageMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpGetMetricWidgetImage{}, middleware.After)
 	if err != nil {
 		return err

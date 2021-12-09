@@ -11,14 +11,15 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// This operation allows you to perform batch reads and writes on data stored in
-// DynamoDB, using PartiQL.
+// This operation allows you to perform batch reads or writes on data stored in
+// DynamoDB, using PartiQL. The entire batch must consist of either read statements
+// or write statements, you cannot mix both in one batch.
 func (c *Client) BatchExecuteStatement(ctx context.Context, params *BatchExecuteStatementInput, optFns ...func(*Options)) (*BatchExecuteStatementOutput, error) {
 	if params == nil {
 		params = &BatchExecuteStatementInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "BatchExecuteStatement", params, optFns, addOperationBatchExecuteStatementMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "BatchExecuteStatement", params, optFns, c.addOperationBatchExecuteStatementMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -34,18 +35,43 @@ type BatchExecuteStatementInput struct {
 	//
 	// This member is required.
 	Statements []types.BatchStatementRequest
+
+	// Determines the level of detail about either provisioned or on-demand throughput
+	// consumption that is returned in the response:
+	//
+	// * INDEXES - The response includes
+	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
+	// for each table and secondary index that was accessed. Note that some operations,
+	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
+	// cases, specifying INDEXES will only return ConsumedCapacity information for
+	// table(s).
+	//
+	// * TOTAL - The response includes only the aggregate ConsumedCapacity
+	// for the operation.
+	//
+	// * NONE - No ConsumedCapacity details are included in the
+	// response.
+	ReturnConsumedCapacity types.ReturnConsumedCapacity
+
+	noSmithyDocumentSerde
 }
 
 type BatchExecuteStatementOutput struct {
+
+	// The capacity units consumed by the entire operation. The values of the list are
+	// ordered according to the ordering of the statements.
+	ConsumedCapacity []types.ConsumedCapacity
 
 	// The response to each PartiQL statement in the batch.
 	Responses []types.BatchStatementResponse
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationBatchExecuteStatementMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationBatchExecuteStatementMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpBatchExecuteStatement{}, middleware.After)
 	if err != nil {
 		return err

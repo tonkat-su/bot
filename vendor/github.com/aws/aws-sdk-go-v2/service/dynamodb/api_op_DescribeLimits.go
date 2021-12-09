@@ -4,64 +4,66 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Returns the current provisioned-capacity quotas for your AWS account in a
-// Region, both for the Region as a whole and for any one DynamoDB table that you
-// create there. When you establish an AWS account, the account has initial quotas
-// on the maximum read capacity units and write capacity units that you can
-// provision across all of your DynamoDB tables in a given Region. Also, there are
-// per-table quotas that apply when you create a table there. For more information,
-// see Service, Account, and Table Quotas
+// Returns the current provisioned-capacity quotas for your Amazon Web Services
+// account in a Region, both for the Region as a whole and for any one DynamoDB
+// table that you create there. When you establish an Amazon Web Services account,
+// the account has initial quotas on the maximum read capacity units and write
+// capacity units that you can provision across all of your DynamoDB tables in a
+// given Region. Also, there are per-table quotas that apply when you create a
+// table there. For more information, see Service, Account, and Table Quotas
 // (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html)
 // page in the Amazon DynamoDB Developer Guide. Although you can increase these
-// quotas by filing a case at AWS Support Center
+// quotas by filing a case at Amazon Web Services Support Center
 // (https://console.aws.amazon.com/support/home#/), obtaining the increase is not
 // instantaneous. The DescribeLimits action lets you write code to compare the
 // capacity you are currently using to those quotas imposed by your account so that
 // you have enough time to apply for an increase before you hit a quota. For
-// example, you could use one of the AWS SDKs to do the following:
+// example, you could use one of the Amazon Web Services SDKs to do the
+// following:
+//
+// * Call DescribeLimits for a particular Region to obtain your current
+// account quotas on provisioned capacity there.
+//
+// * Create a variable to hold the
+// aggregate read capacity units provisioned for all your tables in that Region,
+// and one to hold the aggregate write capacity units. Zero them both.
 //
 // * Call
-// DescribeLimits for a particular Region to obtain your current account quotas on
-// provisioned capacity there.
+// ListTables to obtain a list of all your DynamoDB tables.
 //
-// * Create a variable to hold the aggregate read
-// capacity units provisioned for all your tables in that Region, and one to hold
-// the aggregate write capacity units. Zero them both.
+// * For each table name
+// listed by ListTables, do the following:
 //
-// * Call ListTables to obtain
-// a list of all your DynamoDB tables.
+// * Call DescribeTable with the table
+// name.
 //
-// * For each table name listed by ListTables,
-// do the following:
+// * Use the data returned by DescribeTable to add the read capacity units
+// and write capacity units provisioned for the table itself to your variables.
 //
-// * Call DescribeTable with the table name.
+// *
+// If the table has one or more global secondary indexes (GSIs), loop over these
+// GSIs and add their provisioned capacity values to your variables as well.
 //
-// * Use the data
-// returned by DescribeTable to add the read capacity units and write capacity
-// units provisioned for the table itself to your variables.
+// *
+// Report the account quotas for that Region returned by DescribeLimits, along with
+// the total current provisioned capacity levels you have calculated.
 //
-// * If the table has
-// one or more global secondary indexes (GSIs), loop over these GSIs and add their
-// provisioned capacity values to your variables as well.
-//
-// * Report the account
-// quotas for that Region returned by DescribeLimits, along with the total current
-// provisioned capacity levels you have calculated.
-//
-// This will let you see whether
-// you are getting close to your account-level quotas. The per-table quotas apply
-// only when you are creating a new table. They restrict the sum of the provisioned
-// capacity of the new table itself and all its global secondary indexes. For
-// existing tables and their GSIs, DynamoDB doesn't let you increase provisioned
-// capacity extremely rapidly, but the only quota that applies is that the
-// aggregate provisioned capacity over all your tables and GSIs cannot exceed
-// either of the per-account quotas. DescribeLimits should only be called
+// This will
+// let you see whether you are getting close to your account-level quotas. The
+// per-table quotas apply only when you are creating a new table. They restrict the
+// sum of the provisioned capacity of the new table itself and all its global
+// secondary indexes. For existing tables and their GSIs, DynamoDB doesn't let you
+// increase provisioned capacity extremely rapidly, but the only quota that applies
+// is that the aggregate provisioned capacity over all your tables and GSIs cannot
+// exceed either of the per-account quotas. DescribeLimits should only be called
 // periodically. You can expect throttling errors if you call it more than once in
 // a minute. The DescribeLimits Request element has no content.
 func (c *Client) DescribeLimits(ctx context.Context, params *DescribeLimitsInput, optFns ...func(*Options)) (*DescribeLimitsOutput, error) {
@@ -69,7 +71,7 @@ func (c *Client) DescribeLimits(ctx context.Context, params *DescribeLimitsInput
 		params = &DescribeLimitsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DescribeLimits", params, optFns, addOperationDescribeLimitsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DescribeLimits", params, optFns, c.addOperationDescribeLimitsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +83,7 @@ func (c *Client) DescribeLimits(ctx context.Context, params *DescribeLimitsInput
 
 // Represents the input of a DescribeLimits operation. Has no content.
 type DescribeLimitsInput struct {
+	noSmithyDocumentSerde
 }
 
 // Represents the output of a DescribeLimits operation.
@@ -106,9 +109,11 @@ type DescribeLimitsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDescribeLimitsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDescribeLimitsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDescribeLimits{}, middleware.After)
 	if err != nil {
 		return err
@@ -153,6 +158,9 @@ func addOperationDescribeLimitsMiddlewares(stack *middleware.Stack, options Opti
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpDescribeLimitsDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeLimits(options.Region), middleware.Before); err != nil {
 		return err
 	}
@@ -172,6 +180,46 @@ func addOperationDescribeLimitsMiddlewares(stack *middleware.Stack, options Opti
 		return err
 	}
 	return nil
+}
+
+func addOpDescribeLimitsDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpDescribeLimitsDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpDescribeLimitsDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*DescribeLimitsInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 func newServiceMetadataMiddleware_opDescribeLimits(region string) *awsmiddleware.RegisterServiceMetadata {

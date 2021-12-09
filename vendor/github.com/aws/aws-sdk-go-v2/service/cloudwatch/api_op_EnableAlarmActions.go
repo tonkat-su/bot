@@ -16,7 +16,7 @@ func (c *Client) EnableAlarmActions(ctx context.Context, params *EnableAlarmActi
 		params = &EnableAlarmActionsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "EnableAlarmActions", params, optFns, addOperationEnableAlarmActionsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "EnableAlarmActions", params, optFns, c.addOperationEnableAlarmActionsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -32,14 +32,18 @@ type EnableAlarmActionsInput struct {
 	//
 	// This member is required.
 	AlarmNames []string
+
+	noSmithyDocumentSerde
 }
 
 type EnableAlarmActionsOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationEnableAlarmActionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationEnableAlarmActionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpEnableAlarmActions{}, middleware.After)
 	if err != nil {
 		return err

@@ -2,12 +2,16 @@ package mcpinger
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
-	enc "github.com/Raqbit/mc-pinger/encoding"
-	"github.com/Raqbit/mc-pinger/packet"
+	"github.com/pires/go-proxyproto"
 	"net"
 	"strconv"
+	"time"
+
+	enc "github.com/Raqbit/mc-pinger/encoding"
+	"github.com/Raqbit/mc-pinger/packet"
 )
 
 const (
@@ -21,11 +25,16 @@ type Pinger interface {
 }
 
 type mcPinger struct {
-	Host string
-	Port uint16
+	Host    string
+	Port    uint16
+	Context context.Context
+	Timeout time.Duration
+
+	UseProxy     bool
+	ProxyVersion byte
 }
 
-// Error returned when the received packet type
+// InvalidPacketError returned when the received packet type
 // does not match the expected packet type.
 type InvalidPacketError struct {
 	expected enc.VarInt
@@ -36,21 +45,45 @@ func (i InvalidPacketError) Error() string {
 	return fmt.Sprintf("Received invalid packet. Expected #%d, got #%d", i.expected, i.actual)
 }
 
+func (p *mcPinger) Ping() (*ServerInfo, error) {
+	if p.Timeout > 0 && p.Context == nil {
+		ctx, cancel := context.WithTimeout(context.Background(), p.Timeout)
+		p.Context = ctx
+		defer cancel()
+	}
+	if p.Context == nil {
+		p.Context = context.Background()
+	}
+	return p.ping()
+}
+
 // Will connect to the Minecraft server,
 // retrieve server status and return the server info.
-func (p *mcPinger) Ping() (*ServerInfo, error) {
+func (p *mcPinger) ping() (*ServerInfo, error) {
+
+	if p.Context == nil {
+		panic("Context is nil!")
+	}
 
 	address := net.JoinHostPort(p.Host, strconv.Itoa(int(p.Port)))
 
-	// TODO: TIMEOUTS
-	conn, err := net.Dial("tcp", address)
+	var d net.Dialer
 
-	rd := bufio.NewReader(conn)
-	w := bufio.NewWriter(conn)
+	conn, err := d.DialContext(p.Context, "tcp", address)
 
 	if err != nil {
 		return nil, errors.New("could not connect to Minecraft server: " + err.Error())
 	}
+
+	if p.UseProxy {
+		err = p.writeProxyHeader(conn)
+		if err != nil {
+			return nil, errors.New("could not write PROXY header: " + err.Error())
+		}
+	}
+
+	rd := bufio.NewReader(conn)
+	w := bufio.NewWriter(conn)
 
 	defer conn.Close()
 
@@ -72,6 +105,11 @@ func (p *mcPinger) Ping() (*ServerInfo, error) {
 		return nil, err
 	}
 
+	if p.Timeout > 0 {
+		// When a remote process is bound, but paused, the connect succeeds without context timeout;
+		// however, the response packet just never comes back.
+		_ = conn.SetReadDeadline(time.Now().Add(p.Timeout))
+	}
 	res, err := p.readPacket(rd)
 
 	if err != nil {
@@ -116,10 +154,10 @@ func (p *mcPinger) readPacket(rd *bufio.Reader) (*packet.ResponsePacket, error) 
 
 	rp := &packet.ResponsePacket{}
 
-	_, packetId, err := packet.ReadPacketHeader(rd)
+	_, packetID, err := packet.ReadPacketHeader(rd)
 
-	if packetId != rp.ID() {
-		return nil, InvalidPacketError{expected: rp.ID(), actual: packetId}
+	if packetID != rp.ID() {
+		return nil, InvalidPacketError{expected: rp.ID(), actual: packetID}
 	}
 
 	if err != nil {
@@ -135,11 +173,61 @@ func (p *mcPinger) readPacket(rd *bufio.Reader) (*packet.ResponsePacket, error) 
 	return rp, nil
 }
 
-// Creates a new Pinger with specified host & port
+func (p *mcPinger) writeProxyHeader(conn net.Conn) error {
+	header := proxyproto.HeaderProxyFromAddrs(p.ProxyVersion, conn.LocalAddr(), conn.RemoteAddr())
+
+	_, err := header.WriteTo(conn)
+	return err
+}
+
+// New Creates a new Pinger with specified host & port
 // to connect to a minecraft server
-func New(host string, port uint16) Pinger {
-	return &mcPinger{
+func New(host string, port uint16, options ...McPingerOption) Pinger {
+	p := &mcPinger{
 		Host: host,
 		Port: port,
+	}
+	for _, opt := range options {
+		opt(p)
+	}
+	return p
+}
+
+// NewTimed Creates a new Pinger with specified host & port
+// to connect to a minecraft server with Timeout
+//
+// Deprecated: Use the WithTimeout option & New instead
+func NewTimed(host string, port uint16, timeout time.Duration) Pinger {
+	return New(host, port, WithTimeout(timeout))
+}
+
+// NewContext Creates a new Pinger with the given Context
+//
+// Deprecated: Use the WithContext option & New instead
+func NewContext(ctx context.Context, host string, port uint16) Pinger {
+	return New(host, port, WithContext(ctx))
+}
+
+// McPingerOption instances can be combined when creating a new Pinger
+type McPingerOption func(p *mcPinger)
+
+func WithTimeout(timeout time.Duration) McPingerOption {
+	return func(p *mcPinger) {
+		p.Timeout = timeout
+	}
+}
+
+func WithContext(ctx context.Context) McPingerOption {
+	return func(p *mcPinger) {
+		p.Context = ctx
+	}
+}
+
+// WithProxyProto enables support for Bungeecord's proxy_protocol feature, which listens for
+// PROXY protocol connections via HAproxy. version must be 1 (text) or 2 (binary).
+func WithProxyProto(version byte) McPingerOption {
+	return func(p *mcPinger) {
+		p.UseProxy = true
+		p.ProxyVersion = version
 	}
 }

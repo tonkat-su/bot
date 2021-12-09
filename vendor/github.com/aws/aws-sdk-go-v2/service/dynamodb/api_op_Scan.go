@@ -8,6 +8,7 @@ import (
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -40,7 +41,7 @@ func (c *Client) Scan(ctx context.Context, params *ScanInput, optFns ...func(*Op
 		params = &ScanInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "Scan", params, optFns, addOperationScanMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "Scan", params, optFns, c.addOperationScanMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -187,14 +188,14 @@ type ScanInput struct {
 	// in the Amazon DynamoDB Developer Guide.
 	ProjectionExpression *string
 
-	// Determines the level of detail about provisioned throughput consumption that is
-	// returned in the response:
+	// Determines the level of detail about either provisioned or on-demand throughput
+	// consumption that is returned in the response:
 	//
-	// * INDEXES - The response includes the aggregate
-	// ConsumedCapacity for the operation, together with ConsumedCapacity for each
-	// table and secondary index that was accessed. Note that some operations, such as
-	// GetItem and BatchGetItem, do not access any indexes at all. In these cases,
-	// specifying INDEXES will only return ConsumedCapacity information for
+	// * INDEXES - The response includes
+	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
+	// for each table and secondary index that was accessed. Note that some operations,
+	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
+	// cases, specifying INDEXES will only return ConsumedCapacity information for
 	// table(s).
 	//
 	// * TOTAL - The response includes only the aggregate ConsumedCapacity
@@ -272,6 +273,8 @@ type ScanInput struct {
 	// sequential rather than parallel. If you specify TotalSegments, you must also
 	// specify Segment.
 	TotalSegments *int32
+
+	noSmithyDocumentSerde
 }
 
 // Represents the output of a Scan operation.
@@ -315,9 +318,11 @@ type ScanOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationScanMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationScanMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpScan{}, middleware.After)
 	if err != nil {
 		return err
@@ -362,6 +367,9 @@ func addOperationScanMiddlewares(stack *middleware.Stack, options Options) (err 
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpScanDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = addOpScanValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -384,6 +392,46 @@ func addOperationScanMiddlewares(stack *middleware.Stack, options Options) (err 
 		return err
 	}
 	return nil
+}
+
+func addOpScanDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpScanDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpScanDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*ScanInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 // ScanAPIClient is a client that implements the Scan operation.

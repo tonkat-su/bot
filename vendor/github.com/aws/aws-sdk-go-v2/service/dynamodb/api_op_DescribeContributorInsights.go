@@ -19,7 +19,7 @@ func (c *Client) DescribeContributorInsights(ctx context.Context, params *Descri
 		params = &DescribeContributorInsightsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "DescribeContributorInsights", params, optFns, addOperationDescribeContributorInsightsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DescribeContributorInsights", params, optFns, c.addOperationDescribeContributorInsightsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -38,17 +38,19 @@ type DescribeContributorInsightsInput struct {
 
 	// The name of the global secondary index to describe, if applicable.
 	IndexName *string
+
+	noSmithyDocumentSerde
 }
 
 type DescribeContributorInsightsOutput struct {
 
-	// List of names of the associated Alpine rules.
+	// List of names of the associated contributor insights rules.
 	ContributorInsightsRuleList []string
 
-	// Current Status contributor insights.
+	// Current status of contributor insights.
 	ContributorInsightsStatus types.ContributorInsightsStatus
 
-	// Returns information about the last failure that encountered. The most common
+	// Returns information about the last failure that was encountered. The most common
 	// exceptions for a FAILED status are:
 	//
 	// * LimitExceededException - Per-account
@@ -78,9 +80,11 @@ type DescribeContributorInsightsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationDescribeContributorInsightsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDescribeContributorInsightsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDescribeContributorInsights{}, middleware.After)
 	if err != nil {
 		return err

@@ -18,7 +18,7 @@ func (c *Client) ExecuteStatement(ctx context.Context, params *ExecuteStatementI
 		params = &ExecuteStatementInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ExecuteStatement", params, optFns, addOperationExecuteStatementMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ExecuteStatement", params, optFns, c.addOperationExecuteStatementMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -45,11 +45,38 @@ type ExecuteStatementInput struct {
 
 	// The parameters for the PartiQL statement, if any.
 	Parameters []types.AttributeValue
+
+	// Determines the level of detail about either provisioned or on-demand throughput
+	// consumption that is returned in the response:
+	//
+	// * INDEXES - The response includes
+	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
+	// for each table and secondary index that was accessed. Note that some operations,
+	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
+	// cases, specifying INDEXES will only return ConsumedCapacity information for
+	// table(s).
+	//
+	// * TOTAL - The response includes only the aggregate ConsumedCapacity
+	// for the operation.
+	//
+	// * NONE - No ConsumedCapacity details are included in the
+	// response.
+	ReturnConsumedCapacity types.ReturnConsumedCapacity
+
+	noSmithyDocumentSerde
 }
 
 type ExecuteStatementOutput struct {
 
-	// If a read operation was used, this property will contain the result of the reade
+	// The capacity units consumed by an operation. The data returned includes the
+	// total provisioned throughput consumed, along with statistics for the table and
+	// any indexes involved in the operation. ConsumedCapacity is only returned if the
+	// request asked for it. For more information, see Provisioned Throughput
+	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ProvisionedThroughputIntro.html)
+	// in the Amazon DynamoDB Developer Guide.
+	ConsumedCapacity *types.ConsumedCapacity
+
+	// If a read operation was used, this property will contain the result of the read
 	// operation; a map of attribute names and their values. For the write operations
 	// this value will be empty.
 	Items []map[string]types.AttributeValue
@@ -61,9 +88,11 @@ type ExecuteStatementOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationExecuteStatementMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationExecuteStatementMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpExecuteStatement{}, middleware.After)
 	if err != nil {
 		return err

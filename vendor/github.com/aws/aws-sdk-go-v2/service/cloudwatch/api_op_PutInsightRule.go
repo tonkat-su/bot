@@ -23,7 +23,7 @@ func (c *Client) PutInsightRule(ctx context.Context, params *PutInsightRuleInput
 		params = &PutInsightRuleInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "PutInsightRule", params, optFns, addOperationPutInsightRuleMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "PutInsightRule", params, optFns, c.addOperationPutInsightRuleMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -61,14 +61,18 @@ type PutInsightRuleInput struct {
 	// tags of an existing rule, use TagResource
 	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_TagResource.html).
 	Tags []types.Tag
+
+	noSmithyDocumentSerde
 }
 
 type PutInsightRuleOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationPutInsightRuleMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationPutInsightRuleMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpPutInsightRule{}, middleware.After)
 	if err != nil {
 		return err

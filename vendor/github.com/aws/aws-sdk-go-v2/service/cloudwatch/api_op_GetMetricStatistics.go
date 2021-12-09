@@ -60,7 +60,8 @@ import (
 // 5 minutes. After 63 days, the data is further aggregated and is available with a
 // resolution of 1 hour. CloudWatch started retaining 5-minute and 1-hour metric
 // data as of July 9, 2016. For information about metrics and dimensions supported
-// by AWS services, see the Amazon CloudWatch Metrics and Dimensions Reference
+// by Amazon Web Services services, see the Amazon CloudWatch Metrics and
+// Dimensions Reference
 // (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CW_Support_For_AWS.html)
 // in the Amazon CloudWatch User Guide.
 func (c *Client) GetMetricStatistics(ctx context.Context, params *GetMetricStatisticsInput, optFns ...func(*Options)) (*GetMetricStatisticsOutput, error) {
@@ -68,7 +69,7 @@ func (c *Client) GetMetricStatistics(ctx context.Context, params *GetMetricStati
 		params = &GetMetricStatisticsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "GetMetricStatistics", params, optFns, addOperationGetMetricStatisticsMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "GetMetricStatistics", params, optFns, c.addOperationGetMetricStatisticsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +181,8 @@ type GetMetricStatisticsInput struct {
 	// unit that does not match the data collected, the results of the operation are
 	// null. CloudWatch does not perform unit conversions.
 	Unit types.StandardUnit
+
+	noSmithyDocumentSerde
 }
 
 type GetMetricStatisticsOutput struct {
@@ -192,9 +195,11 @@ type GetMetricStatisticsOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationGetMetricStatisticsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationGetMetricStatisticsMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpGetMetricStatistics{}, middleware.After)
 	if err != nil {
 		return err

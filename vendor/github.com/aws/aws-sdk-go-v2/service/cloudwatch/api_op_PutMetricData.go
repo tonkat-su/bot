@@ -59,7 +59,7 @@ func (c *Client) PutMetricData(ctx context.Context, params *PutMetricDataInput, 
 		params = &PutMetricDataInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "PutMetricData", params, optFns, addOperationPutMetricDataMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "PutMetricData", params, optFns, c.addOperationPutMetricDataMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -76,19 +76,23 @@ type PutMetricDataInput struct {
 	// This member is required.
 	MetricData []types.MetricDatum
 
-	// The namespace for the metric data. To avoid conflicts with AWS service
-	// namespaces, you should not specify a namespace that begins with AWS/
+	// The namespace for the metric data. To avoid conflicts with Amazon Web Services
+	// service namespaces, you should not specify a namespace that begins with AWS/
 	//
 	// This member is required.
 	Namespace *string
+
+	noSmithyDocumentSerde
 }
 
 type PutMetricDataOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationPutMetricDataMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationPutMetricDataMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpPutMetricData{}, middleware.After)
 	if err != nil {
 		return err

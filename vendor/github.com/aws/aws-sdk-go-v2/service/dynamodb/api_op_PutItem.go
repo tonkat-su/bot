@@ -4,9 +4,11 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	internalEndpointDiscovery "github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -18,42 +20,42 @@ import (
 // exist), or replace an existing item if it has certain attribute values. You can
 // return the item's attribute values in the same operation, using the ReturnValues
 // parameter. This topic provides general information about the PutItem API. For
-// information on how to call the PutItem API using the AWS SDK in specific
-// languages, see the following:
+// information on how to call the PutItem API using the Amazon Web Services SDK in
+// specific languages, see the following:
 //
-// * PutItem in the AWS Command Line Interface
+// * PutItem in the Command Line Interface
 // (http://docs.aws.amazon.com/goto/aws-cli/dynamodb-2012-08-10/PutItem)
 //
 // * PutItem
-// in the AWS SDK for .NET
+// in the SDK for .NET
 // (http://docs.aws.amazon.com/goto/DotNetSDKV3/dynamodb-2012-08-10/PutItem)
 //
 // *
-// PutItem in the AWS SDK for C++
+// PutItem in the SDK for C++
 // (http://docs.aws.amazon.com/goto/SdkForCpp/dynamodb-2012-08-10/PutItem)
 //
 // *
-// PutItem in the AWS SDK for Go
+// PutItem in the SDK for Go
 // (http://docs.aws.amazon.com/goto/SdkForGoV1/dynamodb-2012-08-10/PutItem)
 //
 // *
-// PutItem in the AWS SDK for Java
+// PutItem in the SDK for Java
 // (http://docs.aws.amazon.com/goto/SdkForJava/dynamodb-2012-08-10/PutItem)
 //
 // *
-// PutItem in the AWS SDK for JavaScript
+// PutItem in the SDK for JavaScript
 // (http://docs.aws.amazon.com/goto/AWSJavaScriptSDK/dynamodb-2012-08-10/PutItem)
 //
 // *
-// PutItem in the AWS SDK for PHP V3
+// PutItem in the SDK for PHP V3
 // (http://docs.aws.amazon.com/goto/SdkForPHPV3/dynamodb-2012-08-10/PutItem)
 //
 // *
-// PutItem in the AWS SDK for Python
+// PutItem in the SDK for Python (Boto)
 // (http://docs.aws.amazon.com/goto/boto3/dynamodb-2012-08-10/PutItem)
 //
 // * PutItem
-// in the AWS SDK for Ruby V2
+// in the SDK for Ruby V2
 // (http://docs.aws.amazon.com/goto/SdkForRubyV2/dynamodb-2012-08-10/PutItem)
 //
 // When
@@ -75,7 +77,7 @@ func (c *Client) PutItem(ctx context.Context, params *PutItemInput, optFns ...fu
 		params = &PutItemInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "PutItem", params, optFns, addOperationPutItemMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "PutItem", params, optFns, c.addOperationPutItemMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -197,14 +199,14 @@ type PutItemInput struct {
 	// in the Amazon DynamoDB Developer Guide.
 	ExpressionAttributeValues map[string]types.AttributeValue
 
-	// Determines the level of detail about provisioned throughput consumption that is
-	// returned in the response:
+	// Determines the level of detail about either provisioned or on-demand throughput
+	// consumption that is returned in the response:
 	//
-	// * INDEXES - The response includes the aggregate
-	// ConsumedCapacity for the operation, together with ConsumedCapacity for each
-	// table and secondary index that was accessed. Note that some operations, such as
-	// GetItem and BatchGetItem, do not access any indexes at all. In these cases,
-	// specifying INDEXES will only return ConsumedCapacity information for
+	// * INDEXES - The response includes
+	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
+	// for each table and secondary index that was accessed. Note that some operations,
+	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
+	// cases, specifying INDEXES will only return ConsumedCapacity information for
 	// table(s).
 	//
 	// * TOTAL - The response includes only the aggregate ConsumedCapacity
@@ -231,10 +233,12 @@ type PutItemInput struct {
 	// - If PutItem overwrote an attribute name-value pair, then the content of the old
 	// item is returned.
 	//
-	// The ReturnValues parameter is used by several DynamoDB
-	// operations; however, PutItem does not recognize any values other than NONE or
-	// ALL_OLD.
+	// The values returned are strongly consistent. The ReturnValues
+	// parameter is used by several DynamoDB operations; however, PutItem does not
+	// recognize any values other than NONE or ALL_OLD.
 	ReturnValues types.ReturnValue
+
+	noSmithyDocumentSerde
 }
 
 // Represents the output of a PutItem operation.
@@ -276,9 +280,11 @@ type PutItemOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationPutItemMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationPutItemMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpPutItem{}, middleware.After)
 	if err != nil {
 		return err
@@ -323,6 +329,9 @@ func addOperationPutItemMiddlewares(stack *middleware.Stack, options Options) (e
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addOpPutItemDiscoverEndpointMiddleware(stack, options, c); err != nil {
+		return err
+	}
 	if err = addOpPutItemValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -345,6 +354,46 @@ func addOperationPutItemMiddlewares(stack *middleware.Stack, options Options) (e
 		return err
 	}
 	return nil
+}
+
+func addOpPutItemDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
+	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
+			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
+				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
+				opt.Logger = o.Logger
+			},
+		},
+		DiscoverOperation:            c.fetchOpPutItemDiscoverEndpoint,
+		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
+		EndpointDiscoveryRequired:    false,
+	}, "ResolveEndpoint", middleware.After)
+}
+
+func (c *Client) fetchOpPutItemDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	in, ok := input.(*PutItemInput)
+	if !ok {
+		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
+	}
+	_ = in
+
+	identifierMap := make(map[string]string, 0)
+
+	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
+
+	if v, ok := c.endpointCache.Get(key); ok {
+		return v, nil
+	}
+
+	discoveryOperationInput := &DescribeEndpointsInput{}
+
+	opt := internalEndpointDiscovery.DiscoverEndpointOptions{}
+	for _, fn := range optFns {
+		fn(&opt)
+	}
+
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
 func newServiceMetadataMiddleware_opPutItem(region string) *awsmiddleware.RegisterServiceMetadata {

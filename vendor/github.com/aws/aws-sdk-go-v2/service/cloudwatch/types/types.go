@@ -3,6 +3,7 @@
 package types
 
 import (
+	smithydocument "github.com/aws/smithy-go/document"
 	"time"
 )
 
@@ -26,11 +27,13 @@ type AlarmHistoryItem struct {
 
 	// The time stamp for the alarm history item.
 	Timestamp *time.Time
+
+	noSmithyDocumentSerde
 }
 
-// An anomaly detection model associated with a particular CloudWatch metric and
-// statistic. You can use the model to display a band of expected normal values
-// when the metric is graphed.
+// An anomaly detection model associated with a particular CloudWatch metric,
+// statistic, or metric math expression. You can use the model to display a band of
+// expected, normal values when the metric is graphed.
 type AnomalyDetector struct {
 
 	// The configuration specifies details about how the anomaly detection model is to
@@ -39,20 +42,36 @@ type AnomalyDetector struct {
 	Configuration *AnomalyDetectorConfiguration
 
 	// The metric dimensions associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.Dimensions property.
 	Dimensions []Dimension
 
+	// The CloudWatch metric math expression for this anomaly detector.
+	MetricMathAnomalyDetector *MetricMathAnomalyDetector
+
 	// The name of the metric associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.MetricName property.
 	MetricName *string
 
 	// The namespace of the metric associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.Namespace property.
 	Namespace *string
 
+	// The CloudWatch metric and statistic for this anomaly detector.
+	SingleMetricAnomalyDetector *SingleMetricAnomalyDetector
+
 	// The statistic associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.Stat property.
 	Stat *string
 
 	// The current status of the anomaly detector's training. The possible values are
 	// TRAINED | PENDING_TRAINING | TRAINED_INSUFFICIENT_DATA
 	StateValue AnomalyDetectorStateValue
+
+	noSmithyDocumentSerde
 }
 
 // The configuration specifies details about how the anomaly detection model is to
@@ -71,6 +90,8 @@ type AnomalyDetectorConfiguration struct {
 	// zone as specified in the standard tz database. For more information, see tz
 	// database (https://en.wikipedia.org/wiki/Tz_database).
 	MetricTimezone *string
+
+	noSmithyDocumentSerde
 }
 
 // The details about a composite alarm.
@@ -119,6 +140,8 @@ type CompositeAlarm struct {
 
 	// The state value for the alarm.
 	StateValue StateValue
+
+	noSmithyDocumentSerde
 }
 
 // Represents a specific dashboard.
@@ -137,6 +160,8 @@ type DashboardEntry struct {
 
 	// The size of the dashboard, in bytes.
 	Size int64
+
+	noSmithyDocumentSerde
 }
 
 // An error or warning for the operation.
@@ -147,6 +172,8 @@ type DashboardValidationMessage struct {
 
 	// A message describing the error or warning.
 	Message *string
+
+	noSmithyDocumentSerde
 }
 
 // Encapsulates the statistical data that CloudWatch computes from metric data.
@@ -176,6 +203,8 @@ type Datapoint struct {
 
 	// The standard unit for the data point.
 	Unit StandardUnit
+
+	noSmithyDocumentSerde
 }
 
 // A dimension is a name/value pair that is part of the identity of a metric. You
@@ -184,17 +213,19 @@ type Datapoint struct {
 // of your metrics, you are creating a new variation of that metric.
 type Dimension struct {
 
-	// The name of the dimension. Dimension names cannot contain blank spaces or
-	// non-ASCII characters.
+	// The name of the dimension. Dimension names must contain only ASCII characters
+	// and must include at least one non-whitespace character.
 	//
 	// This member is required.
 	Name *string
 
-	// The value of the dimension. Dimension values cannot contain blank spaces or
-	// non-ASCII characters.
+	// The value of the dimension. Dimension values must contain only ASCII characters
+	// and must include at least one non-whitespace character.
 	//
 	// This member is required.
 	Value *string
+
+	noSmithyDocumentSerde
 }
 
 // Represents filters for a dimension.
@@ -207,9 +238,15 @@ type DimensionFilter struct {
 
 	// The value of the dimension to be matched.
 	Value *string
+
+	noSmithyDocumentSerde
 }
 
-// This structure contains the definition for a Contributor Insights rule.
+// This structure contains the definition for a Contributor Insights rule. For more
+// information about this rule, see Using Constributor Insights to analyze
+// high-cardinality data
+// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContributorInsights.html)
+// in the Amazon CloudWatch User Guide.
 type InsightRule struct {
 
 	// The definition of the rule, as a JSON object. The definition contains the
@@ -227,7 +264,7 @@ type InsightRule struct {
 	Name *string
 
 	// For rules that you create, this is always {"Name": "CloudWatchLogRule",
-	// "Version": 1}. For built-in rules, this is {"Name": "ServiceLogRule", "Version":
+	// "Version": 1}. For managed rules, this is {"Name": "ServiceLogRule", "Version":
 	// 1}
 	//
 	// This member is required.
@@ -237,6 +274,8 @@ type InsightRule struct {
 	//
 	// This member is required.
 	State *string
+
+	noSmithyDocumentSerde
 }
 
 // One of the unique contributors found by a Contributor Insights rule. If the rule
@@ -263,6 +302,8 @@ type InsightRuleContributor struct {
 	//
 	// This member is required.
 	Keys []string
+
+	noSmithyDocumentSerde
 }
 
 // One data point related to one contributor. For more information, see
@@ -281,6 +322,8 @@ type InsightRuleContributorDatapoint struct {
 	//
 	// This member is required.
 	Timestamp *time.Time
+
+	noSmithyDocumentSerde
 }
 
 // One data point from the metric time series returned in a Contributor Insights
@@ -328,6 +371,8 @@ type InsightRuleMetricDatapoint struct {
 	// statistic is returned only if you included it in the Metrics array in your
 	// request.
 	UniqueContributors *float64
+
+	noSmithyDocumentSerde
 }
 
 // This structure includes the Timezone parameter, which you can use to specify
@@ -344,9 +389,15 @@ type LabelOptions struct {
 	// example, +0130 indicates a time zone that is 1 hour and 30 minutes ahead of UTC.
 	// The default is +0000.
 	Timezone *string
+
+	noSmithyDocumentSerde
 }
 
 // A message returned by the GetMetricDataAPI, including a code and a description.
+// If a cross-Region GetMetricData operation fails with a code of Forbidden and a
+// value of Authentication too complex to retrieve cross region data, you can
+// correct the problem by running the GetMetricData operation in the same Region
+// where the metric data is.
 type MessageData struct {
 
 	// The error code or status code associated with the message.
@@ -354,6 +405,8 @@ type MessageData struct {
 
 	// The message text.
 	Value *string
+
+	noSmithyDocumentSerde
 }
 
 // Represents a specific metric.
@@ -367,6 +420,8 @@ type Metric struct {
 
 	// The namespace of the metric.
 	Namespace *string
+
+	noSmithyDocumentSerde
 }
 
 // The details about a metric alarm.
@@ -469,6 +524,8 @@ type MetricAlarm struct {
 
 	// The unit of the metric associated with the alarm.
 	Unit StandardUnit
+
+	noSmithyDocumentSerde
 }
 
 // This structure is used in both GetMetricData and PutMetricAlarm. The supported
@@ -502,6 +559,11 @@ type MetricDataQuery struct {
 	//
 	// This member is required.
 	Id *string
+
+	// The ID of the account where the metrics are located, if this is a cross-account
+	// alarm. Use this field only for PutMetricAlarm operations. It is not used in
+	// GetMetricData operations.
+	AccountId *string
 
 	// The math expression to be performed on the returned data, if this object is
 	// performing a math expression. This expression can use the Id of the other
@@ -544,6 +606,8 @@ type MetricDataQuery struct {
 	// For all other metrics and expressions in the same PutMetricAlarm operation,
 	// specify ReturnData as False.
 	ReturnData *bool
+
+	noSmithyDocumentSerde
 }
 
 // A GetMetricData call returns an array of MetricDataResult structures. Each of
@@ -577,6 +641,8 @@ type MetricDataResult struct {
 	// always matches the number of timestamps and the timestamp for Values[x] is
 	// Timestamps[x].
 	Values []float64
+
+	noSmithyDocumentSerde
 }
 
 // Encapsulates the information sent to either create a metric or add new values to
@@ -636,6 +702,25 @@ type MetricDatum struct {
 	// must be in the range of -2^360 to 2^360. In addition, special values (for
 	// example, NaN, +Infinity, -Infinity) are not supported.
 	Values []float64
+
+	noSmithyDocumentSerde
+}
+
+// Indicates the CloudWatch math expression that provides the time series the
+// anomaly detector uses as input. The designated math expression must return a
+// single time series.
+type MetricMathAnomalyDetector struct {
+
+	// An array of metric data query structures that enables you to create an anomaly
+	// detector based on the result of a metric math expression. Each item in
+	// MetricDataQueries gets a metric or performs a math expression. One item in
+	// MetricDataQueries is the expression that provides the time series that the
+	// anomaly detector uses as input. Designate the expression by setting ReturnData
+	// to True for this object in the array. For all other expressions and metrics, set
+	// ReturnData to False. The designated expression must return a single time series.
+	MetricDataQueries []MetricDataQuery
+
+	noSmithyDocumentSerde
 }
 
 // This structure defines the metric to be returned, along with the statistics,
@@ -683,6 +768,47 @@ type MetricStat struct {
 	// you specify a unit that does not match the data collected, the results of the
 	// operation are null. CloudWatch does not perform unit conversions.
 	Unit StandardUnit
+
+	noSmithyDocumentSerde
+}
+
+// This structure contains the configuration information about one metric stream.
+type MetricStreamEntry struct {
+
+	// The ARN of the metric stream.
+	Arn *string
+
+	// The date that the metric stream was originally created.
+	CreationDate *time.Time
+
+	// The ARN of the Kinesis Firehose devlivery stream that is used for this metric
+	// stream.
+	FirehoseArn *string
+
+	// The date that the configuration of this metric stream was most recently updated.
+	LastUpdateDate *time.Time
+
+	// The name of the metric stream.
+	Name *string
+
+	// The output format of this metric stream. Valid values are json and
+	// opentelemetry0.7.
+	OutputFormat MetricStreamOutputFormat
+
+	// The current state of this stream. Valid values are running and stopped.
+	State *string
+
+	noSmithyDocumentSerde
+}
+
+// This structure contains the name of one of the metric namespaces that is listed
+// in a filter of a metric stream.
+type MetricStreamFilter struct {
+
+	// The name of the metric namespace in the filter.
+	Namespace *string
+
+	noSmithyDocumentSerde
 }
 
 // This array is empty if the API operation was successful for all the rules
@@ -701,6 +827,8 @@ type PartialFailure struct {
 
 	// The specified rule that could not be deleted.
 	FailureResource *string
+
+	noSmithyDocumentSerde
 }
 
 // Specifies one range of days or times to exclude from use for training an anomaly
@@ -718,6 +846,27 @@ type Range struct {
 	//
 	// This member is required.
 	StartTime *time.Time
+
+	noSmithyDocumentSerde
+}
+
+// Designates the CloudWatch metric and statistic that provides the time series the
+// anomaly detector uses as input.
+type SingleMetricAnomalyDetector struct {
+
+	// The metric dimensions to create the anomaly detection model for.
+	Dimensions []Dimension
+
+	// The name of the metric to create the anomaly detection model for.
+	MetricName *string
+
+	// The namespace of the metric to create the anomaly detection model for.
+	Namespace *string
+
+	// The statistic to use for the metric and anomaly detection model.
+	Stat *string
+
+	noSmithyDocumentSerde
 }
 
 // Represents a set of statistics that describes a specific metric.
@@ -742,6 +891,8 @@ type StatisticSet struct {
 	//
 	// This member is required.
 	Sum *float64
+
+	noSmithyDocumentSerde
 }
 
 // A key-value pair associated with a CloudWatch resource.
@@ -757,4 +908,8 @@ type Tag struct {
 	//
 	// This member is required.
 	Value *string
+
+	noSmithyDocumentSerde
 }
+
+type noSmithyDocumentSerde = smithydocument.NoSerde

@@ -3,6 +3,7 @@
 package types
 
 import (
+	smithydocument "github.com/aws/smithy-go/document"
 	"time"
 )
 
@@ -15,6 +16,8 @@ type Filter struct {
 	// Filters your list of secrets by a specific value. You can prefix your search
 	// value with an exclamation mark (!) in order to perform negation filters.
 	Values []string
+
+	noSmithyDocumentSerde
 }
 
 // (Optional) Custom type consisting of a Region (required) and the KmsKeyId which
@@ -26,6 +29,8 @@ type ReplicaRegionType struct {
 
 	// Describes a single instance of Region objects.
 	Region *string
+
+	noSmithyDocumentSerde
 }
 
 // A replication object consisting of a RegionReplicationStatus object and includes
@@ -46,6 +51,8 @@ type ReplicationStatusType struct {
 
 	// Status message such as "Secret with this name already exists in this region".
 	StatusMessage *string
+
+	noSmithyDocumentSerde
 }
 
 // A structure that defines the rotation configuration for the secret.
@@ -59,6 +66,8 @@ type RotationRulesType struct {
 	// somewhat randomly, but weighted towards the top of the hour and influenced by a
 	// variety of factors that help distribute load.
 	AutomaticallyAfterDays int64
+
+	noSmithyDocumentSerde
 }
 
 // A structure that contains the details about a secret. It does not include the
@@ -69,7 +78,7 @@ type SecretListEntry struct {
 	// The Amazon Resource Name (ARN) of the secret. For more information about ARNs in
 	// Secrets Manager, see Policy Resources
 	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#iam-resources)
-	// in the AWS Secrets Manager User Guide.
+	// in the Amazon Web Services Secrets Manager User Guide.
 	ARN *string
 
 	// The date and time when a secret was created.
@@ -84,10 +93,11 @@ type SecretListEntry struct {
 	// The user-provided description of the secret.
 	Description *string
 
-	// The ARN or alias of the AWS KMS customer master key (CMK) used to encrypt the
-	// SecretString and SecretBinary fields in each version of the secret. If you don't
-	// provide a key, then Secrets Manager defaults to encrypting the secret fields
-	// with the default KMS CMK, the key named awssecretsmanager, for this account.
+	// The ARN or alias of the Amazon Web Services KMS customer master key (CMK) used
+	// to encrypt the SecretString and SecretBinary fields in each version of the
+	// secret. If you don't provide a key, then Secrets Manager defaults to encrypting
+	// the secret fields with the default KMS CMK, the key named awssecretsmanager, for
+	// this account.
 	KmsKeyId *string
 
 	// The last date that this secret was accessed. This value is truncated to midnight
@@ -116,9 +126,9 @@ type SecretListEntry struct {
 	// Indicates whether automatic, scheduled rotation is enabled for this secret.
 	RotationEnabled bool
 
-	// The ARN of an AWS Lambda function invoked by Secrets Manager to rotate and
-	// expire the secret either automatically per the schedule or manually by a call to
-	// RotateSecret.
+	// The ARN of an Amazon Web Services Lambda function invoked by Secrets Manager to
+	// rotate and expire the secret either automatically per the schedule or manually
+	// by a call to RotateSecret.
 	RotationLambdaARN *string
 
 	// A structure that defines the rotation configuration for the secret.
@@ -134,6 +144,8 @@ type SecretListEntry struct {
 	// The list of user-defined tags associated with the secret. To add tags to a
 	// secret, use TagResource. To remove tags, use UntagResource.
 	Tags []Tag
+
+	noSmithyDocumentSerde
 }
 
 // A structure that contains information about one version of a secret.
@@ -141,6 +153,9 @@ type SecretVersionsListEntry struct {
 
 	// The date and time this version of the secret was created.
 	CreatedDate *time.Time
+
+	// The KMS keys used to encrypt the secret version.
+	KmsKeyIds []string
 
 	// The date that this version of the secret was last accessed. Note that the
 	// resolution of this field is at the date level and does not include the time.
@@ -152,6 +167,8 @@ type SecretVersionsListEntry struct {
 	// An array of staging labels that are currently associated with this version of
 	// the secret.
 	VersionStages []string
+
+	noSmithyDocumentSerde
 }
 
 // A structure that contains information about a tag.
@@ -162,6 +179,8 @@ type Tag struct {
 
 	// The string value associated with the key of the tag.
 	Value *string
+
+	noSmithyDocumentSerde
 }
 
 // Displays errors that occurred during validation of the resource policy.
@@ -173,4 +192,8 @@ type ValidationErrorsEntry struct {
 	// Displays error messages if validation encounters problems during validation of
 	// the resource policy.
 	ErrorMessage *string
+
+	noSmithyDocumentSerde
 }
+
+type noSmithyDocumentSerde = smithydocument.NoSerde

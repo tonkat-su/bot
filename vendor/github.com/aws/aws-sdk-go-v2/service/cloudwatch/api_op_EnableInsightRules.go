@@ -18,7 +18,7 @@ func (c *Client) EnableInsightRules(ctx context.Context, params *EnableInsightRu
 		params = &EnableInsightRulesInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "EnableInsightRules", params, optFns, addOperationEnableInsightRulesMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "EnableInsightRules", params, optFns, c.addOperationEnableInsightRulesMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +36,8 @@ type EnableInsightRulesInput struct {
 	//
 	// This member is required.
 	RuleNames []string
+
+	noSmithyDocumentSerde
 }
 
 type EnableInsightRulesOutput struct {
@@ -46,9 +48,11 @@ type EnableInsightRulesOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationEnableInsightRulesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationEnableInsightRulesMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpEnableInsightRules{}, middleware.After)
 	if err != nil {
 		return err

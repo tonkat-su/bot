@@ -17,7 +17,7 @@ func (c *Client) RemoveRegionsFromReplication(ctx context.Context, params *Remov
 		params = &RemoveRegionsFromReplicationInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "RemoveRegionsFromReplication", params, optFns, addOperationRemoveRegionsFromReplicationMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "RemoveRegionsFromReplication", params, optFns, c.addOperationRemoveRegionsFromReplicationMiddlewares)
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +38,8 @@ type RemoveRegionsFromReplicationInput struct {
 	//
 	// This member is required.
 	SecretId *string
+
+	noSmithyDocumentSerde
 }
 
 type RemoveRegionsFromReplicationOutput struct {
@@ -51,9 +53,11 @@ type RemoveRegionsFromReplicationOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
-func addOperationRemoveRegionsFromReplicationMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationRemoveRegionsFromReplicationMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpRemoveRegionsFromReplication{}, middleware.After)
 	if err != nil {
 		return err
