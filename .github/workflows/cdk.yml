@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - 1.17.3
+          - 1.17.5
         cdk-version:
           - 1.134.0
     runs-on: ubuntu-latest
