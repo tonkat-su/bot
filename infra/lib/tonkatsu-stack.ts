@@ -70,13 +70,13 @@ export class TonkatsuStack extends cdk.Stack {
       target: route53.RecordTarget.fromIpAddresses("2600:3c01::f03c:92ff:fe64:e48f"),
     })
 
-    new route53.ARecord(this, 'serverRecord', {
+    new route53.ARecord(this, 'serverARecord', {
       zone: tonkatsuZone,
       recordName: "mc",
       target: route53.RecordTarget.fromIpAddresses("66.70.164.152"),
     })
 
-    new route53.SrvRecord(this, 'serverRecord', {
+    new route53.SrvRecord(this, 'serverSrvRecord', {
       zone: tonkatsuZone,
       values: [{
         hostName: 'mc.tonkat.su',
