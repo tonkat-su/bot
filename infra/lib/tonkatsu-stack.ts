@@ -70,6 +70,23 @@ export class TonkatsuStack extends cdk.Stack {
       target: route53.RecordTarget.fromIpAddresses("2600:3c01::f03c:92ff:fe64:e48f"),
     })
 
+    new route53.ARecord(this, 'serverRecord', {
+      zone: tonkatsuZone,
+      recordName: "mc",
+      target: route53.RecordTarget.fromIpAddresses("66.70.164.152"),
+    })
+
+    new route53.SrvRecord(this, 'serverRecord', {
+      zone: tonkatsuZone,
+      values: [{
+        hostName: 'mc.tonkat.su',
+        port: 25586,
+        priority: 0,
+        weight: 5,
+      }],
+      recordName: 'mc',
+    })
+
     const lambdasAsset = new assets.Asset(this, "lambdasZip", {
       path: path.join(__dirname, "../../build/"),
     })
@@ -142,7 +159,7 @@ export class TonkatsuStack extends cdk.Stack {
       handler: "smp-whitelist",
       timeout: cdk.Duration.seconds(15),
       environment: {
-        "MINECRAFT_SERVER_RCON_ADDRESS": "mc.tonkat.su:25575",
+        "MINECRAFT_SERVER_RCON_ADDRESS": "mc.tonkat.su:25501",
         "DISCORD_APPLICATION_PUBKEY": "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c",
         "RCON_PASSWORD_SECRET_ARN": smpRconPassword.secretArn,
       },
