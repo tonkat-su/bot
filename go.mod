@@ -1,6 +1,6 @@
 module github.com/tonkat-su/bot
 
-go 1.17
+go 1.18
 
 require (
 	github.com/Kelwing/mc-rcon v0.0.0-20220214194105-bec8dcbccc3f

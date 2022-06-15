@@ -132,7 +132,7 @@ func (h *RefreshableBackend) CreateRefreshableMessage(s *discordgo.Session, guil
 
 	return s.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
 		Content: "gamers currently online",
-		Embed:   embed,
+		Embeds:  []*discordgo.MessageEmbed{embed},
 	})
 }
 
@@ -144,7 +144,7 @@ func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, event *discord
 
 	_, err = s.ChannelMessageEditComplex(&discordgo.MessageEdit{
 		Content: aws.String("gamers currently online"),
-		Embed:   embed,
+		Embeds:  []*discordgo.MessageEmbed{embed},
 		ID:      event.MessageID,
 		Channel: event.ChannelID,
 	})
