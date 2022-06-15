@@ -13,7 +13,7 @@ import (
 // ResponseWriter implements the http.ResponseWriter interface
 // in order to support the API Gateway Lambda HTTP "protocol".
 type ResponseWriter struct {
-	out           events.APIGatewayV2HTTPResponse
+	out           events.APIGatewayProxyResponse
 	buf           bytes.Buffer
 	header        http.Header
 	wroteHeader   bool
@@ -79,7 +79,7 @@ func (w *ResponseWriter) CloseNotify() <-chan bool {
 }
 
 // End the request.
-func (w *ResponseWriter) End() events.APIGatewayV2HTTPResponse {
+func (w *ResponseWriter) End() events.APIGatewayProxyResponse {
 	w.out.IsBase64Encoded = isBinary(w.header)
 
 	if w.out.IsBase64Encoded {
@@ -87,10 +87,6 @@ func (w *ResponseWriter) End() events.APIGatewayV2HTTPResponse {
 	} else {
 		w.out.Body = w.buf.String()
 	}
-
-	// see https://aws.amazon.com/blogs/compute/simply-serverless-using-aws-lambda-to-expose-custom-cookies-with-api-gateway/
-	w.out.Cookies = w.header["Set-Cookie"]
-	w.header.Del("Set-Cookie")
 
 	// notify end
 	w.closeNotifyCh <- true
@@ -122,7 +118,7 @@ func isTextMime(kind string) bool {
 	}
 
 	switch mt {
-	case "image/svg+xml", "application/json", "application/xml", "application/javascript":
+	case "image/svg+xml", "application/json", "application/xml","application/javascript":
 		return true
 	default:
 		return false

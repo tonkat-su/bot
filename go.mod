@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/Kelwing/mc-rcon v0.0.0-20220214194105-bec8dcbccc3f
 	github.com/Raqbit/mc-pinger v0.2.2
-	github.com/apex/gateway/v2 v2.0.0
+	github.com/apex/gateway v1.1.2
 	github.com/aws/aws-lambda-go v1.32.0
 	github.com/aws/aws-sdk-go-v2 v1.16.5
 	github.com/aws/aws-sdk-go-v2/config v1.15.10

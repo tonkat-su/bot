@@ -39,15 +39,15 @@ type Gateway struct {
 
 // Invoke Handler implementation
 func (gw *Gateway) Invoke(ctx context.Context, payload []byte) ([]byte, error) {
-	var evt events.APIGatewayV2HTTPRequest
+	evt := events.APIGatewayProxyRequest{}
 
 	if err := json.Unmarshal(payload, &evt); err != nil {
-		return []byte{}, err
+		return nil, err
 	}
 
 	r, err := NewRequest(ctx, evt)
 	if err != nil {
-		return []byte{}, err
+		return nil, err
 	}
 
 	w := NewResponse()
