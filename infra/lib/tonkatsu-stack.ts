@@ -187,6 +187,7 @@ export class TonkatsuStack extends Stack {
         certificate: interactionsCert,
       },
       handler: interactionsWhitelistLambda,
+      proxy: false,
     })
 
     const whitelistApiResource = interactionsApi.root.addResource('whitelist')
