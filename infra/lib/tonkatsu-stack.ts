@@ -79,7 +79,7 @@ export class TonkatsuStack extends Stack {
       zone: tonkatsuZone,
       values: [{
         hostName: 'mc.tonkat.su',
-        port: 25575,
+        port: 25586,
         priority: 0,
         weight: 5,
       }],
