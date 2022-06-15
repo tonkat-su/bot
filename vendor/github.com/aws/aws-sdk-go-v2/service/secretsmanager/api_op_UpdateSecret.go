@@ -34,9 +34,16 @@ import (
 // can result in a one-time significant delay in returning the result. If the
 // secret is in a different Amazon Web Services account from the credentials
 // calling the API, then you can't use aws/secretsmanager to encrypt the secret,
-// and you must create and use a customer managed key. To run this command, you
-// must have secretsmanager:UpdateSecret permissions. If you use a customer managed
-// key, you must also have kms:GenerateDataKey and kms:Decrypt permissions .
+// and you must create and use a customer managed key. Required permissions:
+// secretsmanager:UpdateSecret. For more information, see  IAM policy actions for
+// Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
+// and Authentication and access control in Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
+// If you use a customer managed key, you must also have kms:GenerateDataKey and
+// kms:Decrypt permissions on the key. For more information, see  Secret encryption
+// and decryption
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/security-encryption.html).
 func (c *Client) UpdateSecret(ctx context.Context, params *UpdateSecretInput, optFns ...func(*Options)) (*UpdateSecretOutput, error) {
 	if params == nil {
 		params = &UpdateSecretInput{}
@@ -55,7 +62,8 @@ func (c *Client) UpdateSecret(ctx context.Context, params *UpdateSecretInput, op
 type UpdateSecretInput struct {
 
 	// The ARN or name of the secret. For an ARN, we recommend that you specify a
-	// complete ARN rather than a partial ARN.
+	// complete ARN rather than a partial ARN. See Finding a secret from a partial ARN
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/troubleshoot.html#ARN_secretnamehyphen).
 	//
 	// This member is required.
 	SecretId *string

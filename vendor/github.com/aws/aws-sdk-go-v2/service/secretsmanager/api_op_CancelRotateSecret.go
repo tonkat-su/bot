@@ -11,13 +11,21 @@ import (
 )
 
 // Turns off automatic rotation, and if a rotation is currently in progress,
-// cancels the rotation. To turn on automatic rotation again, call RotateSecret. If
-// you cancel a rotation in progress, it can leave the VersionStage labels in an
-// unexpected state. Depending on the step of the rotation in progress, you might
-// need to remove the staging label AWSPENDING from the partially created version,
-// specified by the VersionId response value. We recommend you also evaluate the
-// partially rotated new version to see if it should be deleted. You can delete a
-// version by removing all staging labels from it.
+// cancels the rotation. If you cancel a rotation in progress, it can leave the
+// VersionStage labels in an unexpected state. You might need to remove the staging
+// label AWSPENDING from the partially created version. You also need to determine
+// whether to roll back to the previous version of the secret by moving the staging
+// label AWSCURRENT to the version that has AWSPENDING. To determine which version
+// has a specific staging label, call ListSecretVersionIds. Then use
+// UpdateSecretVersionStage to change staging labels. For more information, see How
+// rotation works
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html).
+// To turn on automatic rotation again, call RotateSecret. Required permissions:
+// secretsmanager:CancelRotateSecret. For more information, see  IAM policy actions
+// for Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
+// and Authentication and access control in Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
 func (c *Client) CancelRotateSecret(ctx context.Context, params *CancelRotateSecretInput, optFns ...func(*Options)) (*CancelRotateSecretOutput, error) {
 	if params == nil {
 		params = &CancelRotateSecretInput{}
@@ -36,7 +44,8 @@ func (c *Client) CancelRotateSecret(ctx context.Context, params *CancelRotateSec
 type CancelRotateSecretInput struct {
 
 	// The ARN or name of the secret. For an ARN, we recommend that you specify a
-	// complete ARN rather than a partial ARN.
+	// complete ARN rather than a partial ARN. See Finding a secret from a partial ARN
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/troubleshoot.html#ARN_secretnamehyphen).
 	//
 	// This member is required.
 	SecretId *string

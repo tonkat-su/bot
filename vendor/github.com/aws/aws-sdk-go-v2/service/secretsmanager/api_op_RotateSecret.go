@@ -12,29 +12,45 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Configures and starts the asynchronous process of rotating the secret. If you
-// include the configuration parameters, the operation sets the values for the
-// secret and then immediately starts a rotation. If you don't include the
-// configuration parameters, the operation starts a rotation with the values
-// already stored in the secret. For more information about rotation, see Rotate
-// secrets
+// Configures and starts the asynchronous process of rotating the secret. For more
+// information about rotation, see Rotate secrets
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html).
-// To configure rotation, you include the ARN of an Amazon Web Services Lambda
-// function and the schedule for the rotation. The Lambda rotation function creates
-// a new version of the secret and creates or updates the credentials on the
-// database or service to match. After testing the new credentials, the function
-// marks the new secret version with the staging label AWSCURRENT. Then anyone who
-// retrieves the secret gets the new version. For more information, see How
-// rotation works
+// If you include the configuration parameters, the operation sets the values for
+// the secret and then immediately starts a rotation. If you don't include the
+// configuration parameters, the operation starts a rotation with the values
+// already stored in the secret. For database credentials you want to rotate, for
+// Secrets Manager to be able to rotate the secret, you must make sure the secret
+// value is in the  JSON structure of a database secret
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_secret_json_structure.html).
+// In particular, if you want to use the  alternating users strategy
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets_strategies.html#rotating-secrets-two-users),
+// your secret must contain the ARN of a superuser secret. To configure rotation,
+// you also need the ARN of an Amazon Web Services Lambda function and the schedule
+// for the rotation. The Lambda rotation function creates a new version of the
+// secret and creates or updates the credentials on the database or service to
+// match. After testing the new credentials, the function marks the new secret
+// version with the staging label AWSCURRENT. Then anyone who retrieves the secret
+// gets the new version. For more information, see How rotation works
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html).
+// You can create the Lambda rotation function based on the rotation function
+// templates
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_available-rotation-templates.html)
+// that Secrets Manager provides. Choose a template that matches your Rotation
+// strategy
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets_strategies.html).
 // When rotation is successful, the AWSPENDING staging label might be attached to
 // the same version as the AWSCURRENT version, or it might not be attached to any
 // version. If the AWSPENDING staging label is present but not attached to the same
 // version as AWSCURRENT, then any later invocation of RotateSecret assumes that a
-// previous rotation request is still in progress and returns an error. To run this
-// command, you must have secretsmanager:RotateSecret permissions and
-// lambda:InvokeFunction permissions on the function specified in the secret's
-// metadata.
+// previous rotation request is still in progress and returns an error. Required
+// permissions: secretsmanager:RotateSecret. For more information, see  IAM policy
+// actions for Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
+// and Authentication and access control in Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
+// You also need lambda:InvokeFunction permissions on the rotation function. For
+// more information, see  Permissions for rotation
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets-required-permissions-function.html).
 func (c *Client) RotateSecret(ctx context.Context, params *RotateSecretInput, optFns ...func(*Options)) (*RotateSecretOutput, error) {
 	if params == nil {
 		params = &RotateSecretInput{}
@@ -53,7 +69,9 @@ func (c *Client) RotateSecret(ctx context.Context, params *RotateSecretInput, op
 type RotateSecretInput struct {
 
 	// The ARN or name of the secret to rotate. For an ARN, we recommend that you
-	// specify a complete ARN rather than a partial ARN.
+	// specify a complete ARN rather than a partial ARN. See Finding a secret from a
+	// partial ARN
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/troubleshoot.html#ARN_secretnamehyphen).
 	//
 	// This member is required.
 	SecretId *string
@@ -73,6 +91,16 @@ type RotateSecretInput struct {
 	// a UUID-type (https://wikipedia.org/wiki/Universally_unique_identifier) value to
 	// ensure uniqueness within the specified secret.
 	ClientRequestToken *string
+
+	// Specifies whether to rotate the secret immediately or wait until the next
+	// scheduled rotation window. The rotation schedule is defined in
+	// RotateSecretRequest$RotationRules. If you don't immediately rotate the secret,
+	// Secrets Manager tests the rotation configuration by running the testSecret step
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html)
+	// of the Lambda rotation function. The test creates an AWSPENDING version of the
+	// secret and then removes it. If you don't specify this value, then by default,
+	// Secrets Manager rotates the secret immediately.
+	RotateImmediately bool
 
 	// The ARN of the Lambda rotation function that can rotate the secret.
 	RotationLambdaARN *string

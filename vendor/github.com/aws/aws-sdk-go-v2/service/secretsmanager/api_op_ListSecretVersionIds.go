@@ -12,10 +12,16 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Lists the versions for a secret. To list the secrets in the account, use
-// ListSecrets. To get the secret value from SecretString or SecretBinary, call
-// GetSecretValue. Minimum permissions To run this command, you must have
-// secretsmanager:ListSecretVersionIds permissions.
+// Lists the versions of a secret. Secrets Manager uses staging labels to indicate
+// the different versions of a secret. For more information, see  Secrets Manager
+// concepts: Versions
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/getting-started.html#term_version).
+// To list the secrets in the account, use ListSecrets. Required permissions:
+// secretsmanager:ListSecretVersionIds. For more information, see  IAM policy
+// actions for Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
+// and Authentication and access control in Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
 func (c *Client) ListSecretVersionIds(ctx context.Context, params *ListSecretVersionIdsInput, optFns ...func(*Options)) (*ListSecretVersionIdsOutput, error) {
 	if params == nil {
 		params = &ListSecretVersionIdsInput{}
@@ -34,7 +40,9 @@ func (c *Client) ListSecretVersionIds(ctx context.Context, params *ListSecretVer
 type ListSecretVersionIdsInput struct {
 
 	// The ARN or name of the secret whose versions you want to list. For an ARN, we
-	// recommend that you specify a complete ARN rather than a partial ARN.
+	// recommend that you specify a complete ARN rather than a partial ARN. See Finding
+	// a secret from a partial ARN
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/troubleshoot.html#ARN_secretnamehyphen).
 	//
 	// This member is required.
 	SecretId *string

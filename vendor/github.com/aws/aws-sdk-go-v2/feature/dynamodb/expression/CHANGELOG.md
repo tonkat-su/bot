@@ -1,3 +1,52 @@
+# v1.4.9 (2022-06-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.8 (2022-05-17)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.7 (2022-04-25)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.6 (2022-04-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.5 (2022-03-31)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.4 (2022-03-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.3 (2022-03-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.2 (2022-03-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.1 (2022-03-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.4.0 (2022-02-24)
+
+* **Feature**: Add support for expression names with dots via new NameBuilder function NameNoDotSplit, related to [aws/aws-sdk-go#2570](https://github.com/aws/aws-sdk-go/issues/2570)
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.3.7 (2022-01-14)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.3.6 (2022-01-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.3.5 (2021-12-21)
 
 * **Dependency Update**: Updated to the latest SDK module versions

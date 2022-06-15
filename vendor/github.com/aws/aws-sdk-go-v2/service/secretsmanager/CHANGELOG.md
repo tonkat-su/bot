@@ -1,3 +1,66 @@
+# v1.15.10 (2022-06-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.9 (2022-05-25)
+
+* **Documentation**: Documentation updates for Secrets Manager
+
+# v1.15.8 (2022-05-17)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.7 (2022-05-11)
+
+* **Documentation**: Doc only update for Secrets Manager that fixes several customer-reported issues.
+
+# v1.15.6 (2022-04-25)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.5 (2022-04-21)
+
+* **Documentation**: Documentation updates for Secrets Manager
+
+# v1.15.4 (2022-03-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.3 (2022-03-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.2 (2022-03-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.1 (2022-03-11)
+
+* **Documentation**: Documentation updates for Secrets Manager.
+
+# v1.15.0 (2022-03-08)
+
+* **Feature**: Updated `github.com/aws/smithy-go` to latest version
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.14.0 (2022-02-24)
+
+* **Feature**: API client updated
+* **Feature**: Adds RetryMaxAttempts and RetryMod to API client Options. This allows the API clients' default Retryer to be configured from the shared configuration files or environment variables. Adding a new Retry mode of `Adaptive`. `Adaptive` retry mode is an experimental mode, adding client rate limiting when throttles reponses are received from an API. See [retry.AdaptiveMode](https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/aws/retry#AdaptiveMode) for more details, and configuration options.
+* **Feature**: Updated `github.com/aws/smithy-go` to latest version
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.13.0 (2022-01-14)
+
+* **Feature**: Updated `github.com/aws/smithy-go` to latest version
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.0 (2022-01-07)
+
+* **Feature**: API client updated
+* **Feature**: Updated `github.com/aws/smithy-go` to latest version
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.11.0 (2021-12-21)
 
 * **Feature**: API Paginators now support specifying the initial starting token, and support stopping on empty string tokens.

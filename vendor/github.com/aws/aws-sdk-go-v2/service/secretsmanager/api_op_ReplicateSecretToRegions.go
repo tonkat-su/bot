@@ -13,6 +13,11 @@ import (
 
 // Replicates the secret to a new Regions. See Multi-Region secrets
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/create-manage-multi-region-secrets.html).
+// Required permissions: secretsmanager:ReplicateSecretToRegions. For more
+// information, see  IAM policy actions for Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
+// and Authentication and access control in Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
 func (c *Client) ReplicateSecretToRegions(ctx context.Context, params *ReplicateSecretToRegionsInput, optFns ...func(*Options)) (*ReplicateSecretToRegionsOutput, error) {
 	if params == nil {
 		params = &ReplicateSecretToRegionsInput{}

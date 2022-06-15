@@ -41,7 +41,11 @@ import (
 // security strategy, then adding or removing a tag can change permissions. If
 // successfully completing this operation would result in you losing your
 // permissions for this secret, then the operation is blocked and returns an Access
-// Denied error.
+// Denied error. Required permissions: secretsmanager:TagResource. For more
+// information, see  IAM policy actions for Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
+// and Authentication and access control in Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
 func (c *Client) TagResource(ctx context.Context, params *TagResourceInput, optFns ...func(*Options)) (*TagResourceOutput, error) {
 	if params == nil {
 		params = &TagResourceInput{}
@@ -61,7 +65,9 @@ type TagResourceInput struct {
 
 	// The identifier for the secret to attach tags to. You can specify either the
 	// Amazon Resource Name (ARN) or the friendly name of the secret. For an ARN, we
-	// recommend that you specify a complete ARN rather than a partial ARN.
+	// recommend that you specify a complete ARN rather than a partial ARN. See Finding
+	// a secret from a partial ARN
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/troubleshoot.html#ARN_secretnamehyphen).
 	//
 	// This member is required.
 	SecretId *string

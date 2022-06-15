@@ -13,13 +13,17 @@ import (
 )
 
 // Lists the secrets that are stored by Secrets Manager in the Amazon Web Services
-// account. To list the versions of a secret, use ListSecretVersionIds. To get the
-// secret value from SecretString or SecretBinary, call GetSecretValue. For
-// information about finding secrets in the console, see Enhanced search
-// capabilities for secrets in Secrets Manager
+// account, not including secrets that are marked for deletion. To see secrets
+// marked for deletion, use the Secrets Manager console. To list the versions of a
+// secret, use ListSecretVersionIds. To get the secret value from SecretString or
+// SecretBinary, call GetSecretValue. For information about finding secrets in the
+// console, see Find secrets in Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/manage_search-secret.html).
-// Minimum permissions To run this command, you must have
-// secretsmanager:ListSecrets permissions.
+// Required permissions: secretsmanager:ListSecrets. For more information, see  IAM
+// policy actions for Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
+// and Authentication and access control in Secrets Manager
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
 func (c *Client) ListSecrets(ctx context.Context, params *ListSecretsInput, optFns ...func(*Options)) (*ListSecretsOutput, error) {
 	if params == nil {
 		params = &ListSecretsInput{}

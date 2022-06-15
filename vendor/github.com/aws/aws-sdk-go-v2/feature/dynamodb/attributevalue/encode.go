@@ -1,6 +1,7 @@
 package attributevalue
 
 import (
+	"encoding"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -179,13 +180,136 @@ func Marshal(in interface{}) (types.AttributeValue, error) {
 	return NewEncoder().Encode(in)
 }
 
+// MarshalWithOptions will serialize the passed in Go value type into a AttributeValue
+// type, by using . This value can be used in API operations to simplify marshaling
+// your Go value types into AttributeValues.
+//
+// Use the `optsFns` functional options to override the default configuration.
+//
+// MarshalWithOptions will recursively transverse the passed in value marshaling its
+// contents into a AttributeValue. Marshal supports basic scalars
+// (int,uint,float,bool,string), maps, slices, and structs. Anonymous
+// nested types are flattened based on Go anonymous type visibility.
+//
+// Marshaling slices to AttributeValue will default to a List for all
+// types except for []byte and [][]byte. []byte will be marshaled as
+// Binary data (B), and [][]byte will be marshaled as binary data set
+// (BS).
+//
+// The `time.Time` type is marshaled as `time.RFC3339Nano` format.
+//
+// `dynamodbav` struct tag can be used to control how the value will be
+// marshaled into a AttributeValue.
+//
+//		// Field is ignored
+//		Field int `dynamodbav:"-"`
+//
+//		// Field AttributeValue map key "myName"
+//		Field int `dynamodbav:"myName"`
+//
+//		// Field AttributeValue map key "myName", and
+//		// Field is omitted if the field is a zero value for the type.
+//		Field int `dynamodbav:"myName,omitempty"`
+//
+//		// Field AttributeValue map key "Field", and
+//		// Field is omitted if the field is a zero value for the type.
+//		Field int `dynamodbav:",omitempty"`
+//
+//		// Field's elems will be omitted if the elem's value is empty.
+//		// only valid for slices, and maps.
+//		Field []string `dynamodbav:",omitemptyelem"`
+//
+//		// Field AttributeValue map key "Field", and
+//		// Field is sent as NULL if the field is a zero value for the type.
+//		Field int `dynamodbav:",nullempty"`
+//
+//		// Field's elems will be sent as NULL if the elem's value a zero value
+//		// for the type. Only valid for slices, and maps.
+//		Field []string `dynamodbav:",nullemptyelem"`
+//
+//		// Field will be marshaled as a AttributeValue string
+//		// only value for number types, (int,uint,float)
+//		Field int `dynamodbav:",string"`
+//
+//		// Field will be marshaled as a binary set
+//		Field [][]byte `dynamodbav:",binaryset"`
+//
+//		// Field will be marshaled as a number set
+//		Field []int `dynamodbav:",numberset"`
+//
+//		// Field will be marshaled as a string set
+//		Field []string `dynamodbav:",stringset"`
+//
+//		// Field will be marshaled as Unix time number in seconds.
+//		// This tag is only valid with time.Time typed struct fields.
+//		// Important to note that zero value time as unixtime is not 0 seconds
+//		// from January 1, 1970 UTC, but -62135596800. Which is seconds between
+//		// January 1, 0001 UTC, and January 1, 0001 UTC.
+//		Field time.Time `dynamodbav:",unixtime"`
+//
+// The omitempty tag is only used during Marshaling and is ignored for
+// Unmarshal. omitempty will skip any member if the Go value of the member is
+// zero. The omitemptyelem tag works the same as omitempty except it applies to
+// the elements of maps and slices instead of struct fields, and will not be
+// included in the marshaled AttributeValue Map, List, or Set.
+//
+// The nullempty tag is only used during Marshaling and is ignored for
+// Unmarshal. nullempty will serialize a AttributeValueMemberNULL for the
+// member if the Go value of the member is zero. nullemptyelem tag works the
+// same as nullempty except it applies to the elements of maps and slices
+// instead of struct fields, and will not be included in the marshaled
+// AttributeValue Map, List, or Set.
+//
+// All struct fields and with anonymous fields, are marshaled unless the
+// any of the following conditions are meet.
+//
+//		- the field is not exported
+//		- json or dynamodbav field tag is "-"
+//		- json or dynamodbav field tag specifies "omitempty", and is a zero value.
+//
+// Pointer and interfaces values are encoded as the value pointed to or
+// contained in the interface. A nil value encodes as the AttributeValue NULL
+// value unless `omitempty` struct tag is provided.
+//
+// Channel, complex, and function values are not encoded and will be skipped
+// when walking the value to be marshaled.
+//
+// Error that occurs when marshaling will stop the marshal, and return
+// the error.
+//
+// MarshalWithOptions cannot represent cyclic data structures and will not handle them.
+// Passing cyclic structures to Marshal will result in an infinite recursion.
+func MarshalWithOptions(in interface{}, optFns ...func(*EncoderOptions)) (types.AttributeValue, error) {
+	return NewEncoder(optFns...).Encode(in)
+}
+
 // MarshalMap is an alias for Marshal func which marshals Go value type to a
 // map of AttributeValues. If the in parameter does not serialize to a map, an
 // empty AttributeValue map will be returned.
 //
+// Use the `optsFns` functional options to override the default configuration.
+//
 // This is useful for APIs such as PutItem.
 func MarshalMap(in interface{}) (map[string]types.AttributeValue, error) {
 	av, err := NewEncoder().Encode(in)
+
+	asMap, ok := av.(*types.AttributeValueMemberM)
+	if err != nil || av == nil || !ok {
+		return map[string]types.AttributeValue{}, err
+	}
+
+	return asMap.Value, nil
+}
+
+// MarshalMapWithOptions is an alias for MarshalWithOptions func which marshals Go value type to a
+// map of AttributeValues. If the in parameter does not serialize to a map, an
+// empty AttributeValue map will be returned.
+//
+// Use the `optsFns` functional options to override the default configuration.
+//
+// This is useful for APIs such as PutItem.
+func MarshalMapWithOptions(in interface{}, optFns ...func(*EncoderOptions)) (map[string]types.AttributeValue, error) {
+	av, err := NewEncoder(optFns...).Encode(in)
 
 	asMap, ok := av.(*types.AttributeValueMemberM)
 	if err != nil || av == nil || !ok {
@@ -200,6 +324,22 @@ func MarshalMap(in interface{}) (map[string]types.AttributeValue, error) {
 // to a slice, an empty AttributeValue slice will be returned.
 func MarshalList(in interface{}) ([]types.AttributeValue, error) {
 	av, err := NewEncoder().Encode(in)
+
+	asList, ok := av.(*types.AttributeValueMemberL)
+	if err != nil || av == nil || !ok {
+		return []types.AttributeValue{}, err
+	}
+
+	return asList.Value, nil
+}
+
+// MarshalListWithOptions is an alias for MarshalWithOptions func which marshals Go value
+// type to a slice of AttributeValues. If the in parameter does not serialize
+// to a slice, an empty AttributeValue slice will be returned.
+//
+// Use the `optsFns` functional options to override the default configuration.
+func MarshalListWithOptions(in interface{}, optFns ...func(*EncoderOptions)) ([]types.AttributeValue, error) {
+	av, err := NewEncoder(optFns...).Encode(in)
 
 	asList, ok := av.(*types.AttributeValueMemberL)
 	if err != nil || av == nil || !ok {
@@ -230,6 +370,11 @@ type EncoderOptions struct {
 	// Defaults to enabled, because AttributeValue sets cannot currently be
 	// empty lists.
 	NullEmptySets bool
+
+	// Will encode time.Time fields
+	//
+	// Default encoding is time.RFC3339Nano in a DynamoDB String (S) data type.
+	EncodeTime func(time.Time) (types.AttributeValue, error)
 }
 
 // An Encoder provides marshaling Go value types to AttributeValues.
@@ -241,10 +386,16 @@ type Encoder struct {
 // the `opts` functional options to override the default configuration.
 func NewEncoder(optFns ...func(*EncoderOptions)) *Encoder {
 	options := EncoderOptions{
+		TagKey:        defaultTagKey,
 		NullEmptySets: true,
+		EncodeTime:    defaultEncodeTime,
 	}
 	for _, fn := range optFns {
 		fn(&options)
+	}
+
+	if options.EncodeTime == nil {
+		options.EncodeTime = defaultEncodeTime
 	}
 
 	return &Encoder{
@@ -325,7 +476,7 @@ func (e *Encoder) encodeStruct(v reflect.Value, fieldTag tag) (types.AttributeVa
 		if fieldTag.AsUnixTime {
 			return UnixTime(t).MarshalDynamoDBAttributeValue()
 		}
-		return &types.AttributeValueMemberS{Value: t.Format(time.RFC3339Nano)}, nil
+		return e.options.EncodeTime(t)
 	}
 
 	m := &types.AttributeValueMemberM{Value: map[string]types.AttributeValue{}}
@@ -358,9 +509,9 @@ func (e *Encoder) encodeStruct(v reflect.Value, fieldTag tag) (types.AttributeVa
 func (e *Encoder) encodeMap(v reflect.Value, fieldTag tag) (types.AttributeValue, error) {
 	m := &types.AttributeValueMemberM{Value: map[string]types.AttributeValue{}}
 	for _, key := range v.MapKeys() {
-		keyName := fmt.Sprint(key.Interface())
-		if keyName == "" {
-			return nil, &InvalidMarshalError{msg: "map key cannot be empty"}
+		keyName, err := mapKeyAsString(key, fieldTag)
+		if err != nil {
+			return nil, err
 		}
 
 		elemVal := v.MapIndex(key)
@@ -378,6 +529,40 @@ func (e *Encoder) encodeMap(v reflect.Value, fieldTag tag) (types.AttributeValue
 	}
 
 	return m, nil
+}
+
+func mapKeyAsString(keyVal reflect.Value, fieldTag tag) (keyStr string, err error) {
+	defer func() {
+		if err != nil {
+			return
+		}
+		if keyStr == "" {
+			err = &InvalidMarshalError{msg: "map key cannot be empty"}
+		}
+	}()
+
+	if k, ok := keyVal.Interface().(encoding.TextMarshaler); ok {
+		b, err := k.MarshalText()
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal text, %w", err)
+		}
+		return string(b), err
+	}
+
+	switch keyVal.Kind() {
+	case reflect.Bool,
+		reflect.String,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+
+		return fmt.Sprint(keyVal.Interface()), nil
+
+	default:
+		return "", &InvalidMarshalError{
+			msg: "map key type not supported, must be string, number, bool, or TextMarshaler",
+		}
+	}
 }
 
 func (e *Encoder) encodeSlice(v reflect.Value, fieldTag tag) (types.AttributeValue, error) {
@@ -668,4 +853,10 @@ type InvalidMarshalError struct {
 // satisfying the error interface
 func (e *InvalidMarshalError) Error() string {
 	return fmt.Sprintf("marshal failed, %s", e.msg)
+}
+
+func defaultEncodeTime(t time.Time) (types.AttributeValue, error) {
+	return &types.AttributeValueMemberS{
+		Value: t.Format(time.RFC3339Nano),
+	}, nil
 }
