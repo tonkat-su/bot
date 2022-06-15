@@ -60,13 +60,13 @@ export class TonkatsuStack extends Stack {
     new route53.ARecord(this, 'botRecord', {
       zone: tonkatsuZone,
       recordName: "bot",
-      target: route53.RecordTarget.fromIpAddresses("45.33.41.248"),
+      target: route53.RecordTarget.fromIpAddresses("45.79.73.44"),
     })
 
     new route53.AaaaRecord(this, 'botAAAARecord', {
       zone: tonkatsuZone,
       recordName: "bot",
-      target: route53.RecordTarget.fromIpAddresses("2600:3c01::f03c:92ff:fe64:e48f"),
+      target: route53.RecordTarget.fromIpAddresses("2600:3c01::f03c:93ff:fe7a:5fd8"),
     })
 
     new route53.ARecord(this, 'serverARecord', {
