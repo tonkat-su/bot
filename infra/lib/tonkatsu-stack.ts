@@ -83,7 +83,7 @@ export class TonkatsuStack extends Stack {
         priority: 0,
         weight: 5,
       }],
-      recordName: 'mc',
+      recordName: '_minecraft._tcp.mc',
     })
 
     const lambdasAsset = new assets.Asset(this, "lambdasZip", {
