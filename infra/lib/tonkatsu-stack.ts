@@ -181,7 +181,6 @@ export class TonkatsuStack extends Stack {
       region: 'us-west-2',
     })
 
-    /*
     const interactionsApi = new apigateway.LambdaRestApi(this, 'interactionsApi', {
       domainName: {
         domainName: 'interactions.tonkat.su',
@@ -199,7 +198,6 @@ export class TonkatsuStack extends Stack {
       recordName: 'interactions',
       target: route53.RecordTarget.fromAlias(new targets.ApiGateway(interactionsApi))
     })
-    */
 
     new route53.CnameRecord(this, 'mapCname', {
       zone: tonkatsuZone,
