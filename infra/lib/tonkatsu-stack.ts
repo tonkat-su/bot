@@ -79,7 +79,7 @@ export class TonkatsuStack extends Stack {
       zone: tonkatsuZone,
       values: [{
         hostName: 'mc.tonkat.su',
-        port: 25586,
+        port: 25575,
         priority: 0,
         weight: 5,
       }],
@@ -158,7 +158,7 @@ export class TonkatsuStack extends Stack {
       handler: "smp-whitelist",
       timeout: cdk.Duration.seconds(15),
       environment: {
-        "MINECRAFT_SERVER_RCON_ADDRESS": "mc.tonkat.su:25501",
+        "MINECRAFT_SERVER_RCON_ADDRESS": "mc.tonkat.su",
         "DISCORD_APPLICATION_PUBKEY": "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c",
         "RCON_PASSWORD_SECRET_ARN": smpRconPassword.secretArn,
       },
