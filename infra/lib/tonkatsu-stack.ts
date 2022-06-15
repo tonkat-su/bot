@@ -1,22 +1,21 @@
-import * as cdk from '@aws-cdk/core';
-import * as apigatewayv2 from '@aws-cdk/aws-apigatewayv2';
-import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
-import * as assets from '@aws-cdk/aws-s3-assets';
-import * as certificatemanager from '@aws-cdk/aws-certificatemanager';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import * as events from '@aws-cdk/aws-events';
-import * as events_targets from '@aws-cdk/aws-events-targets';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as logs from '@aws-cdk/aws-logs';
+import * as cdk from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
+import { aws_route53 as route53 } from 'aws-cdk-lib'
+import { aws_secretsmanager as secretsManager } from 'aws-cdk-lib';
+import { aws_lambda as lambda } from 'aws-cdk-lib';
+import { aws_iam as iam } from 'aws-cdk-lib';
+import { aws_events as events } from 'aws-cdk-lib';
+import { aws_events_targets as events_targets } from 'aws-cdk-lib';
+import { aws_dynamodb as dynamodb } from 'aws-cdk-lib';
+import { aws_logs as logs } from 'aws-cdk-lib';
+import { aws_s3_assets as assets } from 'aws-cdk-lib';
+import { aws_certificatemanager as certificatemanager } from 'aws-cdk-lib';
+import { aws_apigateway as apigateway } from 'aws-cdk-lib';
+import { aws_route53_targets as targets } from 'aws-cdk-lib';
 import * as path from 'path';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as secretsManager from '@aws-cdk/aws-secretsmanager';
-import * as targets from '@aws-cdk/aws-route53-targets';
-import { Duration } from '@aws-cdk/core';
 
-export class TonkatsuStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class TonkatsuStack extends Stack {
+  constructor(scope: App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const botGroup = new iam.Group(this, 'tonkatsuBotGroup', {})
@@ -142,7 +141,7 @@ export class TonkatsuStack extends cdk.Stack {
     }))
 
     new events.Rule(this, "everyFiveMinutes", {
-      schedule: events.Schedule.rate(Duration.minutes(5)),
+      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
       targets: [
         new events_targets.LambdaFunction(giveCatTreatsLambda),
       ],
@@ -182,29 +181,21 @@ export class TonkatsuStack extends cdk.Stack {
       region: 'us-west-2',
     })
 
-    const interactionsDomainName = new apigatewayv2.DomainName(this, 'interactionsDomainName', {
-      domainName: 'interactions.tonkat.su',
-      certificate: interactionsCert,
+    const interactionsApi = new apigateway.LambdaRestApi(this, 'interactionsApi', {
+      domainName: {
+        domainName: 'interactions.tonkat.su',
+        certificate: interactionsCert,
+      },
+      handler: interactionsWhitelistLambda,
     })
 
-    const interactionsWhitelistApi = new apigatewayv2.HttpApi(this, 'interactionsWhitelistApi', {
-      defaultDomainMapping: {
-        domainName: interactionsDomainName,
-      }
-    })
-
-    interactionsWhitelistApi.addRoutes({
-      path: '/whitelist',
-      methods: [apigatewayv2.HttpMethod.POST],
-      integration: new LambdaProxyIntegration({
-        handler: interactionsWhitelistLambda,
-      })
-    })
+    const whitelistApiResource = interactionsApi.root.addResource('whitelist')
+    whitelistApiResource.addMethod('POST')
 
     new route53.ARecord(this, 'interactionsWhitelistAliasRecord', {
       zone: tonkatsuZone,
       recordName: 'interactions',
-      target: route53.RecordTarget.fromAlias(new targets.ApiGatewayv2Domain(interactionsDomainName))
+      target: route53.RecordTarget.fromAlias(new targets.ApiGateway(interactionsApi))
     })
 
     new route53.CnameRecord(this, 'mapCname', {
