@@ -142,9 +142,13 @@ func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, event *discord
 		return err
 	}
 
+	embeds := make([]*discordgo.MessageEmbed, 0, 1)
+	if embed != nil {
+		embeds = append(embeds, embed)
+	}
 	_, err = s.ChannelMessageEditComplex(&discordgo.MessageEdit{
 		Content: aws.String("gamers currently online"),
-		Embeds:  []*discordgo.MessageEmbed{embed},
+		Embeds:  embeds,
 		ID:      event.MessageID,
 		Channel: event.ChannelID,
 	})
