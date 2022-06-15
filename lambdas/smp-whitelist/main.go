@@ -10,13 +10,13 @@ import (
 	"log"
 	"net/http"
 
-	mcrcon "github.com/Kelwing/mc-rcon"
 	"github.com/apex/gateway"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/bsdlp/discord-interactions-go/interactions"
 	"github.com/bsdlp/envconfig"
+	"github.com/jltobler/go-rcon"
 )
 
 type Config struct {
@@ -91,21 +91,7 @@ func main() {
 			return
 		}
 
-		conn := &mcrcon.MCConn{}
-		err := conn.Open(cfg.MinecraftServerRconAddress, cfg.rconPassword)
-		if err != nil {
-			log.Printf("unable to connect: %s", err.Error())
-			writeResponse(w, http.StatusFailedDependency, err.Error())
-			return
-		}
-		defer conn.Close()
-
-		err = conn.Authenticate()
-		if err != nil {
-			log.Printf("unable to authenticate: %s", err.Error())
-			writeResponse(w, http.StatusFailedDependency, "unable to authenticate by rcon")
-			return
-		}
+		rconClient := rcon.NewClient("rcon://"+cfg.MinecraftServerRconAddress, cfg.rconPassword)
 
 		var rconCommand string
 		subcommand := data.Data.Options[0].Options[0]
@@ -140,7 +126,7 @@ func main() {
 
 		log.Printf("sending rcon command: %s", rconCommand)
 
-		resp, err := conn.SendCommand(rconCommand)
+		resp, err := rconClient.Send(rconCommand)
 		if err != nil {
 			log.Printf("error sending command: %s", err.Error())
 			writeResponse(w, http.StatusFailedDependency, err.Error())

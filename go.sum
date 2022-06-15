@@ -1,6 +1,4 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Kelwing/mc-rcon v0.0.0-20220214194105-bec8dcbccc3f h1:ySopb0/agJ4rwNsIthx9uguIlbUEnjSVKcao3n9ZPEY=
-github.com/Kelwing/mc-rcon v0.0.0-20220214194105-bec8dcbccc3f/go.mod h1:wlXY/EO9CBjMViEh95JOQhp//RMnHs4ZUBhYhx43LdM=
 github.com/Raqbit/mc-pinger v0.2.2 h1:fZS58Z5R34MDMRQq5XR7UjoNFy4qk11zQ+RuJqb+3mQ=
 github.com/Raqbit/mc-pinger v0.2.2/go.mod h1:3BtpUQAShwS0ClpL0Mfs8Lr4W42tOOCbtMtw9mw3Kng=
 github.com/apex/gateway v1.1.2 h1:OWyLov8eaau8YhkYKkRuOAYqiUhpBJalBR1o+3FzX+8=
@@ -63,6 +61,8 @@ github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
 github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/jltobler/go-rcon v0.3.0 h1:iaa4bLak3MAuIIpGJb5j05x+XazPMJklWHmTUbpT3SM=
+github.com/jltobler/go-rcon v0.3.0/go.mod h1:pBX1cDeqcs0QZTy2nffNreX0CyjGxU6AIXGbK83RKSs=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=
