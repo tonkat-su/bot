@@ -204,11 +204,5 @@ export class TonkatsuStack extends Stack {
       recordName: 'map',
       domainName: 'map.tonkat.su.website-us-east-1.linodeobjects.com',
     })
-
-    new route53.CnameRecord(this, 'oldmapCname', {
-      zone: tonkatsuZone,
-      recordName: 'oldmap',
-      domainName: 'oldmap.tonkat.su.website-us-east-1.linodeobjects.com',
-    })
   }
 }
