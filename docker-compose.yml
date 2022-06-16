@@ -13,3 +13,4 @@ services:
       MINECRAFT_SERVER_HOST: mc.tonkat.su
       AWS_REGION: us-west-2
       GUILD_ID: 764720442250100700
+      IMGUR_CLIENT_ID: 3b5d5f0ff8b8c29

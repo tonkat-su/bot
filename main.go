@@ -16,6 +16,7 @@ import (
 	"github.com/tonkat-su/bot/handlers/pinnedleaderboard"
 	"github.com/tonkat-su/bot/handlers/refreshable"
 	"github.com/tonkat-su/bot/handlers/register"
+	"github.com/tonkat-su/bot/imgur"
 	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/presence"
 	"github.com/tonkat-su/bot/users"
@@ -26,6 +27,7 @@ type Config struct {
 	AWSRegion          string `required:"true" envconfig:"AWS_REGION"`
 	AWSAccessKeyId     string `required:"true" envconfig:"AWS_ACCESS_KEY_ID"`
 	AWSSecretAccessKey string `required:"true" envconfig:"AWS_SECRET_ACCESS_KEY"`
+	ImgurClientId      string `required:"true" split_words:"true"`
 
 	MinecraftServerName string `required:"true" split_words:"true"`
 	MinecraftServerHost string `required:"true" split_words:"true"`
@@ -68,6 +70,7 @@ func main() {
 		Backend: &connected.RefreshableBackend{
 			MinecraftServerName: cfg.MinecraftServerName,
 			MinecraftServerHost: cfg.MinecraftServerHost,
+			Imgur:               &imgur.Client{ClientId: cfg.ImgurClientId},
 		},
 		PinnedChannelName: "whos-online",
 	}
