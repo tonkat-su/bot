@@ -13,7 +13,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.18.4
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.6
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.15.10
-	github.com/bsdlp/discord-interactions-go v0.0.0-20201227083222-a2ba84473ce8
 	github.com/bsdlp/envconfig v1.5.0
 	github.com/bwmarrin/discordgo v0.25.0
 	github.com/google/uuid v1.3.0

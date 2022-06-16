@@ -14,8 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	"github.com/bsdlp/discord-interactions-go/interactions"
 	"github.com/bsdlp/envconfig"
+	"github.com/bwmarrin/discordgo"
 	"github.com/jltobler/go-rcon"
 )
 
@@ -68,7 +68,7 @@ func main() {
 		}
 
 		// validate signature from discord and return 401 if invalid
-		verified := interactions.Verify(r, discordPubkey)
+		verified := discordgo.VerifyInteraction(r, discordPubkey)
 		if !verified {
 			log.Println("invalid signature")
 			writeResponse(w, http.StatusUnauthorized, "invalid signature")
@@ -76,7 +76,7 @@ func main() {
 		}
 
 		// marshal interaction webhook data
-		var data interactions.Data
+		var data discordgo.Interaction
 		err = json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
 			log.Printf("invalid data: %s", err.Error())
@@ -85,7 +85,7 @@ func main() {
 		}
 
 		// reply with a pong when discord pings us
-		if data.Type == interactions.Ping {
+		if data.Type == discordgo.InteractionPing {
 			log.Println("ping received")
 			writeResponse(w, http.StatusOK, `{"type":1}`)
 			return
@@ -94,7 +94,7 @@ func main() {
 		rconClient := rcon.NewClient("rcon://"+cfg.MinecraftServerRconAddress, cfg.rconPassword)
 
 		var rconCommand string
-		subcommand := data.Data.Options[0].Options[0]
+		subcommand := data.ApplicationCommandData().Options[0].Options[0]
 		switch subcommand.Name {
 		case "add":
 			for _, v := range subcommand.Options {
@@ -146,9 +146,9 @@ func main() {
 }
 
 func writeResponse(w http.ResponseWriter, statusCode int, body string) {
-	err := json.NewEncoder(w).Encode(interactions.InteractionResponse{
+	err := json.NewEncoder(w).Encode(discordgo.InteractionResponse{
 		Type: 4,
-		Data: &interactions.InteractionApplicationCommandCallbackData{
+		Data: &discordgo.InteractionResponseData{
 			Content: body,
 		},
 	})
@@ -161,13 +161,15 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 }
 
 func replyToInteraction(id string, token string, body string) error {
-	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(interactions.InteractionResponse{
-		Type: 4,
-		Data: &interactions.InteractionApplicationCommandCallbackData{
+	resp := discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
 			Content: body,
 		},
-	})
+	}
+
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(resp)
 	if err != nil {
 		return err
 	}

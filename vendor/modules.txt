@@ -119,9 +119,6 @@ github.com/aws/smithy-go/time
 github.com/aws/smithy-go/transport/http
 github.com/aws/smithy-go/transport/http/internal/io
 github.com/aws/smithy-go/waiter
-# github.com/bsdlp/discord-interactions-go v0.0.0-20201227083222-a2ba84473ce8
-## explicit; go 1.15
-github.com/bsdlp/discord-interactions-go/interactions
 # github.com/bsdlp/envconfig v1.5.0
 ## explicit; go 1.15
 github.com/bsdlp/envconfig

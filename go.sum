@@ -44,8 +44,6 @@ github.com/aws/aws-sdk-go-v2/service/sts v1.16.7 h1:HLzjwQM9975FQWSF3uENDGHT1gFQ
 github.com/aws/aws-sdk-go-v2/service/sts v1.16.7/go.mod h1:lVxTdiiSHY3jb1aeg+BBFtDzZGSUCv6qaNOyEGCJ1AY=
 github.com/aws/smithy-go v1.11.3 h1:DQixirEFM9IaKxX1olZ3ke3nvxRS2xMDteKIDWxozW8=
 github.com/aws/smithy-go v1.11.3/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
-github.com/bsdlp/discord-interactions-go v0.0.0-20201227083222-a2ba84473ce8 h1:rYda/7WZFu2f3WT7l3tNgIGBDYmc5gMUSduFEiVGT1w=
-github.com/bsdlp/discord-interactions-go v0.0.0-20201227083222-a2ba84473ce8/go.mod h1:Ceq9LkT/iTYVxpftSuqMFCDpqgcDAboxVByQEF8R0NM=
 github.com/bsdlp/envconfig v1.5.0 h1:/hcPMPrLUBeYI2sI646TTmDno0JYJaZv5+zdI1kya/M=
 github.com/bsdlp/envconfig v1.5.0/go.mod h1:7PGb+QixX1SKIWlM4r/k9FuGsiG1wFMgB7pM30+qAqI=
 github.com/bwmarrin/discordgo v0.25.0 h1:NXhdfHRNxtwso6FPdzW2i3uBvvU7UIQTghmV2T4nqAs=
