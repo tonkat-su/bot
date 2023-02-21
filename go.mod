@@ -13,8 +13,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.25.3
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.18.4
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.5
+	github.com/awslabs/aws-lambda-go-api-proxy v0.14.0
 	github.com/bsdlp/envconfig v1.5.0
 	github.com/bwmarrin/discordgo v0.27.0
+	github.com/diamondburned/arikawa/v3 v3.2.0
 	github.com/google/uuid v1.3.0
 	github.com/jltobler/go-rcon v0.3.0
 	github.com/vincent-petithory/dataurl v1.0.0
@@ -34,11 +36,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.4 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
+	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/pires/go-proxyproto v0.6.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 )
