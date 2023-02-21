@@ -45,12 +45,12 @@ jobs:
           path: ${{ github.workspace }}
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
+      - name: install dependencies
+        working-directory: infra
+        run: npm install
       - name: cdk diff
-        uses: youyo/aws-cdk-github-actions@v2
-        with:
-          cdk_subcommand: "diff"
-          cdk_version: ${{ matrix.cdk-version }}
-          working_dir: "infra"
+        working-directory: infra
+        run: npx cdk diff
         env:
           AWS_DEFAULT_REGION: "us-west-2"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -69,12 +69,12 @@ jobs:
           path: ${{ github.workspace }}
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
+      - name: install dependencies
+        working-directory: infra
+        run: npm install
       - name: cdk deploy
-        uses: youyo/aws-cdk-github-actions@v2
-        with:
-          cdk_subcommand: "deploy --require-approval never"
-          cdk_version: ${{ matrix.cdk-version }}
-          working_dir: "infra"
+        working-directory: infra
+        run: npx cdk deploy --require-approval never
         env:
           AWS_DEFAULT_REGION: "us-west-2"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
