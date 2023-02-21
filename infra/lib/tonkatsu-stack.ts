@@ -69,23 +69,6 @@ export class TonkatsuStack extends Stack {
       target: route53.RecordTarget.fromIpAddresses("2600:3c01::f03c:93ff:fe7a:5fd8"),
     })
 
-    new route53.ARecord(this, 'serverARecord', {
-      zone: tonkatsuZone,
-      recordName: "mc",
-      target: route53.RecordTarget.fromIpAddresses("66.70.164.152"),
-    })
-
-    new route53.SrvRecord(this, 'serverSrvRecord', {
-      zone: tonkatsuZone,
-      values: [{
-        hostName: 'mc.tonkat.su',
-        port: 25586,
-        priority: 0,
-        weight: 5,
-      }],
-      recordName: '_minecraft._tcp.mc',
-    })
-
     const lambdasAsset = new assets.Asset(this, "lambdasZip", {
       path: path.join(__dirname, "../../build/"),
     })
@@ -99,8 +82,8 @@ export class TonkatsuStack extends Stack {
       handler: "give-cat-treats",
       timeout: cdk.Duration.seconds(45),
       environment: {
-        "MINECRAFT_SERVER_NAME": "Tonkatsu",
-        "MINECRAFT_SERVER_HOST": "mc.tonkat.su",
+        "MINECRAFT_SERVER_NAME": "frogland",
+        "MINECRAFT_SERVER_HOST": "mc.froggyfren.com",
       },
       logRetention: logs.RetentionDays.THREE_DAYS,
     })
@@ -123,8 +106,8 @@ export class TonkatsuStack extends Stack {
       handler: "refresh-whos-online",
       timeout: cdk.Duration.seconds(30),
       environment: {
-        "MINECRAFT_SERVER_HOST": "mc.tonkat.su",
-        "MINECRAFT_SERVER_NAME": "Tonkatsu",
+        "MINECRAFT_SERVER_HOST": "mc.froggyfren.com",
+        "MINECRAFT_SERVER_NAME": "frogland",
         "DISCORD_TOKEN_SECRET_ARN": discordToken.secretArn,
       },
       logRetention: logs.RetentionDays.THREE_DAYS,
@@ -197,12 +180,6 @@ export class TonkatsuStack extends Stack {
       zone: tonkatsuZone,
       recordName: 'interactions',
       target: route53.RecordTarget.fromAlias(new targets.ApiGateway(interactionsApi))
-    })
-
-    new route53.CnameRecord(this, 'mapCname', {
-      zone: tonkatsuZone,
-      recordName: 'map',
-      domainName: 'map.tonkat.su.website-us-east-1.linodeobjects.com',
     })
   }
 }
