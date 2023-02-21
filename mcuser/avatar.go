@@ -2,7 +2,7 @@ package mcuser
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -35,5 +35,5 @@ func GetFace(uuid string) ([]byte, error) {
 	if response.StatusCode != http.StatusOK {
 		return nil, ErrAvatarServiceDown
 	}
-	return ioutil.ReadAll(response.Body)
+	return io.ReadAll(response.Body)
 }
