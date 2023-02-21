@@ -19,7 +19,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: go build
         env:
           CGO_ENABLED: "0"
@@ -28,7 +28,7 @@ jobs:
           mkdir build
           go build -a -ldflags='-extldflags=-static' -o ./build/ ./lambdas/...
       - name: archive built binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: binaries
           path: ${{ github.workspace }}
@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: download binaries
         id: download
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: binaries
           path: ${{ github.workspace }}
@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: download binaries
         id: download
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: binaries
           path: ${{ github.workspace }}
