@@ -51,7 +51,11 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) error {
 		if err != nil {
 			return fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
 		}
-		emoji, err := session.GuildEmojiCreate(guildId, player.EmojiName(), dataurl.New(face, "image/png").String(), nil)
+		emojiParams := &discordgo.EmojiParams{
+			Name:  player.EmojiName(),
+			Image: dataurl.New(face, "image/png").String(),
+		}
+		emoji, err := session.GuildEmojiCreate(guildId, emojiParams, nil)
 		if err != nil {
 			return fmt.Errorf("error uploading emoji '%s': %s", player.EmojiName(), err.Error())
 		}

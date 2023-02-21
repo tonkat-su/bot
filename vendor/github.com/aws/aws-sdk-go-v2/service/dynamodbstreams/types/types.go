@@ -14,16 +14,17 @@ import (
 // in the Amazon DynamoDB Developer Guide.
 //
 // The following types satisfy this interface:
-//  AttributeValueMemberB
-//  AttributeValueMemberBOOL
-//  AttributeValueMemberBS
-//  AttributeValueMemberL
-//  AttributeValueMemberM
-//  AttributeValueMemberN
-//  AttributeValueMemberNS
-//  AttributeValueMemberNULL
-//  AttributeValueMemberS
-//  AttributeValueMemberSS
+//
+//	AttributeValueMemberB
+//	AttributeValueMemberBOOL
+//	AttributeValueMemberBS
+//	AttributeValueMemberL
+//	AttributeValueMemberM
+//	AttributeValueMemberN
+//	AttributeValueMemberNS
+//	AttributeValueMemberNULL
+//	AttributeValueMemberS
+//	AttributeValueMemberSS
 type AttributeValue interface {
 	isAttributeValue()
 }
@@ -58,7 +59,7 @@ type AttributeValueMemberBS struct {
 func (*AttributeValueMemberBS) isAttributeValue() {}
 
 // An attribute of type List. For example: "L": [ {"S": "Cookies"} , {"S":
-// "Coffee"}, {"N", "3.14159"}]
+// "Coffee"}, {"N": "3.14159"}]
 type AttributeValueMemberL struct {
 	Value []AttributeValue
 

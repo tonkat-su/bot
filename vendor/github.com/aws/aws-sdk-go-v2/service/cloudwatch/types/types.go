@@ -101,6 +101,37 @@ type CompositeAlarm struct {
 	// state.
 	ActionsEnabled *bool
 
+	// When the value is ALARM, it means that the actions are suppressed because the
+	// suppressor alarm is in ALARM When the value is WaitPeriod, it means that the
+	// actions are suppressed because the composite alarm is waiting for the suppressor
+	// alarm to go into into the ALARM state. The maximum waiting time is as specified
+	// in ActionsSuppressorWaitPeriod. After this time, the composite alarm performs
+	// its actions. When the value is ExtensionPeriod, it means that the actions are
+	// suppressed because the composite alarm is waiting after the suppressor alarm
+	// went out of the ALARM state. The maximum waiting time is as specified in
+	// ActionsSuppressorExtensionPeriod. After this time, the composite alarm performs
+	// its actions.
+	ActionsSuppressedBy ActionsSuppressedBy
+
+	// Captures the reason for action suppression.
+	ActionsSuppressedReason *string
+
+	// Actions will be suppressed if the suppressor alarm is in the ALARM state.
+	// ActionsSuppressor can be an AlarmName or an Amazon Resource Name (ARN) from an
+	// existing alarm.
+	ActionsSuppressor *string
+
+	// The maximum time in seconds that the composite alarm waits after suppressor
+	// alarm goes out of the ALARM state. After this time, the composite alarm performs
+	// its actions. ExtensionPeriod is required only when ActionsSuppressor is
+	// specified.
+	ActionsSuppressorExtensionPeriod *int32
+
+	// The maximum time in seconds that the composite alarm waits for the suppressor
+	// alarm to go into the ALARM state. After this time, the composite alarm performs
+	// its actions. WaitPeriod is required only when ActionsSuppressor is specified.
+	ActionsSuppressorWaitPeriod *int32
+
 	// The actions to execute when this alarm transitions to the ALARM state from any
 	// other state. Each action is specified as an Amazon Resource Name (ARN).
 	AlarmActions []string
@@ -135,7 +166,10 @@ type CompositeAlarm struct {
 	// An explanation for the alarm state, in JSON format.
 	StateReasonData *string
 
-	// The time stamp of the last update to the alarm state.
+	// The timestamp of the last change to the alarm's StateValue.
+	StateTransitionedTimestamp *time.Time
+
+	// Tracks the timestamp of any state update, even if StateValue doesn't change.
 	StateUpdatedTimestamp *time.Time
 
 	// The state value for the alarm.
@@ -212,7 +246,7 @@ type Datapoint struct {
 // add a unique name/value pair to one of your metrics, you are creating a new
 // variation of that metric. For example, many Amazon EC2 metrics publish
 // InstanceId as a dimension name, and the actual instance ID as the value for that
-// dimension. You can assign up to 10 dimensions to a metric.
+// dimension. You can assign up to 30 dimensions to a metric.
 type Dimension struct {
 
 	// The name of the dimension. Dimension names must contain only ASCII characters,
@@ -277,6 +311,9 @@ type InsightRule struct {
 	//
 	// This member is required.
 	State *string
+
+	// An optional built-in rule that Amazon Web Services manages.
+	ManagedRule bool
 
 	noSmithyDocumentSerde
 }
@@ -396,6 +433,73 @@ type LabelOptions struct {
 	noSmithyDocumentSerde
 }
 
+// Contains the information that's required to enable a managed Contributor
+// Insights rule for an Amazon Web Services resource.
+type ManagedRule struct {
+
+	// The ARN of an Amazon Web Services resource that has managed Contributor Insights
+	// rules.
+	//
+	// This member is required.
+	ResourceARN *string
+
+	// The template name for the managed Contributor Insights rule, as returned by
+	// ListManagedInsightRules.
+	//
+	// This member is required.
+	TemplateName *string
+
+	// A list of key-value pairs that you can associate with a managed Contributor
+	// Insights rule. You can associate as many as 50 tags with a rule. Tags can help
+	// you organize and categorize your resources. You also can use them to scope user
+	// permissions by granting a user permission to access or change only the resources
+	// that have certain tag values. To associate tags with a rule, you must have the
+	// cloudwatch:TagResource permission in addition to the cloudwatch:PutInsightRule
+	// permission. If you are using this operation to update an existing Contributor
+	// Insights rule, any tags that you specify in this parameter are ignored. To
+	// change the tags of an existing rule, use TagResource.
+	Tags []Tag
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about managed Contributor Insights rules, as returned by
+// ListManagedInsightRules.
+type ManagedRuleDescription struct {
+
+	// If a managed rule is enabled, this is the ARN for the related Amazon Web
+	// Services resource.
+	ResourceARN *string
+
+	// Describes the state of a managed rule. If present, it contains information about
+	// the Contributor Insights rule that contains information about the related Amazon
+	// Web Services resource.
+	RuleState *ManagedRuleState
+
+	// The template name for the managed rule. Used to enable managed rules using
+	// PutManagedInsightRules.
+	TemplateName *string
+
+	noSmithyDocumentSerde
+}
+
+// The status of a managed Contributor Insights rule.
+type ManagedRuleState struct {
+
+	// The name of the Contributor Insights rule that contains data for the specified
+	// Amazon Web Services resource.
+	//
+	// This member is required.
+	RuleName *string
+
+	// Indicates whether the rule is enabled or disabled.
+	//
+	// This member is required.
+	State *string
+
+	noSmithyDocumentSerde
+}
+
 // A message returned by the GetMetricDataAPI, including a code and a description.
 // If a cross-Region GetMetricData operation fails with a code of Forbidden and a
 // value of Authentication too complex to retrieve cross region data, you can
@@ -469,6 +573,13 @@ type MetricAlarm struct {
 	// The number of periods over which data is compared to the specified threshold.
 	EvaluationPeriods *int32
 
+	// If the value of this field is PARTIAL_DATA, the alarm is being evaluated based
+	// on only partial data. This happens if the query used for the alarm returns more
+	// than 10,000 metrics. For more information, see Create alarms on Metrics Insights
+	// queries
+	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Metrics_Insights_Alarm.html).
+	EvaluationState EvaluationState
+
 	// The percentile statistic for the metric associated with the alarm. Specify a
 	// value between p0.0 and p100.
 	ExtendedStatistic *string
@@ -504,7 +615,11 @@ type MetricAlarm struct {
 	// An explanation for the alarm state, in JSON format.
 	StateReasonData *string
 
-	// The time stamp of the last update to the alarm state.
+	// The date and time that the alarm's StateValue most recently changed.
+	StateTransitionedTimestamp *time.Time
+
+	// The time stamp of the last update to the value of either the StateValue or
+	// EvaluationState parameters.
 	StateUpdatedTimestamp *time.Time
 
 	// The state value for the alarm.
@@ -546,7 +661,7 @@ type MetricAlarm struct {
 // 20 MetricDataQuery structures in the array. The 20 structures can include as
 // many as 10 structures that contain a MetricStat parameter to retrieve a metric,
 // and as many as 10 structures that contain the Expression parameter to perform a
-// math expression. Of those Expression structures, one must have True as the value
+// math expression. Of those Expression structures, one must have true as the value
 // for ReturnData. The result of this expression is the value the alarm watches.
 // Any expression used in a PutMetricAlarm operation must return a single time
 // series. For more information, see Metric Math Syntax and Functions
@@ -566,9 +681,11 @@ type MetricDataQuery struct {
 	// This member is required.
 	Id *string
 
-	// The ID of the account where the metrics are located, if this is a cross-account
-	// alarm. Use this field only for PutMetricAlarm operations. It is not used in
-	// GetMetricData operations.
+	// The ID of the account where the metrics are located. If you are performing a
+	// GetMetricData operation in a monitoring account, use this to specify which
+	// account to retrieve this metric from. If you are performing a PutMetricAlarm
+	// operation, use this to specify which account contains the metric that the alarm
+	// is watching.
 	AccountId *string
 
 	// This field can contain either a Metrics Insights query, or a metric math
@@ -610,8 +727,8 @@ type MetricDataQuery struct {
 	// When used in GetMetricData, this option indicates whether to return the
 	// timestamps and raw data values of this metric. If you are performing this call
 	// just to do math expressions and do not also need the raw data returned, you can
-	// specify False. If you omit this, the default of True is used. When used in
-	// PutMetricAlarm, specify True for the one expression result to use as the alarm.
+	// specify false. If you omit this, the default of true is used. When used in
+	// PutMetricAlarm, specify true for the one expression result to use as the alarm.
 	// For all other metrics and expressions in the same PutMetricAlarm operation,
 	// specify ReturnData as False.
 	ReturnData *bool
@@ -725,8 +842,8 @@ type MetricMathAnomalyDetector struct {
 	// MetricDataQueries gets a metric or performs a math expression. One item in
 	// MetricDataQueries is the expression that provides the time series that the
 	// anomaly detector uses as input. Designate the expression by setting ReturnData
-	// to True for this object in the array. For all other expressions and metrics, set
-	// ReturnData to False. The designated expression must return a single time series.
+	// to true for this object in the array. For all other expressions and metrics, set
+	// ReturnData to false. The designated expression must return a single time series.
 	MetricDataQueries []MetricDataQuery
 
 	noSmithyDocumentSerde

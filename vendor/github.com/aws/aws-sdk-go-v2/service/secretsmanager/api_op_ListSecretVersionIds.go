@@ -16,9 +16,13 @@ import (
 // the different versions of a secret. For more information, see  Secrets Manager
 // concepts: Versions
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/getting-started.html#term_version).
-// To list the secrets in the account, use ListSecrets. Required permissions:
-// secretsmanager:ListSecretVersionIds. For more information, see  IAM policy
-// actions for Secrets Manager
+// To list the secrets in the account, use ListSecrets. Secrets Manager generates a
+// CloudTrail log entry when you call this action. Do not include sensitive
+// information in request parameters because it might be logged. For more
+// information, see Logging Secrets Manager events with CloudTrail
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieve-ct-entries.html).
+// Required permissions: secretsmanager:ListSecretVersionIds. For more information,
+// see  IAM policy actions for Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
 // and Authentication and access control in Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
@@ -50,12 +54,12 @@ type ListSecretVersionIdsInput struct {
 	// Specifies whether to include versions of secrets that don't have any staging
 	// labels attached to them. Versions without staging labels are considered
 	// deprecated and are subject to deletion by Secrets Manager.
-	IncludeDeprecated bool
+	IncludeDeprecated *bool
 
 	// The number of results to include in the response. If there are more results
 	// available, in the response, Secrets Manager includes NextToken. To get the next
 	// results, call ListSecretVersionIds again with the value from NextToken.
-	MaxResults int32
+	MaxResults *int32
 
 	// A token that indicates where the output should continue from, if a previous call
 	// did not show all results. To get the next results, call ListSecretVersionIds
@@ -188,8 +192,8 @@ func NewListSecretVersionIdsPaginator(client ListSecretVersionIdsAPIClient, para
 	}
 
 	options := ListSecretVersionIdsPaginatorOptions{}
-	if params.MaxResults != 0 {
-		options.Limit = params.MaxResults
+	if params.MaxResults != nil {
+		options.Limit = *params.MaxResults
 	}
 
 	for _, fn := range optFns {
@@ -219,7 +223,11 @@ func (p *ListSecretVersionIdsPaginator) NextPage(ctx context.Context, optFns ...
 	params := *p.params
 	params.NextToken = p.nextToken
 
-	params.MaxResults = p.options.Limit
+	var limit *int32
+	if p.options.Limit > 0 {
+		limit = &p.options.Limit
+	}
+	params.MaxResults = limit
 
 	result, err := p.client.ListSecretVersionIds(ctx, &params, optFns...)
 	if err != nil {

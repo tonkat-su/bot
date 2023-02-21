@@ -18,6 +18,10 @@ import (
 // connection information to access a database or other service, which Secrets
 // Manager doesn't encrypt. A secret in Secrets Manager consists of both the
 // protected secret data and the important information needed to manage the secret.
+// For secrets that use managed rotation, you need to create the secret through the
+// managing service. For more information, see Secrets Manager secrets managed by
+// other Amazon Web Services services
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/service-linked-secrets.html).
 // For information about creating a secret in the console, see Create a secret
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/manage_create-basic-secret.html).
 // To create a secret, you can provide the secret value to be encrypted in either
@@ -36,9 +40,14 @@ import (
 // significant delay in returning the result. If the secret is in a different
 // Amazon Web Services account from the credentials calling the API, then you can't
 // use aws/secretsmanager to encrypt the secret, and you must create and use a
-// customer managed KMS key. Required permissions: secretsmanager:CreateSecret. If
-// you include tags in the secret, you also need secretsmanager:TagResource. For
-// more information, see  IAM policy actions for Secrets Manager
+// customer managed KMS key. Secrets Manager generates a CloudTrail log entry when
+// you call this action. Do not include sensitive information in request parameters
+// except SecretBinary or SecretString because it might be logged. For more
+// information, see Logging Secrets Manager events with CloudTrail
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieve-ct-entries.html).
+// Required permissions: secretsmanager:CreateSecret. If you include tags in the
+// secret, you also need secretsmanager:TagResource. For more information, see  IAM
+// policy actions for Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
 // and Authentication and access control in Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
@@ -113,13 +122,16 @@ type CreateSecretInput struct {
 	ForceOverwriteReplicaSecret bool
 
 	// The ARN, key ID, or alias of the KMS key that Secrets Manager uses to encrypt
-	// the secret value in the secret. To use a KMS key in a different account, use the
-	// key ARN or the alias ARN. If you don't specify this value, then Secrets Manager
-	// uses the key aws/secretsmanager. If that key doesn't yet exist, then Secrets
-	// Manager creates it for you automatically the first time it encrypts the secret
-	// value. If the secret is in a different Amazon Web Services account from the
-	// credentials calling the API, then you can't use aws/secretsmanager to encrypt
-	// the secret, and you must create and use a customer managed KMS key.
+	// the secret value in the secret. An alias is always prefixed by alias/, for
+	// example alias/aws/secretsmanager. For more information, see About aliases
+	// (https://docs.aws.amazon.com/kms/latest/developerguide/alias-about.html). To use
+	// a KMS key in a different account, use the key ARN or the alias ARN. If you don't
+	// specify this value, then Secrets Manager uses the key aws/secretsmanager. If
+	// that key doesn't yet exist, then Secrets Manager creates it for you
+	// automatically the first time it encrypts the secret value. If the secret is in a
+	// different Amazon Web Services account from the credentials calling the API, then
+	// you can't use aws/secretsmanager to encrypt the secret, and you must create and
+	// use a customer managed KMS key.
 	KmsKeyId *string
 
 	// The binary data to encrypt and store in the new version of the secret. We

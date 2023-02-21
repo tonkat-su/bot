@@ -33,9 +33,13 @@ import (
 // any time before recovery window ends, you can use RestoreSecret to remove the
 // DeletionDate and cancel the deletion of the secret. When a secret is scheduled
 // for deletion, you cannot retrieve the secret value. You must first cancel the
-// deletion with RestoreSecret and then you can retrieve the secret. Required
-// permissions: secretsmanager:DeleteSecret. For more information, see  IAM policy
-// actions for Secrets Manager
+// deletion with RestoreSecret and then you can retrieve the secret. Secrets
+// Manager generates a CloudTrail log entry when you call this action. Do not
+// include sensitive information in request parameters because it might be logged.
+// For more information, see Logging Secrets Manager events with CloudTrail
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieve-ct-entries.html).
+// Required permissions: secretsmanager:DeleteSecret. For more information, see
+// IAM policy actions for Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
 // and Authentication and access control in Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
@@ -74,15 +78,15 @@ type DeleteSecretInput struct {
 	// parameter causes the operation to skip the normal recovery window before the
 	// permanent deletion that Secrets Manager would normally impose with the
 	// RecoveryWindowInDays parameter. If you delete a secret with the
-	// ForceDeleteWithouRecovery parameter, then you have no opportunity to recover the
-	// secret. You lose the secret permanently.
-	ForceDeleteWithoutRecovery bool
+	// ForceDeleteWithoutRecovery parameter, then you have no opportunity to recover
+	// the secret. You lose the secret permanently.
+	ForceDeleteWithoutRecovery *bool
 
 	// The number of days from 7 to 30 that Secrets Manager waits before permanently
 	// deleting the secret. You can't use both this parameter and
 	// ForceDeleteWithoutRecovery in the same call. If you don't use either, then
 	// Secrets Manager defaults to a 30 day recovery window.
-	RecoveryWindowInDays int64
+	RecoveryWindowInDays *int64
 
 	noSmithyDocumentSerde
 }

@@ -1361,6 +1361,70 @@ func (m *awsAwsquery_serializeOpListDashboards) HandleSerialize(ctx context.Cont
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpListManagedInsightRules struct {
+}
+
+func (*awsAwsquery_serializeOpListManagedInsightRules) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpListManagedInsightRules) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*ListManagedInsightRulesInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("ListManagedInsightRules")
+	body.Key("Version").String("2010-08-01")
+
+	if err := awsAwsquery_serializeOpDocumentListManagedInsightRulesInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpListMetrics struct {
 }
 
@@ -1789,6 +1853,70 @@ func (m *awsAwsquery_serializeOpPutInsightRule) HandleSerialize(ctx context.Cont
 	body.Key("Version").String("2010-08-01")
 
 	if err := awsAwsquery_serializeOpDocumentPutInsightRuleInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpPutManagedInsightRules struct {
+}
+
+func (*awsAwsquery_serializeOpPutManagedInsightRules) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpPutManagedInsightRules) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*PutManagedInsightRulesInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("PutManagedInsightRules")
+	body.Key("Version").String("2010-08-01")
+
+	if err := awsAwsquery_serializeOpDocumentPutManagedInsightRulesInput(input, bodyEncoder.Value); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -2321,9 +2449,6 @@ func (m *awsAwsquery_serializeOpUntagResource) HandleSerialize(ctx context.Conte
 	return next.HandleSerialize(ctx, in)
 }
 func awsAwsquery_serializeDocumentAlarmNames(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2334,9 +2459,6 @@ func awsAwsquery_serializeDocumentAlarmNames(v []string, value query.Value) erro
 }
 
 func awsAwsquery_serializeDocumentAlarmTypes(v []types.AlarmType, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2366,9 +2488,6 @@ func awsAwsquery_serializeDocumentAnomalyDetectorConfiguration(v *types.AnomalyD
 }
 
 func awsAwsquery_serializeDocumentAnomalyDetectorExcludedTimeRanges(v []types.Range, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2381,9 +2500,6 @@ func awsAwsquery_serializeDocumentAnomalyDetectorExcludedTimeRanges(v []types.Ra
 }
 
 func awsAwsquery_serializeDocumentAnomalyDetectorTypes(v []types.AnomalyDetectorType, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2394,9 +2510,6 @@ func awsAwsquery_serializeDocumentAnomalyDetectorTypes(v []types.AnomalyDetector
 }
 
 func awsAwsquery_serializeDocumentCounts(v []float64, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2420,9 +2533,6 @@ func awsAwsquery_serializeDocumentCounts(v []float64, value query.Value) error {
 }
 
 func awsAwsquery_serializeDocumentDashboardNames(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2467,9 +2577,6 @@ func awsAwsquery_serializeDocumentDimensionFilter(v *types.DimensionFilter, valu
 }
 
 func awsAwsquery_serializeDocumentDimensionFilters(v []types.DimensionFilter, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2482,9 +2589,6 @@ func awsAwsquery_serializeDocumentDimensionFilters(v []types.DimensionFilter, va
 }
 
 func awsAwsquery_serializeDocumentDimensions(v []types.Dimension, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2497,9 +2601,6 @@ func awsAwsquery_serializeDocumentDimensions(v []types.Dimension, value query.Va
 }
 
 func awsAwsquery_serializeDocumentExtendedStatistics(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2510,9 +2611,6 @@ func awsAwsquery_serializeDocumentExtendedStatistics(v []string, value query.Val
 }
 
 func awsAwsquery_serializeDocumentInsightRuleMetricList(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2523,9 +2621,6 @@ func awsAwsquery_serializeDocumentInsightRuleMetricList(v []string, value query.
 }
 
 func awsAwsquery_serializeDocumentInsightRuleNames(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2544,6 +2639,42 @@ func awsAwsquery_serializeDocumentLabelOptions(v *types.LabelOptions, value quer
 		objectKey.String(*v.Timezone)
 	}
 
+	return nil
+}
+
+func awsAwsquery_serializeDocumentManagedRule(v *types.ManagedRule, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.ResourceARN != nil {
+		objectKey := object.Key("ResourceARN")
+		objectKey.String(*v.ResourceARN)
+	}
+
+	if v.Tags != nil {
+		objectKey := object.Key("Tags")
+		if err := awsAwsquery_serializeDocumentTagList(v.Tags, objectKey); err != nil {
+			return err
+		}
+	}
+
+	if v.TemplateName != nil {
+		objectKey := object.Key("TemplateName")
+		objectKey.String(*v.TemplateName)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeDocumentManagedRules(v []types.ManagedRule, value query.Value) error {
+	array := value.Array("member")
+
+	for i := range v {
+		av := array.Value()
+		if err := awsAwsquery_serializeDocumentManagedRule(&v[i], av); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -2572,9 +2703,6 @@ func awsAwsquery_serializeDocumentMetric(v *types.Metric, value query.Value) err
 }
 
 func awsAwsquery_serializeDocumentMetricData(v []types.MetricDatum, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2587,9 +2715,6 @@ func awsAwsquery_serializeDocumentMetricData(v []types.MetricDatum, value query.
 }
 
 func awsAwsquery_serializeDocumentMetricDataQueries(v []types.MetricDataQuery, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2774,9 +2899,6 @@ func awsAwsquery_serializeDocumentMetricStreamFilter(v *types.MetricStreamFilter
 }
 
 func awsAwsquery_serializeDocumentMetricStreamFilters(v []types.MetricStreamFilter, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2789,9 +2911,6 @@ func awsAwsquery_serializeDocumentMetricStreamFilters(v []types.MetricStreamFilt
 }
 
 func awsAwsquery_serializeDocumentMetricStreamNames(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2802,9 +2921,6 @@ func awsAwsquery_serializeDocumentMetricStreamNames(v []string, value query.Valu
 }
 
 func awsAwsquery_serializeDocumentMetricStreamStatisticsAdditionalStatistics(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2836,9 +2952,6 @@ func awsAwsquery_serializeDocumentMetricStreamStatisticsConfiguration(v *types.M
 }
 
 func awsAwsquery_serializeDocumentMetricStreamStatisticsConfigurations(v []types.MetricStreamStatisticsConfiguration, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2851,9 +2964,6 @@ func awsAwsquery_serializeDocumentMetricStreamStatisticsConfigurations(v []types
 }
 
 func awsAwsquery_serializeDocumentMetricStreamStatisticsIncludeMetrics(v []types.MetricStreamStatisticsMetric, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2900,9 +3010,6 @@ func awsAwsquery_serializeDocumentRange(v *types.Range, value query.Value) error
 }
 
 func awsAwsquery_serializeDocumentResourceList(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -2942,9 +3049,6 @@ func awsAwsquery_serializeDocumentSingleMetricAnomalyDetector(v *types.SingleMet
 }
 
 func awsAwsquery_serializeDocumentStatistics(v []types.Statistic, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -3051,9 +3155,6 @@ func awsAwsquery_serializeDocumentTag(v *types.Tag, value query.Value) error {
 }
 
 func awsAwsquery_serializeDocumentTagKeyList(v []string, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -3064,9 +3165,6 @@ func awsAwsquery_serializeDocumentTagKeyList(v []string, value query.Value) erro
 }
 
 func awsAwsquery_serializeDocumentTagList(v []types.Tag, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -3079,9 +3177,6 @@ func awsAwsquery_serializeDocumentTagList(v []types.Tag, value query.Value) erro
 }
 
 func awsAwsquery_serializeDocumentValues(v []float64, value query.Value) error {
-	if len(v) == 0 {
-		return nil
-	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -3670,6 +3765,28 @@ func awsAwsquery_serializeOpDocumentListDashboardsInput(v *ListDashboardsInput, 
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentListManagedInsightRulesInput(v *ListManagedInsightRulesInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.MaxResults != nil {
+		objectKey := object.Key("MaxResults")
+		objectKey.Integer(*v.MaxResults)
+	}
+
+	if v.NextToken != nil {
+		objectKey := object.Key("NextToken")
+		objectKey.String(*v.NextToken)
+	}
+
+	if v.ResourceARN != nil {
+		objectKey := object.Key("ResourceARN")
+		objectKey.String(*v.ResourceARN)
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentListMetricsInput(v *ListMetricsInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -3679,6 +3796,11 @@ func awsAwsquery_serializeOpDocumentListMetricsInput(v *ListMetricsInput, value 
 		if err := awsAwsquery_serializeDocumentDimensionFilters(v.Dimensions, objectKey); err != nil {
 			return err
 		}
+	}
+
+	if v.IncludeLinkedAccounts {
+		objectKey := object.Key("IncludeLinkedAccounts")
+		objectKey.Boolean(v.IncludeLinkedAccounts)
 	}
 
 	if v.MetricName != nil {
@@ -3694,6 +3816,11 @@ func awsAwsquery_serializeOpDocumentListMetricsInput(v *ListMetricsInput, value 
 	if v.NextToken != nil {
 		objectKey := object.Key("NextToken")
 		objectKey.String(*v.NextToken)
+	}
+
+	if v.OwningAccount != nil {
+		objectKey := object.Key("OwningAccount")
+		objectKey.String(*v.OwningAccount)
 	}
 
 	if len(v.RecentlyActive) > 0 {
@@ -3792,6 +3919,21 @@ func awsAwsquery_serializeOpDocumentPutCompositeAlarmInput(v *PutCompositeAlarmI
 		objectKey.Boolean(*v.ActionsEnabled)
 	}
 
+	if v.ActionsSuppressor != nil {
+		objectKey := object.Key("ActionsSuppressor")
+		objectKey.String(*v.ActionsSuppressor)
+	}
+
+	if v.ActionsSuppressorExtensionPeriod != nil {
+		objectKey := object.Key("ActionsSuppressorExtensionPeriod")
+		objectKey.Integer(*v.ActionsSuppressorExtensionPeriod)
+	}
+
+	if v.ActionsSuppressorWaitPeriod != nil {
+		objectKey := object.Key("ActionsSuppressorWaitPeriod")
+		objectKey.Integer(*v.ActionsSuppressorWaitPeriod)
+	}
+
 	if v.AlarmActions != nil {
 		objectKey := object.Key("AlarmActions")
 		if err := awsAwsquery_serializeDocumentResourceList(v.AlarmActions, objectKey); err != nil {
@@ -3877,6 +4019,20 @@ func awsAwsquery_serializeOpDocumentPutInsightRuleInput(v *PutInsightRuleInput, 
 	if v.Tags != nil {
 		objectKey := object.Key("Tags")
 		if err := awsAwsquery_serializeDocumentTagList(v.Tags, objectKey); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentPutManagedInsightRulesInput(v *PutManagedInsightRulesInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.ManagedRules != nil {
+		objectKey := object.Key("ManagedRules")
+		if err := awsAwsquery_serializeDocumentManagedRules(v.ManagedRules, objectKey); err != nil {
 			return err
 		}
 	}
@@ -4066,6 +4222,11 @@ func awsAwsquery_serializeOpDocumentPutMetricStreamInput(v *PutMetricStreamInput
 		if err := awsAwsquery_serializeDocumentMetricStreamFilters(v.IncludeFilters, objectKey); err != nil {
 			return err
 		}
+	}
+
+	if v.IncludeLinkedAccountsMetrics != nil {
+		objectKey := object.Key("IncludeLinkedAccountsMetrics")
+		objectKey.Boolean(*v.IncludeLinkedAccountsMetrics)
 	}
 
 	if v.Name != nil {

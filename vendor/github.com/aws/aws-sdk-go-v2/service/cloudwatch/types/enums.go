@@ -2,6 +2,26 @@
 
 package types
 
+type ActionsSuppressedBy string
+
+// Enum values for ActionsSuppressedBy
+const (
+	ActionsSuppressedByWaitPeriod      ActionsSuppressedBy = "WaitPeriod"
+	ActionsSuppressedByExtensionPeriod ActionsSuppressedBy = "ExtensionPeriod"
+	ActionsSuppressedByAlarm           ActionsSuppressedBy = "Alarm"
+)
+
+// Values returns all known values for ActionsSuppressedBy. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (ActionsSuppressedBy) Values() []ActionsSuppressedBy {
+	return []ActionsSuppressedBy{
+		"WaitPeriod",
+		"ExtensionPeriod",
+		"Alarm",
+	}
+}
+
 type AlarmType string
 
 // Enum values for AlarmType
@@ -83,6 +103,22 @@ func (ComparisonOperator) Values() []ComparisonOperator {
 		"LessThanLowerOrGreaterThanUpperThreshold",
 		"LessThanLowerThreshold",
 		"GreaterThanUpperThreshold",
+	}
+}
+
+type EvaluationState string
+
+// Enum values for EvaluationState
+const (
+	EvaluationStatePartialData EvaluationState = "PARTIAL_DATA"
+)
+
+// Values returns all known values for EvaluationState. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (EvaluationState) Values() []EvaluationState {
+	return []EvaluationState{
+		"PARTIAL_DATA",
 	}
 }
 
@@ -277,6 +313,7 @@ const (
 	StatusCodeComplete      StatusCode = "Complete"
 	StatusCodeInternalError StatusCode = "InternalError"
 	StatusCodePartialData   StatusCode = "PartialData"
+	StatusCodeForbidden     StatusCode = "Forbidden"
 )
 
 // Values returns all known values for StatusCode. Note that this can be expanded
@@ -287,5 +324,6 @@ func (StatusCode) Values() []StatusCode {
 		"Complete",
 		"InternalError",
 		"PartialData",
+		"Forbidden",
 	}
 }

@@ -12,8 +12,13 @@ import (
 
 // Generates a random password. We recommend that you specify the maximum length
 // and include every character type that the system you are generating a password
-// for can support. Required permissions: secretsmanager:GetRandomPassword. For
-// more information, see  IAM policy actions for Secrets Manager
+// for can support. Secrets Manager generates a CloudTrail log entry when you call
+// this action. Do not include sensitive information in request parameters because
+// it might be logged. For more information, see Logging Secrets Manager events
+// with CloudTrail
+// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieve-ct-entries.html).
+// Required permissions: secretsmanager:GetRandomPassword. For more information,
+// see  IAM policy actions for Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_iam-permissions.html#reference_iam-permissions_actions)
 // and Authentication and access control in Secrets Manager
 // (https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access.html).
@@ -39,33 +44,33 @@ type GetRandomPasswordInput struct {
 
 	// Specifies whether to exclude lowercase letters from the password. If you don't
 	// include this switch, the password can contain lowercase letters.
-	ExcludeLowercase bool
+	ExcludeLowercase *bool
 
 	// Specifies whether to exclude numbers from the password. If you don't include
 	// this switch, the password can contain numbers.
-	ExcludeNumbers bool
+	ExcludeNumbers *bool
 
 	// Specifies whether to exclude the following punctuation characters from the
 	// password: ! " # $ % & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~. If
 	// you don't include this switch, the password can contain punctuation.
-	ExcludePunctuation bool
+	ExcludePunctuation *bool
 
 	// Specifies whether to exclude uppercase letters from the password. If you don't
 	// include this switch, the password can contain uppercase letters.
-	ExcludeUppercase bool
+	ExcludeUppercase *bool
 
 	// Specifies whether to include the space character. If you include this switch,
 	// the password can contain space characters.
-	IncludeSpace bool
+	IncludeSpace *bool
 
 	// The length of the password. If you don't include this parameter, the default
 	// length is 32 characters.
-	PasswordLength int64
+	PasswordLength *int64
 
 	// Specifies whether to include at least one upper and lowercase letter, one
 	// number, and one punctuation. If you don't include this switch, the password
 	// contains at least one of every character type.
-	RequireEachIncludedType bool
+	RequireEachIncludedType *bool
 
 	noSmithyDocumentSerde
 }

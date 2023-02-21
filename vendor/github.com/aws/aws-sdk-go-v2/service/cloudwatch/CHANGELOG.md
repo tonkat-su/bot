@@ -1,3 +1,117 @@
+# v1.25.3 (2023-02-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.25.2 (2023-02-03)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade smithy to 1.27.2 and correct empty query list serialization.
+
+# v1.25.1 (2023-01-23)
+
+* No change notes available for this release.
+
+# v1.25.0 (2023-01-18)
+
+* **Feature**: Enable cross-account streams in CloudWatch Metric Streams via Observability Access Manager.
+
+# v1.24.0 (2023-01-05)
+
+* **Feature**: Add `ErrorCodeOverride` field to all error structs (aws/smithy-go#401).
+
+# v1.23.1 (2022-12-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.23.0 (2022-12-14)
+
+* **Feature**: Adding support for Metrics Insights Alarms
+
+# v1.22.1 (2022-12-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.0 (2022-11-28)
+
+* **Feature**: Adds cross-account support to the GetMetricData API. Adds cross-account support to the ListMetrics API through the usage of the IncludeLinkedAccounts flag and the new OwningAccounts field.
+
+# v1.21.11 (2022-11-22)
+
+* No change notes available for this release.
+
+# v1.21.10 (2022-11-16)
+
+* No change notes available for this release.
+
+# v1.21.9 (2022-11-10)
+
+* No change notes available for this release.
+
+# v1.21.8 (2022-10-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.7 (2022-10-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.6 (2022-09-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.5 (2022-09-14)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.4 (2022-09-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.3 (2022-08-31)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.2 (2022-08-30)
+
+* No change notes available for this release.
+
+# v1.21.1 (2022-08-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.0 (2022-08-18)
+
+* **Feature**: Add support for managed Contributor Insights Rules
+
+# v1.20.1 (2022-08-11)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.0 (2022-08-09)
+
+* **Feature**: Various quota increases related to dimensions and custom metrics
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.19.2 (2022-08-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.19.1 (2022-08-01)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.19.0 (2022-07-21)
+
+* **Feature**: Adding support for the suppression of Composite Alarm actions
+
+# v1.18.6 (2022-07-05)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.18.5 (2022-06-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.18.4 (2022-06-07)
 
 * **Dependency Update**: Updated to the latest SDK module versions

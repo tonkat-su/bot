@@ -13,6 +13,8 @@ import (
 type ExpiredIteratorException struct {
 	Message *string
 
+	ErrorCodeOverride *string
+
 	noSmithyDocumentSerde
 }
 
@@ -25,12 +27,19 @@ func (e *ExpiredIteratorException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *ExpiredIteratorException) ErrorCode() string             { return "ExpiredIteratorException" }
+func (e *ExpiredIteratorException) ErrorCode() string {
+	if e.ErrorCodeOverride == nil {
+		return "ExpiredIteratorException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *ExpiredIteratorException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // An error occurred on the server side.
 type InternalServerError struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -44,19 +53,28 @@ func (e *InternalServerError) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *InternalServerError) ErrorCode() string             { return "InternalServerError" }
+func (e *InternalServerError) ErrorCode() string {
+	if e.ErrorCodeOverride == nil {
+		return "InternalServerError"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *InternalServerError) ErrorFault() smithy.ErrorFault { return smithy.FaultServer }
 
-// There is no limit to the number of daily on-demand backups that can be taken. Up
-// to 50 simultaneous table operations are allowed per account. These operations
-// include CreateTable, UpdateTable, DeleteTable,UpdateTimeToLive,
-// RestoreTableFromBackup, and RestoreTableToPointInTime. The only exception is
-// when you are creating a table with one or more secondary indexes. You can have
-// up to 25 such requests running at a time; however, if the table or index
-// specifications are complex, DynamoDB might temporarily reduce the number of
-// concurrent operations. There is a soft account quota of 256 tables.
+// There is no limit to the number of daily on-demand backups that can be taken.
+// For most purposes, up to 500 simultaneous table operations are allowed per
+// account. These operations include CreateTable, UpdateTable,
+// DeleteTable,UpdateTimeToLive, RestoreTableFromBackup, and
+// RestoreTableToPointInTime. When you are creating a table with one or more
+// secondary indexes, you can have up to 250 such requests running at a time.
+// However, if the table or index specifications are complex, then DynamoDB might
+// temporarily reduce the number of concurrent operations. When importing into
+// DynamoDB, up to 50 simultaneous import table operations are allowed per account.
+// There is a soft account quota of 2,500 tables.
 type LimitExceededException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -70,13 +88,20 @@ func (e *LimitExceededException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *LimitExceededException) ErrorCode() string             { return "LimitExceededException" }
+func (e *LimitExceededException) ErrorCode() string {
+	if e.ErrorCodeOverride == nil {
+		return "LimitExceededException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *LimitExceededException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The operation tried to access a nonexistent table or index. The resource might
 // not be specified correctly, or its status might not be ACTIVE.
 type ResourceNotFoundException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -90,7 +115,12 @@ func (e *ResourceNotFoundException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *ResourceNotFoundException) ErrorCode() string             { return "ResourceNotFoundException" }
+func (e *ResourceNotFoundException) ErrorCode() string {
+	if e.ErrorCodeOverride == nil {
+		return "ResourceNotFoundException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *ResourceNotFoundException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The operation attempted to read past the oldest stream record in a shard. In
@@ -108,6 +138,8 @@ func (e *ResourceNotFoundException) ErrorFault() smithy.ErrorFault { return smit
 type TrimmedDataAccessException struct {
 	Message *string
 
+	ErrorCodeOverride *string
+
 	noSmithyDocumentSerde
 }
 
@@ -120,5 +152,10 @@ func (e *TrimmedDataAccessException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *TrimmedDataAccessException) ErrorCode() string             { return "TrimmedDataAccessException" }
+func (e *TrimmedDataAccessException) ErrorCode() string {
+	if e.ErrorCodeOverride == nil {
+		return "TrimmedDataAccessException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *TrimmedDataAccessException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }

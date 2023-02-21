@@ -27,8 +27,11 @@ type Filter struct {
 	// * primary-region:
 	// Prefix match, case-sensitive.
 	//
-	// * all: Breaks the filter value string into words
-	// and then searches all attributes for matches. Not case-sensitive.
+	// * owning-service: Prefix match,
+	// case-sensitive.
+	//
+	// * all: Breaks the filter value string into words and then
+	// searches all attributes for matches. Not case-sensitive.
 	Key FilterNameStringType
 
 	// The keyword to filter for. You can prefix your search value with an exclamation
@@ -59,7 +62,8 @@ type ReplicationStatusType struct {
 	// Can be an ARN, Key ID, or Alias.
 	KmsKeyId *string
 
-	// The date that you last accessed the secret in the Region.
+	// The date that the secret was last accessed in the Region. This field is omitted
+	// if the secret has never been retrieved in the Region.
 	LastAccessedDate *time.Time
 
 	// The Region where replication occurs.
@@ -77,38 +81,50 @@ type ReplicationStatusType struct {
 // A structure that defines the rotation configuration for the secret.
 type RotationRulesType struct {
 
-	// The number of days between automatic scheduled rotations of the secret. You can
-	// use this value to check that your secret meets your compliance guidelines for
-	// how often secrets must be rotated. In DescribeSecret and ListSecrets, this value
-	// is calculated from the rotation schedule after every successful rotation. In
+	// The number of days between rotations of the secret. You can use this value to
+	// check that your secret meets your compliance guidelines for how often secrets
+	// must be rotated. If you use this field to set the rotation schedule, Secrets
+	// Manager calculates the next rotation date based on the previous rotation.
+	// Manually updating the secret value by calling PutSecretValue or UpdateSecret is
+	// considered a valid rotation. In DescribeSecret and ListSecrets, this value is
+	// calculated from the rotation schedule after every successful rotation. In
 	// RotateSecret, you can set the rotation schedule in RotationRules with
-	// AutomaticallyAfterDays or ScheduleExpression, but not both.
-	AutomaticallyAfterDays int64
+	// AutomaticallyAfterDays or ScheduleExpression, but not both. To set a rotation
+	// schedule in hours, use ScheduleExpression.
+	AutomaticallyAfterDays *int64
 
 	// The length of the rotation window in hours, for example 3h for a three hour
 	// window. Secrets Manager rotates your secret at any time during this window. The
-	// window must not go into the next UTC day. If you don't specify this value, the
-	// window automatically ends at the end of the UTC day. The window begins according
-	// to the ScheduleExpression. For more information, including examples, see
+	// window must not extend into the next rotation window or the next UTC day. The
+	// window starts according to the ScheduleExpression. If you don't specify a
+	// Duration, for a ScheduleExpression in hours, the window automatically closes
+	// after one hour. For a ScheduleExpression in days, the window automatically
+	// closes at the end of the UTC day. For more information, including examples, see
 	// Schedule expressions in Secrets Manager rotation
-	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_schedule.html).
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_schedule.html)
+	// in the Secrets Manager Users Guide.
 	Duration *string
 
 	// A cron() or rate() expression that defines the schedule for rotating your
 	// secret. Secrets Manager rotation schedules use UTC time zone. Secrets Manager
-	// rate() expressions represent the interval in days that you want to rotate your
-	// secret, for example rate(10 days). If you use a rate() expression, the rotation
-	// window opens at midnight, and Secrets Manager rotates your secret any time that
-	// day after midnight. You can set a Duration to shorten the rotation window. You
-	// can use a cron() expression to create rotation schedules that are more detailed
-	// than a rotation interval. For more information, including examples, see Schedule
-	// expressions in Secrets Manager rotation
-	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_schedule.html).
-	// If you use a cron() expression, Secrets Manager rotates your secret any time
-	// during that day after the window opens. For example, cron(0 8 1 * ? *)
-	// represents a rotation window that occurs on the first day of every month
-	// beginning at 8:00 AM UTC. Secrets Manager rotates the secret any time that day
-	// after 8:00 AM. You can set a Duration to shorten the rotation window.
+	// rotates your secret any time during a rotation window. Secrets Manager rate()
+	// expressions represent the interval in hours or days that you want to rotate your
+	// secret, for example rate(12 hours) or rate(10 days). You can rotate a secret as
+	// often as every four hours. If you use a rate() expression, the rotation window
+	// starts at midnight. For a rate in hours, the default rotation window closes
+	// after one hour. For a rate in days, the default rotation window closes at the
+	// end of the day. You can set the Duration to change the rotation window. The
+	// rotation window must not extend into the next UTC day or into the next rotation
+	// window. You can use a cron() expression to create a rotation schedule that is
+	// more detailed than a rotation interval. For more information, including
+	// examples, see Schedule expressions in Secrets Manager rotation
+	// (https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_schedule.html)
+	// in the Secrets Manager Users Guide. For a cron expression that represents a
+	// schedule in hours, the default rotation window closes after one hour. For a cron
+	// expression that represents a schedule in days, the default rotation window
+	// closes at the end of the day. You can set the Duration to change the rotation
+	// window. The rotation window must not extend into the next UTC day or into the
+	// next rotation window.
 	ScheduleExpression *string
 
 	noSmithyDocumentSerde
@@ -143,8 +159,8 @@ type SecretListEntry struct {
 	// aws/secretsmanager, this field is omitted.
 	KmsKeyId *string
 
-	// The last date that this secret was accessed. This value is truncated to midnight
-	// of the date and therefore shows only the date, not the time.
+	// The date that the secret was last accessed in the Region. This field is omitted
+	// if the secret has never been retrieved in the Region.
 	LastAccessedDate *time.Time
 
 	// The last date and time that this secret was modified in any way.
@@ -160,6 +176,11 @@ type SecretListEntry struct {
 	// folder prod.
 	Name *string
 
+	// The next date and time that Secrets Manager will attempt to rotate the secret,
+	// rounded to the nearest hour. This value is null if the secret is not set up for
+	// rotation.
+	NextRotationDate *time.Time
+
 	// Returns the name of the service that created the secret.
 	OwningService *string
 
@@ -167,7 +188,7 @@ type SecretListEntry struct {
 	PrimaryRegion *string
 
 	// Indicates whether automatic, scheduled rotation is enabled for this secret.
-	RotationEnabled bool
+	RotationEnabled *bool
 
 	// The ARN of an Amazon Web Services Lambda function invoked by Secrets Manager to
 	// rotate and expire the secret either automatically per the schedule or manually
