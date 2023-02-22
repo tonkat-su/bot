@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
@@ -12,6 +15,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/api/cmdroute"
 	"github.com/diamondburned/arikawa/v3/api/webhook"
 	"github.com/diamondburned/arikawa/v3/state"
+	"github.com/diamondburned/arikawa/v3/utils/json/option"
 )
 
 type Config struct {
@@ -34,8 +38,23 @@ type interactionHandler struct {
 	s *state.State
 }
 
+type msgMeta struct {
+	ServerName string
+	HostPort   string
+}
+
 func (h *interactionHandler) initializeMessage(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
-	return nil
+	var meta msgMeta
+	err := json.NewDecoder(strings.NewReader(cmd.Event.Message.Content)).Decode(&meta)
+	if err != nil {
+		return &api.InteractionResponseData{
+			Content: option.NewNullableString("error decoding meta: " + err.Error()),
+		}
+	}
+
+	return &api.InteractionResponseData{
+		Content: option.NewNullableString(fmt.Sprintf("servername: %s, hostport: %s", meta.ServerName, meta.HostPort)),
+	}
 }
 
 func (h *interactionHandler) refreshMessage(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
