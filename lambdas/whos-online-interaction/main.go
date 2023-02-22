@@ -12,7 +12,6 @@ import (
 	"github.com/diamondburned/arikawa/v3/api/cmdroute"
 	"github.com/diamondburned/arikawa/v3/api/webhook"
 	"github.com/diamondburned/arikawa/v3/state"
-	"github.com/tonkat-su/bot/imgur"
 )
 
 type Config struct {
@@ -25,7 +24,7 @@ type Config struct {
 }
 
 var (
-	imgurClient       *imgur.Client
+	//imgurClient       *imgur.Client
 	config            Config
 	interactionServer *webhook.InteractionServer
 )
@@ -49,10 +48,10 @@ func main() {
 		log.Fatalf("error reading envconfig: %s", err.Error())
 	}
 
-	imgurClient = &imgur.Client{
+	/*imgurClient = &imgur.Client{
 		ClientId: config.ImgurClientId,
 	}
-
+	*/
 	state := state.NewAPIOnlyState(config.DiscordToken, nil)
 
 	h := &interactionHandler{
