@@ -11,7 +11,6 @@ import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-al
 import  * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 import { aws_logs as logs } from "aws-cdk-lib";
 import { aws_s3_assets as assets } from "aws-cdk-lib";
-import { aws_certificatemanager as certificatemanager } from "aws-cdk-lib";
 import { aws_route53_targets as targets } from "aws-cdk-lib";
 import * as path from "path";
 
@@ -19,7 +18,7 @@ export class InfraStack extends Stack {
   constructor(scope: App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const botGroup = new iam.Group(this, "tonkatsuBotGroup", {});
+    const botGroup = new iam.Group(this, "infraBotGroup", {});
 
     botGroup.addToPolicy(
       new iam.PolicyStatement({
@@ -35,32 +34,18 @@ export class InfraStack extends Stack {
       })
     );
 
-    const botUser = new iam.User(this, "tonkatsuBotUser", {
+    const botUser = new iam.User(this, "infraBotUser", {
       groups: [botGroup],
     });
 
-    const tonkatsuZone = route53.HostedZone.fromHostedZoneAttributes(
+    const infraZone = route53.HostedZone.fromHostedZoneAttributes(
       this,
-      "tonkatsuZone",
+      "infraZone",
       {
-        hostedZoneId: "ZVAMW53PNR70P",
-        zoneName: "tonkat.su",
+        hostedZoneId: "Z3CDOBSYLTO062",
+        zoneName: "sjchen.com",
       }
     );
-
-    new route53.ARecord(this, "botRecord", {
-      zone: tonkatsuZone,
-      recordName: "bot",
-      target: route53.RecordTarget.fromIpAddresses("45.79.73.44"),
-    });
-
-    new route53.AaaaRecord(this, "botAAAARecord", {
-      zone: tonkatsuZone,
-      recordName: "bot",
-      target: route53.RecordTarget.fromIpAddresses(
-        "2600:3c01::f03c:93ff:fe7a:5fd8"
-      ),
-    });
 
     const lambdasAsset = new assets.Asset(this, "lambdasZip", {
       path: path.join(__dirname, "../../build/"),
@@ -174,13 +159,12 @@ export class InfraStack extends Stack {
       })
     );
 
-    const interactionsCert = new certificatemanager.DnsValidatedCertificate(
+    const interactionsCert = new acm.Certificate(
       this,
       "interactionsCert",
       {
-        domainName: "interactions.tonkat.su",
-        hostedZone: tonkatsuZone,
-        region: "us-west-2",
+        domainName: "interactions.sjchen.com",
+        validation: acm.CertificateValidation.fromDns(infraZone),
       }
     );
 
@@ -209,7 +193,7 @@ export class InfraStack extends Stack {
     );
 
     const dn = new apigwv2.DomainName(this, 'DN', {
-      domainName: 'interactions.tonkat.su',
+      domainName: 'interactions.sjchen.com',
       certificate: acm.Certificate.fromCertificateArn(this, 'cert', interactionsCert.certificateArn),
     });
 
@@ -225,7 +209,7 @@ export class InfraStack extends Stack {
     });
 
     new route53.ARecord(this, "interactionsWhitelistAliasRecord", {
-      zone: tonkatsuZone,
+      zone: infraZone,
       recordName: "interactions",
       target: route53.RecordTarget.fromAlias(
         new targets.ApiGatewayv2DomainProperties(dn.regionalDomainName, dn.regionalHostedZoneId)
