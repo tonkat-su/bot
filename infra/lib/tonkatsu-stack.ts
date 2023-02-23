@@ -1,12 +1,14 @@
 import * as cdk from "aws-cdk-lib";
 import { App, Stack } from "aws-cdk-lib";
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { aws_route53 as route53 } from "aws-cdk-lib";
 import { aws_secretsmanager as secretsManager } from "aws-cdk-lib";
 import { aws_lambda as lambda } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
 import { aws_events as events } from "aws-cdk-lib";
 import { aws_events_targets as events_targets } from "aws-cdk-lib";
-import { HttpApi } from "@aws-cdk/aws-apigatewayv2-alpha";
+import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
+import  * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 import { aws_logs as logs } from "aws-cdk-lib";
 import { aws_s3_assets as assets } from "aws-cdk-lib";
 import { aws_certificatemanager as certificatemanager } from "aws-cdk-lib";
@@ -201,20 +203,32 @@ export class TonkatsuStack extends Stack {
       }
     );
 
-    const interactionsApi = new HttpLambdaIntegration(
+    const interactionsLambdaApi = new HttpLambdaIntegration(
       "Interactions",
       interactionsApiLambda
     );
-    const httpApi = new apigwv2.HttpApi(this, "HttpApi");
 
-    const whitelistApiResource = interactionsApi.root.addResource("whitelist");
-    whitelistApiResource.addMethod("POST");
+    const dn = new apigwv2.DomainName(this, 'DN', {
+      domainName: 'interactions.tonkat.su',
+      certificate: acm.Certificate.fromCertificateArn(this, 'cert', interactionsCert.certificateArn),
+    });
+
+    const httpApi = new apigwv2.HttpApi(this, 'DiscordInteractionsApiGateway', {
+      defaultDomainMapping: {
+        domainName: dn,
+      },
+    });
+    httpApi.addRoutes({
+      path: '/discord/interactions',
+      methods: [ apigwv2.HttpMethod.POST ],
+      integration: interactionsLambdaApi,
+    });
 
     new route53.ARecord(this, "interactionsWhitelistAliasRecord", {
       zone: tonkatsuZone,
       recordName: "interactions",
       target: route53.RecordTarget.fromAlias(
-        new targets.ApiGateway(interactionsApi)
+        new targets.ApiGatewayv2DomainProperties(dn.regionalDomainName, dn.regionalHostedZoneId)
       ),
     });
   }
