@@ -219,7 +219,7 @@ export class TonkatsuStack extends Stack {
       },
     });
     httpApi.addRoutes({
-      path: '/discord/interactions',
+      path: '/',
       methods: [ apigwv2.HttpMethod.POST ],
       integration: interactionsLambdaApi,
     });
