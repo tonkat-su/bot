@@ -15,7 +15,7 @@ import { aws_certificatemanager as certificatemanager } from "aws-cdk-lib";
 import { aws_route53_targets as targets } from "aws-cdk-lib";
 import * as path from "path";
 
-export class TonkatsuStack extends Stack {
+export class InfraStack extends Stack {
   constructor(scope: App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
