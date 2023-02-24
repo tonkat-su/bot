@@ -1,14 +1,14 @@
 import * as cdk from "aws-cdk-lib";
 import { App, Stack } from "aws-cdk-lib";
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { aws_route53 as route53 } from "aws-cdk-lib";
 import { aws_secretsmanager as secretsManager } from "aws-cdk-lib";
 import { aws_lambda as lambda } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
 import { aws_events as events } from "aws-cdk-lib";
 import { aws_events_targets as events_targets } from "aws-cdk-lib";
-import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
-import  * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
+import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
+import * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 import { aws_logs as logs } from "aws-cdk-lib";
 import { aws_s3_assets as assets } from "aws-cdk-lib";
 import { aws_route53_targets as targets } from "aws-cdk-lib";
@@ -159,14 +159,10 @@ export class InfraStack extends Stack {
       })
     );
 
-    const interactionsCert = new acm.Certificate(
-      this,
-      "interactionsCert",
-      {
-        domainName: "interactions.sjchen.com",
-        validation: acm.CertificateValidation.fromDns(infraZone),
-      }
-    );
+    const interactionsCert = new acm.Certificate(this, "interactionsCert", {
+      domainName: "interactions.sjchen.com",
+      validation: acm.CertificateValidation.fromDns(infraZone),
+    });
 
     const interactionsApiLambda = new lambda.Function(
       this,
@@ -192,19 +188,28 @@ export class InfraStack extends Stack {
       interactionsApiLambda
     );
 
-    const dn = new apigwv2.DomainName(this, 'DN', {
-      domainName: 'interactions.sjchen.com',
-      certificate: acm.Certificate.fromCertificateArn(this, 'cert', interactionsCert.certificateArn),
+    const dn = new apigwv2.DomainName(this, "DN", {
+      domainName: "interactions.sjchen.com",
+      certificate: acm.Certificate.fromCertificateArn(
+        this,
+        "cert",
+        interactionsCert.certificateArn
+      ),
     });
 
-    const httpApi = new apigwv2.HttpApi(this, 'DiscordInteractionsApiGateway', {
+    const httpApi = new apigwv2.HttpApi(this, "DiscordInteractionsApiGateway", {
       defaultDomainMapping: {
         domainName: dn,
       },
     });
     httpApi.addRoutes({
-      path: '/',
-      methods: [ apigwv2.HttpMethod.POST ],
+      path: "/",
+      methods: [apigwv2.HttpMethod.POST],
+      integration: interactionsLambdaApi,
+    });
+    httpApi.addRoutes({
+      path: "/ping",
+      methods: [apigwv2.HttpMethod.GET],
       integration: interactionsLambdaApi,
     });
 
@@ -212,7 +217,10 @@ export class InfraStack extends Stack {
       zone: infraZone,
       recordName: "interactions",
       target: route53.RecordTarget.fromAlias(
-        new targets.ApiGatewayv2DomainProperties(dn.regionalDomainName, dn.regionalHostedZoneId)
+        new targets.ApiGatewayv2DomainProperties(
+          dn.regionalDomainName,
+          dn.regionalHostedZoneId
+        )
       ),
     });
   }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
 
@@ -43,6 +44,12 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", interactionServer)
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.WriteString(w, "ok")
+		if err != nil {
+			log.Printf("ping response error: %s", err.Error())
+		}
+	})
 
 	lambda.Start(httpadapter.New(mux).ProxyWithContext)
 }
