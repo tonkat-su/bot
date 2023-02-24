@@ -1,4 +1,4 @@
 {
-  "app": "npx ts-node bin/tonkatsu.ts",
+  "app": "npx ts-node bin/infra.ts",
   "context": {}
 }
