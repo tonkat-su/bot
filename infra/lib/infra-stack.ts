@@ -7,7 +7,7 @@ import { aws_lambda as lambda } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
 import { aws_events as events } from "aws-cdk-lib";
 import { aws_events_targets as events_targets } from "aws-cdk-lib";
-import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
+import * as apigwv2integration from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 import { aws_logs as logs } from "aws-cdk-lib";
 import { aws_s3_assets as assets } from "aws-cdk-lib";
@@ -196,9 +196,12 @@ export class InfraStack extends Stack {
       }
     );
 
-    const interactionsLambdaApi = new HttpLambdaIntegration(
+    const interactionsLambdaApi = new apigwv2integration.HttpLambdaIntegration(
       "Interactions",
-      interactionsApiLambda
+      interactionsApiLambda,
+      {
+        payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_1_0,
+      }
     );
 
     const dn = new apigwv2.DomainName(this, "DN", {
