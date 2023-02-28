@@ -18,6 +18,9 @@ export class InfraStack extends Stack {
   constructor(scope: App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const discordApplicationPubkey =
+      "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c";
+
     const botGroup = new iam.Group(this, "infraBotGroup", {});
 
     botGroup.addToPolicy(
@@ -139,8 +142,7 @@ export class InfraStack extends Stack {
         timeout: cdk.Duration.seconds(15),
         environment: {
           MINECRAFT_SERVER_RCON_ADDRESS: "mc.tonkat.su:9763",
-          DISCORD_APPLICATION_PUBKEY:
-            "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c",
+          DISCORD_APPLICATION_PUBKEY: discordApplicationPubkey,
           RCON_PASSWORD_SECRET_ARN: smpRconPassword.secretArn,
         },
         logRetention: logs.RetentionDays.THREE_DAYS,
@@ -176,8 +178,8 @@ export class InfraStack extends Stack {
         handler: "interactions",
         timeout: cdk.Duration.seconds(15),
         environment: {
-          DISCORD_APPLICATION_PUBKEY:
-            "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c",
+          DISCORD_WEBHOOK_PUBKEY: discordApplicationPubkey,
+          DISCORD_TOKEN: discordToken.secretValue.toString(),
         },
         logRetention: logs.RetentionDays.THREE_DAYS,
       }

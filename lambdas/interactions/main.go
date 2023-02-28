@@ -17,7 +17,6 @@ type Config struct {
 
 	// read from secrets manager using cdk https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs.Secret.html
 	DiscordToken         string `split_words:"true" required:"true"`
-	DiscordWebhookUrl    string `split_words:"true" required:"true"`
 	DiscordWebhookPubkey string `split_words:"true" required:"true"`
 }
 
