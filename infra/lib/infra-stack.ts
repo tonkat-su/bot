@@ -5,8 +5,6 @@ import { aws_route53 as route53 } from "aws-cdk-lib";
 import { aws_secretsmanager as secretsManager } from "aws-cdk-lib";
 import { aws_lambda as lambda } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
-import { aws_events as events } from "aws-cdk-lib";
-import { aws_events_targets as events_targets } from "aws-cdk-lib";
 import * as apigwv2integration from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 import { aws_logs as logs } from "aws-cdk-lib";
@@ -53,113 +51,6 @@ export class InfraStack extends Stack {
     const lambdasAsset = new assets.Asset(this, "lambdasZip", {
       path: path.join(__dirname, "../../build/"),
     });
-
-    const giveCatTreatsLambda = new lambda.Function(
-      this,
-      "giveCatTreatsLambda",
-      {
-        code: lambda.Code.fromBucket(
-          lambdasAsset.bucket,
-          lambdasAsset.s3ObjectKey
-        ),
-        runtime: lambda.Runtime.GO_1_X,
-        handler: "give-cat-treats",
-        timeout: cdk.Duration.seconds(45),
-        environment: {
-          MINECRAFT_SERVER_NAME: "frogland",
-          MINECRAFT_SERVER_HOST: "mc.froggyfren.com",
-        },
-        logRetention: logs.RetentionDays.THREE_DAYS,
-      }
-    );
-
-    giveCatTreatsLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["cloudwatch:PutMetricData"],
-        resources: ["*"],
-      })
-    );
-
-    const discordToken = secretsManager.Secret.fromSecretCompleteArn(
-      this,
-      "discordToken",
-      "arn:aws:secretsmanager:us-west-2:635281304921:secret:tonkatsu/bot/prod/discordToken-SGeL0l"
-    );
-
-    const refreshWhosOnlineLambda = new lambda.Function(
-      this,
-      "refreshWhosOnlineLambda",
-      {
-        code: lambda.Code.fromBucket(
-          lambdasAsset.bucket,
-          lambdasAsset.s3ObjectKey
-        ),
-        runtime: lambda.Runtime.GO_1_X,
-        handler: "refresh-whos-online",
-        timeout: cdk.Duration.seconds(30),
-        environment: {
-          MINECRAFT_SERVER_HOST: "mc.froggyfren.com",
-          MINECRAFT_SERVER_NAME: "frogland",
-          DISCORD_TOKEN_SECRET_ARN: discordToken.secretArn,
-        },
-        logRetention: logs.RetentionDays.THREE_DAYS,
-      }
-    );
-
-    refreshWhosOnlineLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "secretsmanager:GetResourcePolicy",
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret",
-          "secretsmanager:ListSecretVersionIds",
-        ],
-        resources: [discordToken.secretArn],
-      })
-    );
-
-    new events.Rule(this, "everyFiveMinutes", {
-      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
-      targets: [new events_targets.LambdaFunction(giveCatTreatsLambda)],
-    });
-
-    const smpRconPassword = secretsManager.Secret.fromSecretCompleteArn(
-      this,
-      "smpRconPassword",
-      "arn:aws:secretsmanager:us-west-2:635281304921:secret:prod/mc.tonkat.su/rconpassword-dEsrPy"
-    );
-
-    const interactionsWhitelistLambda = new lambda.Function(
-      this,
-      "interactionsWhitelistLambda",
-      {
-        code: lambda.Code.fromBucket(
-          lambdasAsset.bucket,
-          lambdasAsset.s3ObjectKey
-        ),
-        runtime: lambda.Runtime.GO_1_X,
-        handler: "smp-whitelist",
-        timeout: cdk.Duration.seconds(15),
-        environment: {
-          MINECRAFT_SERVER_RCON_ADDRESS: "mc.tonkat.su:9763",
-          DISCORD_APPLICATION_PUBKEY: discordApplicationPubkey,
-          RCON_PASSWORD_SECRET_ARN: smpRconPassword.secretArn,
-        },
-        logRetention: logs.RetentionDays.THREE_DAYS,
-      }
-    );
-
-    interactionsWhitelistLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "secretsmanager:GetResourcePolicy",
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret",
-          "secretsmanager:ListSecretVersionIds",
-        ],
-        resources: [smpRconPassword.secretArn],
-      })
-    );
 
     const interactionsSecrets = secretsManager.Secret.fromSecretCompleteArn(
       this,
