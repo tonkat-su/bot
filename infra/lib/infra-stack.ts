@@ -161,6 +161,12 @@ export class InfraStack extends Stack {
       })
     );
 
+    const interactionsSecrets = secretsManager.Secret.fromSecretCompleteArn(
+      this,
+      "interactionsSecrets",
+      "arn:aws:secretsmanager:us-west-2:635281304921:secret:discord-interactions-api-enWlPw"
+    );
+
     const interactionsCert = new acm.Certificate(this, "interactionsCert", {
       domainName: "interactions.sjchen.com",
       validation: acm.CertificateValidation.fromDns(infraZone),
@@ -179,7 +185,12 @@ export class InfraStack extends Stack {
         timeout: cdk.Duration.seconds(15),
         environment: {
           DISCORD_WEBHOOK_PUBKEY: discordApplicationPubkey,
-          DISCORD_TOKEN: discordToken.secretValue.toString(),
+          DISCORD_TOKEN: interactionsSecrets
+            .secretValueFromJson("DISCORD_TOKEN")
+            .toString(),
+          IMGUR_CLIENT_ID: interactionsSecrets
+            .secretValueFromJson("IMGUR_CLIENT_ID")
+            .toString(),
         },
         logRetention: logs.RetentionDays.THREE_DAYS,
       }
