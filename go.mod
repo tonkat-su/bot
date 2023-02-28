@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.15
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.4.42
-	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.25.3
+	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.25.4
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.18.5
 	github.com/awslabs/aws-lambda-go-api-proxy v0.14.0
 	github.com/bsdlp/envconfig v1.5.0
