@@ -11,17 +11,9 @@ import (
 	"github.com/tonkat-su/bot/interactions"
 )
 
-type Config struct {
-	ImgurClientId string `split_words:"true" required:"true"`
-
-	// read from secrets manager using cdk https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs.Secret.html
-	DiscordToken         string `split_words:"true" required:"true"`
-	DiscordWebhookPubkey string `split_words:"true" required:"true"`
-}
-
 var (
 	//imgurClient       *imgur.Client
-	config            Config
+	config            interactions.Config
 	interactionServer *webhook.InteractionServer
 )
 
@@ -31,11 +23,7 @@ func main() {
 		log.Fatalf("error reading envconfig: %s", err.Error())
 	}
 
-	interactionServer, err = interactions.NewServer(&interactions.Config{
-		ImgurClientId:        config.ImgurClientId,
-		DiscordToken:         config.DiscordToken,
-		DiscordWebhookPubkey: config.DiscordWebhookPubkey,
-	})
+	interactionServer, err = interactions.NewServer(&config)
 	if err != nil {
 		log.Fatalf("error initializing server: %s", err.Error())
 	}

@@ -2,21 +2,21 @@ package interactions
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"strings"
+	"log"
 
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/api/cmdroute"
 	"github.com/diamondburned/arikawa/v3/api/webhook"
 	"github.com/diamondburned/arikawa/v3/state"
-	"github.com/diamondburned/arikawa/v3/utils/json/option"
+	"github.com/jltobler/go-rcon"
 )
 
 type Config struct {
-	ImgurClientId        string
-	DiscordToken         string
-	DiscordWebhookPubkey string
+	ImgurClientId        string `split_words:"true" required:"true"`
+	DiscordToken         string `split_words:"true" required:"true"`
+	DiscordWebhookPubkey string `split_words:"true" required:"true"`
+	RconPassword         string `split_words:"true" required:"true"`
+	RconHostport         string `split_words:"true" required:"true"`
 }
 
 func NewServer(cfg *Config) (*webhook.InteractionServer, error) {
@@ -24,6 +24,7 @@ func NewServer(cfg *Config) (*webhook.InteractionServer, error) {
 	r := &router{
 		Router: cmdroute.NewRouter(),
 		s:      state,
+		cfg:    cfg,
 	}
 
 	/*imgurClient = &imgur.Client{
@@ -33,36 +34,28 @@ func NewServer(cfg *Config) (*webhook.InteractionServer, error) {
 
 	r.Use(cmdroute.Deferrable(r.s, cmdroute.DeferOpts{}))
 
-	r.AddFunc("initialize", r.initializeMessage)
-	r.AddFunc("refresh", r.refreshMessage)
+	r.AddFunc("whitelist", r.whitelist)
+	r.AddFunc("online", r.online)
 
 	return webhook.NewInteractionServer(cfg.DiscordWebhookPubkey, r)
 }
 
 type router struct {
 	*cmdroute.Router
-	s *state.State
+	s   *state.State
+	cfg *Config
 }
 
-type msgMeta struct {
-	ServerName string
-	HostPort   string
-}
-
-func (h *router) initializeMessage(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
-	var meta msgMeta
-	err := json.NewDecoder(strings.NewReader(cmd.Event.Message.Content)).Decode(&meta)
+func (h *router) whitelist(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
+	rconClient := rcon.NewClient("rcon://"+h.cfg.RconHostport, h.cfg.RconPassword)
+	var rconCommand string
+	_, err := rconClient.Send(rconCommand)
 	if err != nil {
-		return &api.InteractionResponseData{
-			Content: option.NewNullableString("error decoding meta: " + err.Error()),
-		}
+		log.Printf("error sending rcon command: %s", err.Error())
 	}
-
-	return &api.InteractionResponseData{
-		Content: option.NewNullableString(fmt.Sprintf("servername: %s, hostport: %s", meta.ServerName, meta.HostPort)),
-	}
+	return nil
 }
 
-func (h *router) refreshMessage(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
+func (h *router) online(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
 	return nil
 }

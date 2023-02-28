@@ -16,6 +16,7 @@ require (
 	github.com/bwmarrin/discordgo v0.27.0
 	github.com/diamondburned/arikawa/v3 v3.2.0
 	github.com/google/uuid v1.3.0
+	github.com/jltobler/go-rcon v0.3.0
 	github.com/vincent-petithory/dataurl v1.0.0
 )
 

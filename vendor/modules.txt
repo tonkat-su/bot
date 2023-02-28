@@ -167,6 +167,9 @@ github.com/gorilla/schema
 # github.com/gorilla/websocket v1.5.0
 ## explicit; go 1.12
 github.com/gorilla/websocket
+# github.com/jltobler/go-rcon v0.3.0
+## explicit; go 1.17
+github.com/jltobler/go-rcon
 # github.com/jmespath/go-jmespath v0.4.0
 ## explicit; go 1.14
 github.com/jmespath/go-jmespath

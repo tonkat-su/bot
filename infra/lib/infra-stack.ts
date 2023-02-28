@@ -82,6 +82,10 @@ export class InfraStack extends Stack {
           IMGUR_CLIENT_ID: interactionsSecrets
             .secretValueFromJson("IMGUR_CLIENT_ID")
             .toString(),
+          RCON_PASSWORD: interactionsSecrets
+            .secretValueFromJson("RCON_PASSWORD")
+            .toString(),
+          RCON_HOSTPORT: "mc.froggyfren.com:25575",
         },
         logRetention: logs.RetentionDays.THREE_DAYS,
       }
