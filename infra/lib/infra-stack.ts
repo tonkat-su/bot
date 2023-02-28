@@ -216,7 +216,7 @@ export class InfraStack extends Stack {
       },
     });
     httpApi.addRoutes({
-      path: "/",
+      path: "/interactions",
       methods: [apigwv2.HttpMethod.POST],
       integration: interactionsLambdaApi,
     });
