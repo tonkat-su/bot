@@ -50,5 +50,12 @@ func main() {
 		}
 	})
 
+	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.Copy(w, r.Body)
+		if err != nil {
+			log.Printf("echo error: %s", err.Error())
+		}
+	})
+
 	lambda.Start(httpadapter.New(mux).ProxyWithContext)
 }

@@ -214,6 +214,11 @@ export class InfraStack extends Stack {
       methods: [apigwv2.HttpMethod.GET],
       integration: interactionsLambdaApi,
     });
+    httpApi.addRoutes({
+      path: "/echo",
+      methods: [apigwv2.HttpMethod.POST],
+      integration: interactionsLambdaApi,
+    });
 
     new route53.ARecord(this, "interactionsWhitelistAliasRecord", {
       zone: infraZone,
