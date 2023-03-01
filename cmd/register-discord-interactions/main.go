@@ -45,6 +45,10 @@ var commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
+	{
+		Name:        "ping",
+		Description: "ping command",
+	},
 }
 
 type Config struct {
