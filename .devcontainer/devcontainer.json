@@ -36,7 +36,8 @@
 						"path": "/usr/bin/zsh"
 					}
 				},
-				"terminal.integrated.defaultProfile.Linux": "zsh"
+				"terminal.integrated.defaultProfile.Linux": "zsh",
+				"vim.vimrc.path": "~/.vimrc"
 			}
 		}
 	}
