@@ -10,7 +10,10 @@
 		"ghcr.io/jungaretti/features/make:1": {},
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
 			"upgradePackages": true,
-			"packages": "ldnsutils"
+			"packages": [
+				"ldnsutils",
+				"vim-tiny"
+			]
 		}
 	},
 	"customizations": {
