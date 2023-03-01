@@ -7,6 +7,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/api/cmdroute"
 	"github.com/diamondburned/arikawa/v3/api/webhook"
 	"github.com/diamondburned/arikawa/v3/state"
+	"github.com/diamondburned/arikawa/v3/utils/json/option"
 )
 
 type Config struct {
@@ -32,6 +33,7 @@ func NewServer(cfg *Config) (*webhook.InteractionServer, error) {
 
 	r.Use(cmdroute.Deferrable(r.s, cmdroute.DeferOpts{}))
 
+	r.AddFunc("ping", h.ping)
 	r.AddFunc("whitelist", r.whitelist)
 	r.AddFunc("online", r.online)
 
@@ -46,4 +48,11 @@ type router struct {
 
 func (h *router) online(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
 	return nil
+}
+
+func (h *router) ping(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
+	return &api.InteractionResponseData{
+		Content: option.NewNullableString("Pong!"),
+	}
+
 }
