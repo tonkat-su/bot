@@ -13,6 +13,7 @@ import (
 )
 
 func (h *router) whitelist(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
+	log.Println("handling whitelist request")
 	rconClient := rcon.NewClient("rcon://"+h.cfg.RconHostport, h.cfg.RconPassword)
 
 	var rconCommand string
@@ -28,11 +29,15 @@ func (h *router) whitelist(ctx context.Context, cmd cmdroute.CommandData) *api.I
 		username := option.String()
 		rconCommand = fmt.Sprintf("whitelist remove %s", username)
 	default:
+		log.Printf("invalid command: %s", cmd.Name)
 		return &api.InteractionResponseData{
-			Content: option.NewNullableString("invalid command"),
+			Content:         option.NewNullableString("invalid command"),
+			Flags:           discord.EphemeralMessage,
+			AllowedMentions: &api.AllowedMentions{},
 		}
 	}
 
+	log.Printf("sending rcon command: %s", rconCommand)
 	output, err := rconClient.Send(rconCommand)
 	if err != nil {
 		log.Printf("error sending rcon command: %s", err.Error())
@@ -43,6 +48,7 @@ func (h *router) whitelist(ctx context.Context, cmd cmdroute.CommandData) *api.I
 		}
 	}
 
+	log.Println("rcon command successful")
 	return &api.InteractionResponseData{
 		Content: option.NewNullableString(output),
 	}
