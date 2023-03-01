@@ -104,9 +104,9 @@ jobs:
   fetch_discord_token:
     runs-on: ubuntu-latest
     outputs:
-      discord_token: ${{ steps.fetch_discord_token.outputs }}
+      discord_token: ${{ steps.fetch_from_secrets_manager.outputs }}
     steps:
-      - id: fetch_discord_token
+      - id: fetch_from_secrets_manager
         run: echo -n 'token=' && aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq .DISCORD_TOKEN >> "$GITHUB_OUTPUT"
   register_discord_commands:
     needs: [build_registration_script, fetch_discord_token, cdk_deploy]
