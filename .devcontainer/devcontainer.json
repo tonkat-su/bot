@@ -13,6 +13,30 @@
 			"upgradePackages": true,
 			"packages": "ldnsutils"
 		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"vscodevim.vim",
+				"dbaeumer.vscode-eslint",
+				"golang.go"
+			],
+			"go.formatTool": "goimports",
+			"go.useLanguageServer": true,
+			"[typescript]": {
+				"editor.defaultFormatter": "esbenp.prettier-vscode"
+			},
+			"[go]": {
+				"editor.defaultFormatter": "golang.go"
+			},
+			"editor.formatOnSave": true,
+			"terminal.integrated.profiles.linux": {
+				"zsh": {
+					"path": "/usr/bin/zsh"
+				}
+			},
+			"terminal.integrated.defaultProfile.Linux": "zsh"
+		}
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
