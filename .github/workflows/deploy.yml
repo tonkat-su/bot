@@ -114,6 +114,7 @@ jobs:
         run: |
           echo -n 'token=' >> "$GITHUB_OUTPUT"
           aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq .DISCORD_TOKEN >> "$GITHUB_OUTPUT"
+          echo "::add-mask::${DISCORD_TOKEN}"
   register_discord_commands:
     needs: [build_registration_script, fetch_discord_token, cdk_deploy]
     runs-on: ubuntu-latest
