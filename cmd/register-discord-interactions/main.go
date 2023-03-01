@@ -49,6 +49,22 @@ var commands = []*discordgo.ApplicationCommand{
 		Name:        "ping",
 		Description: "ping command",
 	},
+	{
+		Name:        "echo",
+		Description: "echo command",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message",
+				Description: "message to echo",
+				Required:    true,
+			},
+		},
+	},
+	{
+		Name:        "online",
+		Description: "list who is currently online",
+	},
 }
 
 type Config struct {
