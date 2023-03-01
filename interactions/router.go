@@ -9,6 +9,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/api/webhook"
 	"github.com/diamondburned/arikawa/v3/state"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
+	"github.com/jltobler/go-rcon"
 )
 
 type Config struct {
@@ -49,8 +50,13 @@ type router struct {
 }
 
 func (h *router) online(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
+	rconClient := rcon.NewClient("rcon://"+h.cfg.RconHostport, h.cfg.RconPassword)
+	output, err := rconClient.Send("list")
+	if err != nil {
+		log.Printf("error sending list command: %s", err.Error())
+	}
 	return &api.InteractionResponseData{
-		Content: option.NewNullableString("not implemented"),
+		Content: option.NewNullableString(output),
 	}
 }
 
