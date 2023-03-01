@@ -7,6 +7,7 @@ import (
 
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/api/cmdroute"
+	"github.com/diamondburned/arikawa/v3/utils/json/option"
 	"github.com/jltobler/go-rcon"
 )
 
@@ -26,12 +27,20 @@ func (h *router) whitelist(ctx context.Context, cmd cmdroute.CommandData) *api.I
 		username := option.String()
 		rconCommand = fmt.Sprintf("whitelist remove %s", username)
 	default:
-		return nil
+		return &api.InteractionResponseData{
+			Content: option.NewNullableString("invalid command"),
+		}
 	}
 
-	_, err := rconClient.Send(rconCommand)
+	output, err := rconClient.Send(rconCommand)
 	if err != nil {
 		log.Printf("error sending rcon command: %s", err.Error())
+		return &api.InteractionResponseData{
+			Content: option.NewNullableString("error sending rcond command"),
+		}
 	}
-	return nil
+
+	return &api.InteractionResponseData{
+		Content: option.NewNullableString(output),
+	}
 }
