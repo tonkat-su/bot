@@ -2,6 +2,7 @@ package interactions
 
 import (
 	"context"
+	"log"
 
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/api/cmdroute"
@@ -36,6 +37,7 @@ func NewServer(cfg *Config) (*webhook.InteractionServer, error) {
 	r.AddFunc("ping", r.ping)
 	r.AddFunc("whitelist", r.whitelist)
 	r.AddFunc("online", r.online)
+	r.AddFunc("echo", r.echo)
 
 	return webhook.NewInteractionServer(cfg.DiscordWebhookPubkey, r)
 }
@@ -57,4 +59,19 @@ func (h *router) ping(ctx context.Context, cmd cmdroute.CommandData) *api.Intera
 		Content: option.NewNullableString("Pong!"),
 	}
 
+}
+
+func (h *router) echo(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
+	var options struct {
+		Arg string `discord:"argument"`
+	}
+
+	if err := cmd.Options.Unmarshal(&options); err != nil {
+		log.Printf("error unmarshaling echo: %s", err.Error())
+	}
+
+	return &api.InteractionResponseData{
+		Content:         option.NewNullableString(options.Arg),
+		AllowedMentions: &api.AllowedMentions{},
+	}
 }
