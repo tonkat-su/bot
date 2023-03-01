@@ -126,6 +126,8 @@ jobs:
           path: ${{ github.workspace }}
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
+      - name: hide discord token output
+        run: echo "::add-mask::${DISCORD_TOKEN}"
       - name: run register
         env:
           DISCORD_TOKEN: ${{ needs.fetch_discord_token.outputs.discord_token }}
