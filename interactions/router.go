@@ -47,7 +47,9 @@ type router struct {
 }
 
 func (h *router) online(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
-	return nil
+	return &api.InteractionResponseData{
+		Content: option.NewNullableString("not implemented"),
+	}
 }
 
 func (h *router) ping(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
