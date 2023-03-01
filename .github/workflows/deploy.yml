@@ -113,6 +113,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq .DISCORD_TOKEN)
+          echo "::add-mask::${DISCORD_TOKEN}"
           echo "token=${DISCORD_TOKEN}" >> "$GITHUB_OUTPUT"
   register_discord_commands:
     needs: [build_registration_script, fetch_discord_token, cdk_deploy]
@@ -126,8 +127,6 @@ jobs:
           path: ${{ github.workspace }}
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
-      - name: hide discord token output
-        run: echo "::add-mask::${DISCORD_TOKEN}"
       - name: run register
         env:
           DISCORD_TOKEN: ${{ needs.fetch_discord_token.outputs.discord_token }}
