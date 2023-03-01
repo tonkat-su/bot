@@ -3,7 +3,7 @@ on:
     branches:
       - main
   pull_request:
-name: cdk
+name: deploy
 jobs:
   build_lambdas:
     strategy:
@@ -80,3 +80,48 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  build_registration_script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.1
+      - name: checkout code
+        uses: actions/checkout@v3
+      - name: go build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: linux
+        run: |
+          mkdir build
+          go build -a -ldflags='-extldflags=-static' -o ./build/ ./cmd/...
+      - name: archive built binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: ${{ github.workspace }}
+  fetch_discord_token:
+    runs-on: ubuntu-latest
+    outputs:
+      discord_token: ${{ steps.fetch_discord_token.outputs }}
+    steps:
+      - id: fetch_discord_token
+        run: echo -n 'token=' && aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq .DISCORD_TOKEN
+  register_discord_commands:
+    needs: [build_registration_script, fetch_discord_token, cdk_deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: download binaries
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries
+          path: ${{ github.workspace }}
+      - name: fix executable permissions
+        run: chmod 755 -R ${{ github.workspace }}/build
+      - name: run register
+        env:
+          DISCORD_TOKEN: ${{ needs.fetch_discord_token.outputs.discord_token }}
+          GUILD_ID: ${{ vars.GUILD_ID }}
+        run: build/register-discord-interactions
