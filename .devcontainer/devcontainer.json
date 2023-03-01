@@ -12,7 +12,7 @@
 			"upgradePackages": true,
 			"packages": [
 				"ldnsutils",
-				"vim-tiny"
+				"vim"
 			]
 		}
 	},
