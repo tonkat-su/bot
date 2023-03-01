@@ -47,3 +47,5 @@ jobs:
       - name: run register
         env:
           DISCORD_TOKEN: ${{ needs.fetch_discord_token.outputs.discord_token }}
+          GUILD_ID: ${{ vars.GUILD_ID }}
+        run: build/register-discord-interactions
