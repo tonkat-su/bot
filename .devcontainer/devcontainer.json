@@ -32,15 +32,7 @@
 				},
 				"[go]": {
 					"editor.defaultFormatter": "golang.go"
-				},
-				"editor.formatOnSave": true,
-				"terminal.integrated.profiles.linux": {
-					"zsh": {
-						"path": "zsh"
-					}
-				},
-				"terminal.integrated.defaultProfile.linux": "zsh",
-				"vim.vimrc.path": "~/.vimrc"
+				}
 			}
 		}
 	}
