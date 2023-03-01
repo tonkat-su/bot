@@ -121,7 +121,7 @@ export class InfraStack extends Stack {
 
     new route53.ARecord(this, "interactionsAliasRecord", {
       zone: infraZone,
-      recordName: "interactions",
+      recordName: "interactions.sjchen.com.",
       target: route53.RecordTarget.fromAlias(
         new targets.ApiGatewayv2DomainProperties(
           dn.regionalDomainName,
