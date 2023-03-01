@@ -7,7 +7,11 @@
 	"features": {
 		"ghcr.io/devcontainers/features/go:1": {},
 		"ghcr.io/devcontainers/features/node:1": {},
-		"ghcr.io/jungaretti/features/make:1": {}
+		"ghcr.io/jungaretti/features/make:1": {},
+		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+			"upgradePackages": true,
+			"packages": "ldnsutils"
+		}
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
