@@ -9,36 +9,39 @@ import (
 
 var commands = []*discordgo.ApplicationCommand{
 	{
-		Name: "whitelist",
+		Name:        "whitelist",
+		Description: "whitelist command",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
-				Type:     discordgo.ApplicationCommandOptionSubCommand,
-				Name:     "add",
-				Required: true,
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Name:        "add",
+				Description: "add minecraft user to whitelist",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
-						Type:     discordgo.ApplicationCommandOptionString,
-						Name:     "username",
-						Required: true,
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "username",
+						Description: "minecraft username to add to whitelist",
+						Required:    true,
 					},
 				},
 			},
 			{
-				Type:     discordgo.ApplicationCommandOptionSubCommand,
-				Name:     "remove",
-				Required: true,
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Name:        "remove",
+				Description: "command to remove minecraft user from whitelist",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
-						Type:     discordgo.ApplicationCommandOptionString,
-						Name:     "username",
-						Required: true,
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "username",
+						Description: "minecraft username to remove from whitelist",
+						Required:    true,
 					},
 				},
 			},
 			{
-				Type:     discordgo.ApplicationCommandOptionSubCommand,
-				Name:     "list",
-				Required: true,
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Name:        "list",
+				Description: "command to list users currently whitelisted",
 			},
 		},
 	},
@@ -47,6 +50,7 @@ var commands = []*discordgo.ApplicationCommand{
 type Config struct {
 	DiscordToken string `split_words:"true" required:"true"`
 	GuildId      string `split_words:"true" required:"true"`
+	AppId        string `split_words:"true" required:"true"`
 }
 
 func main() {
@@ -68,7 +72,7 @@ func main() {
 		}
 	}()
 
-	_, err = client.ApplicationCommandBulkOverwrite(client.State.User.ID, cfg.GuildId, commands)
+	_, err = client.ApplicationCommandBulkOverwrite(cfg.AppId, cfg.GuildId, commands)
 	if err != nil {
 		log.Fatalf("error registering commands %s", err.Error())
 	}

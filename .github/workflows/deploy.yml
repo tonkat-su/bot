@@ -130,4 +130,5 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ needs.fetch_discord_token.outputs.discord_token }}
           GUILD_ID: ${{ vars.GUILD_ID }}
+          APP_ID: ${{ vars.DISCORD_APP_ID }}
         run: build/register-discord-interactions
