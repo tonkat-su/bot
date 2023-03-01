@@ -33,8 +33,6 @@ func NewServer(cfg *Config) (*webhook.InteractionServer, error) {
 	}
 	*/
 
-	r.Use(cmdroute.Deferrable(r.s, cmdroute.DeferOpts{}))
-
 	r.AddFunc("ping", r.ping)
 	r.AddFunc("whitelist", r.whitelist)
 	r.AddFunc("online", r.online)
