@@ -63,7 +63,7 @@ func (h *router) ping(ctx context.Context, cmd cmdroute.CommandData) *api.Intera
 
 func (h *router) echo(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
 	var options struct {
-		Arg string `discord:"argument"`
+		Arg string `discord:"message"`
 	}
 
 	if err := cmd.Options.Unmarshal(&options); err != nil {
