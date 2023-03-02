@@ -1,55 +1,57 @@
 package interactions
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/diamondburned/arikawa/v3/api"
-	"github.com/diamondburned/arikawa/v3/api/cmdroute"
-	"github.com/diamondburned/arikawa/v3/discord"
-	"github.com/diamondburned/arikawa/v3/utils/json/option"
+	"github.com/bwmarrin/discordgo"
 	"github.com/jltobler/go-rcon"
 )
 
-func (h *router) whitelist(ctx context.Context, cmd cmdroute.CommandData) *api.InteractionResponseData {
+func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction, s *discordgo.Session) {
 	log.Println("handling whitelist request")
-	rconClient := rcon.NewClient("rcon://"+h.cfg.RconHostport, h.cfg.RconPassword)
+
+	subcommand := event.ApplicationCommandData().Options[0].Options[0]
+	rconClient := rcon.NewClient("rcon://"+srv.cfg.RconHostport, srv.cfg.RconPassword)
 
 	var rconCommand string
-	switch cmd.Name {
+	switch subcommand.Name {
 	case "list":
 		rconCommand = "whitelist list"
 	case "add":
-		option := cmd.Options.Find("username")
-		username := option.String()
-		rconCommand = fmt.Sprintf("whitelist add %s", username)
-	case "remove":
-		option := cmd.Options.Find("username")
-		username := option.String()
-		rconCommand = fmt.Sprintf("whitelist remove %s", username)
-	default:
-		log.Printf("invalid command: %s", cmd.Name)
-		return &api.InteractionResponseData{
-			Content:         option.NewNullableString("invalid command"),
-			Flags:           discord.EphemeralMessage,
-			AllowedMentions: &api.AllowedMentions{},
+		for _, v := range subcommand.Options {
+			if v.Name == "mc_user" {
+				if username, ok := v.Value.(string); ok {
+					rconCommand = fmt.Sprintf("whitelist add %s", username)
+				}
+			}
 		}
+	case "remove":
+		for _, v := range subcommand.Options {
+			if v.Name == "mc_user" {
+				if username, ok := v.Value.(string); ok {
+					rconCommand = fmt.Sprintf("whitelist remove %s", username)
+				}
+			}
+		}
+	default:
+		log.Printf("invalid command: %s", subcommand.Name)
+		writeResponse(w, http.StatusUnprocessableEntity, "invalid whitelist subcommand")
+		return
 	}
 
 	log.Printf("sending rcon command: %s", rconCommand)
 	output, err := rconClient.Send(rconCommand)
 	if err != nil {
 		log.Printf("error sending rcon command: %s", err.Error())
-		return &api.InteractionResponseData{
-			Content:         option.NewNullableString("error sending rcon command"),
-			Flags:           discord.EphemeralMessage,
-			AllowedMentions: &api.AllowedMentions{},
-		}
+		writeResponse(w, http.StatusFailedDependency, err.Error())
 	}
 
-	log.Println("rcon command successful")
-	return &api.InteractionResponseData{
-		Content: option.NewNullableString(output),
+	err = replyToInteraction(event.ID, event.Token, output)
+	if err != nil {
+		log.Printf("error replying to interaction: %s", err.Error())
 	}
+	log.Println("rcon command successful")
+	writeResponse(w, http.StatusOK, output)
 }

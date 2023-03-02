@@ -46,10 +46,6 @@ var commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
-		Name:        "ping",
-		Description: "ping command",
-	},
-	{
 		Name:        "echo",
 		Description: "echo command",
 		Options: []*discordgo.ApplicationCommandOption{

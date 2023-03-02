@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  interactions:
+    build:
+      context: ./
+      dockerfile: InteractionsServerDockerfile
+    restart: unless-stopped
+    env_file: ./secrets.env
+    init: true
+    environment:
+      RCON_HOSTPORT: mc.froggyfren.com:25575
+      GUILD_ID: 764720442250100700
+      IMGUR_CLIENT_ID: 3b5d5f0ff8b8c29
+    ports:
+      - "8080:8080"

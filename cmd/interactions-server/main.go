@@ -5,14 +5,13 @@ import (
 	"net/http"
 
 	"github.com/bsdlp/envconfig"
-	"github.com/diamondburned/arikawa/v3/api/webhook"
 	"github.com/tonkat-su/bot/interactions"
 )
 
 var (
 	//imgurClient       *imgur.Client
-	config            interactions.Config
-	interactionServer *webhook.InteractionServer
+	config interactions.Config
+	server *interactions.Server
 )
 
 func main() {
@@ -21,13 +20,13 @@ func main() {
 		log.Fatalf("error reading envconfig: %s", err.Error())
 	}
 
-	interactionServer, err = interactions.NewServer(&config)
+	server, err = interactions.NewServer(&config)
 	if err != nil {
 		log.Fatalf("error initializing server: %s", err.Error())
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/interactions", interactionServer)
+	mux.Handle("/interactions", server)
 
 	err = http.ListenAndServe(":8080", mux)
 	if err != nil {
