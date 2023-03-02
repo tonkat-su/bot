@@ -12,7 +12,7 @@ import (
 func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction, s *discordgo.Session) {
 	log.Println("handling whitelist request")
 
-	subcommand := event.ApplicationCommandData().Options[0].Options[0]
+	subcommand := event.ApplicationCommandData().Options[0]
 	rconClient := rcon.NewClient("rcon://"+srv.cfg.RconHostport, srv.cfg.RconPassword)
 
 	var rconCommand string
@@ -21,7 +21,7 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 		rconCommand = "whitelist list"
 	case "add":
 		for _, v := range subcommand.Options {
-			if v.Name == "mc_user" {
+			if v.Name == "username" {
 				if username, ok := v.Value.(string); ok {
 					rconCommand = fmt.Sprintf("whitelist add %s", username)
 				}
@@ -29,7 +29,7 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 		}
 	case "remove":
 		for _, v := range subcommand.Options {
-			if v.Name == "mc_user" {
+			if v.Name == "username" {
 				if username, ok := v.Value.(string); ok {
 					rconCommand = fmt.Sprintf("whitelist remove %s", username)
 				}
@@ -48,10 +48,6 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 		writeResponse(w, http.StatusFailedDependency, err.Error())
 	}
 
-	err = replyToInteraction(event.ID, event.Token, output)
-	if err != nil {
-		log.Printf("error replying to interaction: %s", err.Error())
-	}
-	log.Println("rcon command successful")
 	writeResponse(w, http.StatusOK, output)
+	log.Println("rcon command successful")
 }

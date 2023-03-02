@@ -1,11 +1,10 @@
 package interactions
 
 import (
-	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -85,7 +84,12 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case discordgo.InteractionPing:
 		// reply with a pong when discord pings us
 		log.Println("ping received")
-		writeResponse(w, http.StatusOK, `{"type":1}`)
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err := io.WriteString(w, `{"type":1}`)
+		if err != nil {
+			log.Printf("error ACKing ping: %s", err.Error())
+		}
 		return
 	case discordgo.InteractionApplicationCommand:
 		srv.routeApplicationCommand(w, event)
@@ -106,6 +110,7 @@ func (srv *Server) routeApplicationCommand(w http.ResponseWriter, event discordg
 }
 
 func writeResponse(w http.ResponseWriter, statusCode int, body string) {
+	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(discordgo.InteractionResponse{
 		Type: 4,
@@ -120,6 +125,7 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 	}
 }
 
+/*
 func replyToInteraction(id string, token string, body string) error {
 	resp := discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -140,6 +146,7 @@ func replyToInteraction(id string, token string, body string) error {
 	}
 	return nil
 }
+*/
 
 func decodeDiscordWebhookPubkey(k string) (ed25519.PublicKey, error) {
 	data, err := hex.DecodeString(k)
