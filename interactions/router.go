@@ -35,7 +35,6 @@ func NewServer(cfg *Config) (*Server, error) {
 	}
 
 	srv.handlers = map[string]InteractionHandler{
-		"echo":      srv.echo,
 		"online":    srv.online,
 		"whitelist": srv.whitelist,
 	}

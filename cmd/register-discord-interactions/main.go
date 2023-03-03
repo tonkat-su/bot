@@ -46,18 +46,6 @@ var commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
-		Name:        "echo",
-		Description: "echo command",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "message",
-				Description: "message to echo",
-				Required:    true,
-			},
-		},
-	},
-	{
 		Name:        "online",
 		Description: "list who is currently online",
 	},
