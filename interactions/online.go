@@ -6,11 +6,18 @@ import (
 	"net/http"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/tonkat-su/bot/handlers/connected"
+	"github.com/tonkat-su/bot/online"
 )
 
 func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s *discordgo.Session) {
-	messageEmbed, err := connected.PrepareStatusEmbed(s, srv.cfg.DiscordGuildId, srv.cfg.MinecraftServerHostPort, srv.cfg.MinecraftServerName, srv.imgur)
+	messageEmbed, err := online.PrepareStatusEmbed(&online.PrepareStatusEmbedRequest{
+		Session:                     s,
+		Imgur:                       srv.imgur,
+		GuildId:                     srv.cfg.DiscordGuildId,
+		ServerHostname:              srv.cfg.MinecraftServerHost,
+		ServerName:                  srv.cfg.MinecraftServerName,
+		AppendLastUpdatedEmbedField: false,
+	})
 	if err != nil {
 		log.Printf("error rendering online message embed: %s", err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)

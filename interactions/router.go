@@ -18,10 +18,10 @@ type Config struct {
 	DiscordToken         string `split_words:"true" required:"true"`
 	DiscordWebhookPubkey string `split_words:"true" required:"true"`
 
-	MinecraftServerName     string `split_words:"true" required:"true"`
-	MinecraftServerHostPort string `split_words:"true" required:"true"`
-	RconPassword            string `split_words:"true" required:"true"`
-	RconHostport            string `split_words:"true" required:"true"`
+	MinecraftServerName string `split_words:"true" required:"true"`
+	MinecraftServerHost string `split_words:"true" required:"true"`
+	RconPassword        string `split_words:"true" required:"true"`
+	RconHostport        string `split_words:"true" required:"true"`
 
 	DiscordGuildId string `split_words:"true" required:"true"`
 }
