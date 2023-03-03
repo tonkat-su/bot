@@ -119,9 +119,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          echo "DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq -r .DISCORD_TOKEN)" >> $GITHUB_ENV
-      - name: mask discord token
-        run: echo "::add-mask::${DISCORD_TOKEN}"
+          export DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq -r .DISCORD_TOKEN)
+          echo "::add-mask::${DISCORD_TOKEN}"
+          echo "DISCORD_TOKEN=${DISCORD_TOKEN}" >> $GITHUB_ENV
       - name: run register
         env:
           GUILD_ID: ${{ vars.GUILD_ID }}
