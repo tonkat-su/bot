@@ -120,6 +120,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GUILD_ID: ${{ vars.GUILD_ID }}
           APP_ID: ${{ vars.DISCORD_APP_ID }}
+          CLEAN: true
         run: |
           DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq -r .DISCORD_TOKEN)
           build/register-discord-interactions

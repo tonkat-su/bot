@@ -67,6 +67,7 @@ type Config struct {
 	DiscordToken string `split_words:"true" required:"true"`
 	GuildId      string `split_words:"true" required:"true"`
 	AppId        string `split_words:"true" required:"true"`
+	Clean        bool   `split_words:"true" default:"false"`
 }
 
 func main() {
@@ -87,6 +88,20 @@ func main() {
 			log.Printf("error closing client %s", err.Error())
 		}
 	}()
+
+	if cfg.Clean {
+		log.Println("deleting existing application commands as requested")
+		cmds, err := client.ApplicationCommands(cfg.AppId, cfg.GuildId)
+		if err != nil {
+			log.Fatalf("error fetching registered commands: %s", err.Error())
+		}
+		for _, cmd := range cmds {
+			err = client.ApplicationCommandDelete(cfg.AppId, cfg.GuildId, cmd.ID)
+			if err != nil {
+				log.Fatalf("error deleting command (id %s, name %s): %s", cmd.ID, cmd.Name, err.Error())
+			}
+		}
+	}
 
 	_, err = client.ApplicationCommandBulkOverwrite(cfg.AppId, cfg.GuildId, commands)
 	if err != nil {
