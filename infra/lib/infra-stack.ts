@@ -86,6 +86,9 @@ export class InfraStack extends Stack {
             .secretValueFromJson("RCON_PASSWORD")
             .toString(),
           RCON_HOSTPORT: "mc.froggyfren.com:25575",
+          MINECRAFT_SERVER_NAME: "froggyland",
+          MINECRAFT_SERVER_HOST_PORT: "mc.froggyfren.com",
+          DISCORD_GUILD_ID: "764720442250100757",
         },
         logRetention: logs.RetentionDays.THREE_DAYS,
       }

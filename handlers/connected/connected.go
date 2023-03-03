@@ -23,7 +23,7 @@ type RefreshableBackend struct {
 	Imgur               *imgur.Client
 }
 
-func prepareStatusEmbed(s *discordgo.Session, guildID, host, name string, imgurClient *imgur.Client) (*discordgo.MessageEmbed, error) {
+func PrepareStatusEmbed(s *discordgo.Session, guildID, host, name string, imgurClient *imgur.Client) (*discordgo.MessageEmbed, error) {
 	ctx := context.Background()
 	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, host)
 	if err != nil {
@@ -125,7 +125,7 @@ func prepareStatusEmbed(s *discordgo.Session, guildID, host, name string, imgurC
 }
 
 func (h *RefreshableBackend) CreateRefreshableMessage(s *discordgo.Session, guildID string, channelID string) (*discordgo.Message, error) {
-	embed, err := prepareStatusEmbed(s, guildID, h.MinecraftServerHost, h.MinecraftServerName, h.Imgur)
+	embed, err := PrepareStatusEmbed(s, guildID, h.MinecraftServerHost, h.MinecraftServerName, h.Imgur)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (h *RefreshableBackend) CreateRefreshableMessage(s *discordgo.Session, guil
 }
 
 func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, event *discordgo.MessageReaction) error {
-	embed, err := prepareStatusEmbed(s, event.GuildID, h.MinecraftServerHost, h.MinecraftServerName, h.Imgur)
+	embed, err := PrepareStatusEmbed(s, event.GuildID, h.MinecraftServerHost, h.MinecraftServerName, h.Imgur)
 	if err != nil {
 		return err
 	}

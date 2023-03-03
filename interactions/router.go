@@ -13,11 +13,17 @@ import (
 )
 
 type Config struct {
-	ImgurClientId        string `split_words:"true" required:"true"`
+	ImgurClientId string `split_words:"true" required:"true"`
+
 	DiscordToken         string `split_words:"true" required:"true"`
 	DiscordWebhookPubkey string `split_words:"true" required:"true"`
-	RconPassword         string `split_words:"true" required:"true"`
-	RconHostport         string `split_words:"true" required:"true"`
+
+	MinecraftServerName     string `split_words:"true" required:"true"`
+	MinecraftServerHostPort string `split_words:"true" required:"true"`
+	RconPassword            string `split_words:"true" required:"true"`
+	RconHostport            string `split_words:"true" required:"true"`
+
+	DiscordGuildId string `split_words:"true" required:"true"`
 }
 
 func NewServer(cfg *Config) (*Server, error) {
