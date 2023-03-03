@@ -102,7 +102,7 @@ jobs:
           name: binaries
           path: ${{ github.workspace }}
   register_discord_commands:
-    needs: [build_registration_script, fetch_discord_token, cdk_deploy]
+    needs: [build_registration_script, cdk_deploy]
     runs-on: ubuntu-latest
     steps:
       - name: download binaries
