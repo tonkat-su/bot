@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	//imgurClient       *imgur.Client
 	config interactions.Config
 	server *interactions.Server
 )
