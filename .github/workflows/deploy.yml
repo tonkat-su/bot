@@ -102,7 +102,7 @@ jobs:
           name: binaries
           path: ${{ github.workspace }}
   register_discord_commands:
-    needs: [build_registration_script, fetch_discord_token, cdk_deploy]
+    needs: [build_registration_script, cdk_deploy]
     runs-on: ubuntu-latest
     steps:
       - name: download binaries
@@ -113,14 +113,17 @@ jobs:
           path: ${{ github.workspace }}
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
-      - name: run register
+      - id: fetch discord token from secrets manager
         env:
           AWS_DEFAULT_REGION: "us-west-2"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          echo "DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq -r .DISCORD_TOKEN)" >> $GITHUB_ENV
+          echo "::add-mask::${DISCORD_TOKEN}"
+      - name: run register
+        env:
           GUILD_ID: ${{ vars.GUILD_ID }}
           APP_ID: ${{ vars.DISCORD_APP_ID }}
           CLEAN: true
-        run: |
-          DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq -r .DISCORD_TOKEN)
-          build/register-discord-interactions
+        run: build/register-discord-interactions
