@@ -113,7 +113,7 @@ jobs:
           path: ${{ github.workspace }}
       - name: fix executable permissions
         run: chmod 755 -R ${{ github.workspace }}/build
-      - id: fetch discord token from secrets manager
+      - name: fetch discord token from secrets manager
         env:
           AWS_DEFAULT_REGION: "us-west-2"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
