@@ -101,21 +101,6 @@ jobs:
         with:
           name: binaries
           path: ${{ github.workspace }}
-  fetch_discord_token:
-    runs-on: ubuntu-latest
-    outputs:
-      discord_token: ${{ steps.fetch_from_secrets_manager.outputs.token }}
-    steps:
-      - id: fetch_from_secrets_manager
-        env:
-          AWS_DEFAULT_REGION: "us-west-2"
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq -r .DISCORD_TOKEN)
-          echo -n $DISCORD_TOKEN | wc -m
-          echo "token=${DISCORD_TOKEN}" >> "$GITHUB_OUTPUT"
-          echo "::add-mask::${DISCORD_TOKEN}"
   register_discord_commands:
     needs: [build_registration_script, fetch_discord_token, cdk_deploy]
     runs-on: ubuntu-latest
@@ -130,7 +115,11 @@ jobs:
         run: chmod 755 -R ${{ github.workspace }}/build
       - name: run register
         env:
-          DISCORD_TOKEN: ${{ needs.fetch_discord_token.outputs.discord_token }}
+          AWS_DEFAULT_REGION: "us-west-2"
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GUILD_ID: ${{ vars.GUILD_ID }}
           APP_ID: ${{ vars.DISCORD_APP_ID }}
-        run: build/register-discord-interactions
+        run: |
+          DISCORD_TOKEN=$(aws secretsmanager get-secret-value --secret-id discord-interactions-api --query SecretString --output text | jq -r .DISCORD_TOKEN)
+          build/register-discord-interactions
