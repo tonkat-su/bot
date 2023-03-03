@@ -9,7 +9,9 @@ services:
     init: true
     environment:
       RCON_HOSTPORT: mc.froggyfren.com:25575
-      GUILD_ID: 764720442250100700
+      DISCORD_GUILD_ID: 764720442250100700
       IMGUR_CLIENT_ID: 3b5d5f0ff8b8c29
+      MINECRAFT_SERVER_NAME: froggyland
+      MINECRAFT_SERVER_HOST: mc.froggyfren.com
     ports:
       - "8080:8080"
