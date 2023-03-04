@@ -53,6 +53,10 @@ var commands = []*discordgo.ApplicationCommand{
 		Name:        "test",
 		Description: "list who is currently online test",
 	},
+	{
+		Name:        "version",
+		Description: "returns build information",
+	},
 }
 
 type Config struct {

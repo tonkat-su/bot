@@ -46,6 +46,7 @@ func NewServer(cfg *Config) (*Server, error) {
 		"online":    srv.online,
 		"whitelist": srv.whitelist,
 		"test":      srv.test,
+		"version":   srv.version,
 	}
 
 	return srv, nil
