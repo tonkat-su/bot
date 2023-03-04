@@ -36,7 +36,10 @@ func (srv *Server) leaderboard(w http.ResponseWriter, event discordgo.Interactio
 	}
 
 	messageEmbed, err := pinnedleaderboard.PrepareStandingsEmbed(&pinnedleaderboard.PrepareStandingsEmbedRequest{
-		Standings: standings,
+		Standings:                   standings,
+		Session:                     s,
+		GuildId:                     srv.cfg.DiscordGuildId,
+		AppendLastUpdatedEmbedField: false,
 	})
 	if err != nil {
 		log.Printf("error preparing standings: %s", err)

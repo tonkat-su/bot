@@ -3,8 +3,10 @@ package pinnedleaderboard
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/tonkat-su/bot/emoji"
 	"github.com/tonkat-su/bot/handlers"
 	"github.com/tonkat-su/bot/leaderboard"
 	"github.com/tonkat-su/bot/mcuser"
@@ -12,29 +14,46 @@ import (
 
 type PrepareStandingsEmbedRequest struct {
 	Standings                   *leaderboard.Standings
+	Session                     *discordgo.Session
+	GuildId                     string
 	AppendLastUpdatedEmbedField bool
 }
 
 func PrepareStandingsEmbed(params *PrepareStandingsEmbedRequest) (*discordgo.MessageEmbed, error) {
-	embed := &discordgo.MessageEmbed{
-		Title: `biggest nerds on the server
-(in the last 7 days)`,
-		Fields: make([]*discordgo.MessageEmbedField, len(params.Standings.SortedStandings), len(params.Standings.SortedStandings)+1),
-	}
+	players := make([]*emoji.Player, len(params.Standings.SortedStandings))
 	for i, v := range params.Standings.SortedStandings {
 		username, err := mcuser.GetUsername(v.PlayerId)
 		if err != nil {
 			return nil, fmt.Errorf("error getting username: %s", err)
 		}
+		players[i] = &emoji.Player{
+			Name: username,
+			Uuid: v.PlayerId,
+		}
+	}
 
-		line := "%d cat treats"
-		if v.Score == 1 {
-			line = "%d cat treat"
+	err := emoji.SyncMinecraftAvatarsToEmoji(params.Session, params.GuildId, players)
+	if err != nil {
+		return nil, err
+	}
+
+	var builder strings.Builder
+	for i, v := range params.Standings.SortedStandings {
+		fmt.Fprintf(&builder, "%s %s: %d", players[i].EmojiTextCode(), players[i].Name, v.Score)
+		if i != len(params.Standings.SortedStandings)-1 {
+			builder.WriteString("\n")
 		}
-		embed.Fields[i] = &discordgo.MessageEmbedField{
-			Name:  username,
-			Value: fmt.Sprintf(line, v.Score),
-		}
+	}
+
+	embed := &discordgo.MessageEmbed{
+		Title: `biggest nerds on the server
+(in the last 7 days)`,
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:  "Cat Treats Awarded",
+				Value: builder.String(),
+			},
+		},
 	}
 
 	if params.AppendLastUpdatedEmbedField {
@@ -51,6 +70,7 @@ func PrepareStandingsEmbed(params *PrepareStandingsEmbedRequest) (*discordgo.Mes
 func sendStandingsMessage(s *discordgo.Session, channelID string, standings *leaderboard.Standings) (*discordgo.Message, error) {
 	embed, err := PrepareStandingsEmbed(&PrepareStandingsEmbedRequest{
 		Standings:                   standings,
+		Session:                     s,
 		AppendLastUpdatedEmbedField: true,
 	})
 	if err != nil {
@@ -78,6 +98,8 @@ func (h *RefreshableBackend) RefreshMessage(s *discordgo.Session, event *discord
 	}
 	embed, err := PrepareStandingsEmbed(&PrepareStandingsEmbedRequest{
 		Standings:                   standings,
+		Session:                     s,
+		GuildId:                     event.GuildID,
 		AppendLastUpdatedEmbedField: true,
 	})
 	if err != nil {
