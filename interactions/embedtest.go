@@ -32,11 +32,20 @@ func (srv *Server) test(w http.ResponseWriter, event discordgo.Interaction, s *d
 		return
 	}
 
+	_, err = s.ChannelMessageSendComplex(event.ChannelID, &discordgo.MessageSend{
+		Content: "gamers currently online",
+		Embeds:  []*discordgo.MessageEmbed{messageEmbed},
+	})
+	if err != nil {
+		log.Printf("error sending message: %s", err)
+	}
+
 	response := discordgo.InteractionResponse{
 		Type: 4,
 		Data: &discordgo.InteractionResponseData{
 			Content: "<:tigglywuffFace:1081372739891372093>",
 			Embeds:  []*discordgo.MessageEmbed{messageEmbed},
+			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	}
 
