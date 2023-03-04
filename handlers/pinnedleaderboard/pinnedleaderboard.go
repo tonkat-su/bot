@@ -50,7 +50,6 @@ func PrepareStandingsEmbed(params *PrepareStandingsEmbedRequest) (*discordgo.Mes
 (in the last 7 days)`,
 		Fields: []*discordgo.MessageEmbedField{
 			{
-				Name:  "Cat Treats Awarded",
 				Value: builder.String(),
 			},
 		},
