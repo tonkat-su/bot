@@ -1,9 +1,11 @@
 package interactions
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -130,28 +132,19 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 	}
 }
 
-/*
-func replyToInteraction(id string, token string, body string) error {
-	resp := discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: body,
-		},
-	}
-
+func replyToInteraction(request discordgo.Interaction, response discordgo.InteractionResponse) error {
 	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(resp)
+	err := json.NewEncoder(&buf).Encode(response)
 	if err != nil {
 		return err
 	}
 
-	_, err = http.Post(fmt.Sprintf("https://discord.com/api/v8/interactions/%s/%s/callback", id, token), "application/json", &buf)
+	_, err = http.Post(fmt.Sprintf("https://discord.com/api/v8/interactions/%s/%s/callback", request.ID, request.Token), "application/json", &buf)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-*/
 
 func decodeDiscordWebhookPubkey(k string) (ed25519.PublicKey, error) {
 	data, err := hex.DecodeString(k)

@@ -1,7 +1,6 @@
 package interactions
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -24,14 +23,14 @@ func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s 
 		return
 	}
 
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(discordgo.InteractionResponse{
+	response := discordgo.InteractionResponse{
 		Type: 4,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{messageEmbed},
 		},
-	})
+	}
+
+	err = replyToInteraction(event, response)
 	if err != nil {
 		log.Printf("failed to encode body: %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
