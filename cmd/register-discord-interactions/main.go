@@ -50,6 +50,10 @@ var commands = []*discordgo.ApplicationCommand{
 		Description: "list who is currently online",
 	},
 	{
+		Name:        "leaderboard",
+		Description: "see who's the biggest nerd on the server",
+	},
+	{
 		Name:        "test",
 		Description: "list who is currently online test",
 	},

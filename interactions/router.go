@@ -44,10 +44,11 @@ func NewServer(cfg *Config) (*Server, error) {
 	}
 
 	srv.handlers = map[string]InteractionHandler{
-		"online":    srv.online,
-		"whitelist": srv.whitelist,
-		"test":      srv.test,
-		"version":   srv.version,
+		"online":      srv.online,
+		"whitelist":   srv.whitelist,
+		"test":        srv.test,
+		"version":     srv.version,
+		"leaderboard": srv.leaderboard,
 	}
 
 	discordClient.AddHandler(srv.onReady)
@@ -150,7 +151,7 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(discordgo.InteractionResponse{
-		Type: 4,
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: body,
 		},

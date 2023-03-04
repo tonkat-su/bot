@@ -24,7 +24,7 @@ func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s 
 	}
 
 	response := discordgo.InteractionResponse{
-		Type: 4,
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{messageEmbed},
 		},
