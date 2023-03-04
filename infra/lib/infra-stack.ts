@@ -128,6 +128,13 @@ export class InfraStack extends Stack {
       }
     );
 
+    interactionsApiLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["cloudwatch:ListMetrics", "cloudwatch:GetMetricData"],
+        resources: ["*"],
+      })
+    );
+
     const interactionsLambdaApi = new apigwv2integration.HttpLambdaIntegration(
       "Interactions",
       interactionsApiLambda,
