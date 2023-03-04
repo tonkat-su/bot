@@ -33,12 +33,10 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          file: InteractionsServerDockerfile
           tags: ghcr.io/tonkat-su/interactions-server:${{ github.event.pull_request.head.ref }}
       - name: docker build and push
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v4
         with:
           push: true
-          file: InteractionsServerDockerfile
           tags: ghcr.io/tonkat-su/interactions-server:latest
