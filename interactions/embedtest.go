@@ -35,7 +35,8 @@ func (srv *Server) test(w http.ResponseWriter, event discordgo.Interaction, s *d
 	response := discordgo.InteractionResponse{
 		Type: 4,
 		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{messageEmbed},
+			Content: "<:tigglywuffFace:1081372739891372093>",
+			Embeds:  []*discordgo.MessageEmbed{messageEmbed},
 		},
 	}
 
