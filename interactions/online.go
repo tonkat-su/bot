@@ -23,13 +23,13 @@ func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s 
 		return
 	}
 
-	_, err = s.ChannelMessageSendComplex(event.ChannelID, &discordgo.MessageSend{
-		Content: "gamers currently online",
-		Embeds:  []*discordgo.MessageEmbed{messageEmbed},
-	})
-	if err != nil {
-		log.Printf("error sending message: %s", err)
+	response := discordgo.InteractionResponse{
+		Type: 4,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{messageEmbed},
+			Flags:  discordgo.MessageFlagsEphemeral,
+		},
 	}
 
-	w.WriteHeader(http.StatusOK)
+	respondToInteraction(w, http.StatusOK, response)
 }

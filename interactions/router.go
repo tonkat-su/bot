@@ -1,11 +1,9 @@
 package interactions
 
 import (
-	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -54,6 +52,11 @@ func NewServer(cfg *Config) (*Server, error) {
 
 	discordClient.AddHandler(srv.onReady)
 
+	/*
+		this is required because discord doesn't allow sending custom emojis
+		from guilds that the bot is not connected to
+		https://github.com/discord/discord-api-docs/issues/5357
+	*/
 	err = discordClient.Open()
 	if err != nil {
 		return nil, err
@@ -132,6 +135,17 @@ func (srv *Server) routeApplicationCommand(w http.ResponseWriter, event discordg
 	}
 }
 
+func respondToInteraction(w http.ResponseWriter, statusCode int, response discordgo.InteractionResponse) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(statusCode)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Printf("failed to encode body: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(statusCode)
@@ -146,20 +160,6 @@ func writeResponse(w http.ResponseWriter, statusCode int, body string) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-func replyToInteraction(request discordgo.Interaction, response discordgo.InteractionResponse) error {
-	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(response)
-	if err != nil {
-		return err
-	}
-
-	_, err = http.Post(fmt.Sprintf("https://discord.com/api/v8/interactions/%s/%s/callback", request.ID, request.Token), "application/json", &buf)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func decodeDiscordWebhookPubkey(k string) (ed25519.PublicKey, error) {

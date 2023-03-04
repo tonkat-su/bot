@@ -48,14 +48,7 @@ func (srv *Server) test(w http.ResponseWriter, event discordgo.Interaction, s *d
 		},
 	}
 
-	err = replyToInteraction(event, response)
-	if err != nil {
-		log.Printf("failed to encode body: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+	respondToInteraction(w, http.StatusOK, response)
 }
 
 type prepareStatusEmbedRequest struct {
