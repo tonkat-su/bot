@@ -25,6 +25,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("error initializing server: %s", err.Error())
 	}
+	defer func() {
+		err := server.Close()
+		if err != nil {
+			log.Fatalf("error closing discord connection: %s", err.Error())
+		}
+	}()
 
 	mux := http.NewServeMux()
 	mux.Handle("/interactions", server)

@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/imgur"
@@ -34,6 +35,8 @@ func NewServer(cfg *Config) (*Server, error) {
 		return nil, err
 	}
 
+	discordClient.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentGuildEmojis
+
 	srv := &Server{
 		s:   discordClient,
 		cfg: cfg,
@@ -49,6 +52,13 @@ func NewServer(cfg *Config) (*Server, error) {
 		"version":   srv.version,
 	}
 
+	discordClient.AddHandler(srv.onReady)
+
+	err = discordClient.Open()
+	if err != nil {
+		return nil, err
+	}
+
 	return srv, nil
 }
 
@@ -57,6 +67,10 @@ type Server struct {
 	cfg      *Config
 	imgur    *imgur.Client
 	handlers map[string]InteractionHandler
+}
+
+func (srv *Server) Close() error {
+	return srv.s.Close()
 }
 
 type InteractionHandler func(http.ResponseWriter, discordgo.Interaction, *discordgo.Session)
@@ -154,4 +168,12 @@ func decodeDiscordWebhookPubkey(k string) (ed25519.PublicKey, error) {
 		return nil, err
 	}
 	return ed25519.PublicKey(data), nil
+}
+
+func (srv *Server) onReady(s *discordgo.Session, event *discordgo.Ready) {
+	guilds := []string{}
+	for _, guild := range event.Guilds {
+		guilds = append(guilds, guild.Name)
+	}
+	log.Printf("guilds joined: %s", strings.Join(guilds, ", "))
 }

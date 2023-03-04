@@ -55,6 +55,8 @@ func (srv *Server) test(w http.ResponseWriter, event discordgo.Interaction, s *d
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 type prepareStatusEmbedRequest struct {
