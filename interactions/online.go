@@ -23,17 +23,13 @@ func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s 
 		return
 	}
 
-	response := discordgo.InteractionResponse{
-		Type: 4,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{messageEmbed},
-		},
+	_, err = s.ChannelMessageSendComplex(event.ChannelID, &discordgo.MessageSend{
+		Content: "gamers currently online",
+		Embeds:  []*discordgo.MessageEmbed{messageEmbed},
+	})
+	if err != nil {
+		log.Printf("error sending message: %s", err)
 	}
 
-	err = replyToInteraction(event, response)
-	if err != nil {
-		log.Printf("failed to encode body: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	w.WriteHeader(http.StatusOK)
 }
