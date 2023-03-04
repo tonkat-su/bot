@@ -73,7 +73,7 @@ export class InfraStack extends Stack {
         handler: "give-cat-treats",
         timeout: cdk.Duration.seconds(45),
         environment: {
-          MINECRAFT_SERVER_NAME: "frogland",
+          MINECRAFT_SERVER_NAME: "froggyland",
           MINECRAFT_SERVER_HOST: "mc.froggyfren.com",
         },
         logRetention: logs.RetentionDays.THREE_DAYS,
