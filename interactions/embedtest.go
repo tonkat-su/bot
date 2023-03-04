@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/emoji"
-	"github.com/tonkat-su/bot/handlers"
 	"github.com/tonkat-su/bot/imgur"
 	"github.com/tonkat-su/bot/mclookup"
 	"github.com/tonkat-su/bot/mcuser"
@@ -19,12 +17,11 @@ import (
 
 func (srv *Server) test(w http.ResponseWriter, event discordgo.Interaction, s *discordgo.Session) {
 	messageEmbed, err := prepareStatusEmbed(&prepareStatusEmbedRequest{
-		Session:                     s,
-		Imgur:                       srv.imgur,
-		GuildId:                     srv.cfg.DiscordGuildId,
-		ServerHostname:              srv.cfg.MinecraftServerHost,
-		ServerName:                  srv.cfg.MinecraftServerName,
-		AppendLastUpdatedEmbedField: false,
+		Session:        s,
+		Imgur:          srv.imgur,
+		GuildId:        srv.cfg.DiscordGuildId,
+		ServerHostname: srv.cfg.MinecraftServerHost,
+		ServerName:     srv.cfg.MinecraftServerName,
 	})
 	if err != nil {
 		log.Printf("error rendering online message embed: %s", err.Error())
@@ -55,10 +52,9 @@ type prepareStatusEmbedRequest struct {
 	Session *discordgo.Session
 	Imgur   *imgur.Client
 
-	GuildId                     string
-	ServerHostname              string
-	ServerName                  string
-	AppendLastUpdatedEmbedField bool
+	GuildId        string
+	ServerHostname string
+	ServerName     string
 }
 
 func prepareStatusEmbed(params *prepareStatusEmbedRequest) (*discordgo.MessageEmbed, error) {
@@ -88,8 +84,6 @@ func prepareStatusEmbed(params *prepareStatusEmbedRequest) (*discordgo.MessageEm
 		embed.Color = 0xf04747
 		return embed, nil
 	}
-
-	lastUpdated := time.Now()
 
 	embed.Fields = []*discordgo.MessageEmbedField{
 		{
@@ -129,15 +123,6 @@ func prepareStatusEmbed(params *prepareStatusEmbedRequest) (*discordgo.MessageEm
 		}
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
-
-	if params.AppendLastUpdatedEmbedField {
-		updatedFields, err := handlers.AppendLastUpdatedEmbedField(embed.Fields, lastUpdated)
-		if err != nil {
-			log.Printf("error appending last updated embed field: %s", err)
-		} else {
-			embed.Fields = updatedFields
-		}
-	}
 
 	embed.Color = 0x43b581
 

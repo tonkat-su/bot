@@ -1,16 +1,17 @@
 version: "3.8"
 services:
-  bot:
+  interactions:
     build:
       context: ./
+      dockerfile: InteractionsServerDockerfile
     restart: unless-stopped
     env_file: ./secrets.env
     init: true
     environment:
-      USERS_SERVICE_TABLE_NAME: TonkatsuStack-users9E3E6EF7-19OQ46A0WAOHQ
-      LEADERBOARD_CHANNEL_ID: 775606211952771100
-      MINECRAFT_SERVER_NAME: Tonkatsu
-      MINECRAFT_SERVER_HOST: mc.tonkat.su
-      AWS_REGION: us-west-2
-      GUILD_ID: 764720442250100700
+      RCON_HOSTPORT: mc.froggyfren.com:25575
+      DISCORD_GUILD_ID: 764720442250100700
       IMGUR_CLIENT_ID: 3b5d5f0ff8b8c29
+      MINECRAFT_SERVER_NAME: froggyland
+      MINECRAFT_SERVER_HOST: mc.froggyfren.com
+    ports:
+      - "8080:8080"

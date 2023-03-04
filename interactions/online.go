@@ -10,12 +10,11 @@ import (
 
 func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s *discordgo.Session) {
 	messageEmbed, err := online.PrepareStatusEmbed(&online.PrepareStatusEmbedRequest{
-		Session:                     s,
-		Imgur:                       srv.imgur,
-		GuildId:                     srv.cfg.DiscordGuildId,
-		ServerHostname:              srv.cfg.MinecraftServerHost,
-		ServerName:                  srv.cfg.MinecraftServerName,
-		AppendLastUpdatedEmbedField: false,
+		Session:        s,
+		Imgur:          srv.imgur,
+		GuildId:        srv.cfg.DiscordGuildId,
+		ServerHostname: srv.cfg.MinecraftServerHost,
+		ServerName:     srv.cfg.MinecraftServerName,
 	})
 	if err != nil {
 		log.Printf("error rendering online message embed: %s", err.Error())

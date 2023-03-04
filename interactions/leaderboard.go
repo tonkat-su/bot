@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/bwmarrin/discordgo"
-	"github.com/tonkat-su/bot/handlers/pinnedleaderboard"
 	"github.com/tonkat-su/bot/leaderboard"
 )
 
@@ -35,11 +34,10 @@ func (srv *Server) leaderboard(w http.ResponseWriter, event discordgo.Interactio
 		return
 	}
 
-	messageEmbed, err := pinnedleaderboard.PrepareStandingsEmbed(&pinnedleaderboard.PrepareStandingsEmbedRequest{
-		Standings:                   standings,
-		Session:                     s,
-		GuildId:                     srv.cfg.DiscordGuildId,
-		AppendLastUpdatedEmbedField: false,
+	messageEmbed, err := leaderboard.PrepareStandingsEmbed(&leaderboard.PrepareStandingsEmbedRequest{
+		Standings: standings,
+		Session:   s,
+		GuildId:   srv.cfg.DiscordGuildId,
 	})
 	if err != nil {
 		log.Printf("error preparing standings: %s", err)

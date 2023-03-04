@@ -1,9 +1,10 @@
-FROM golang:1.18-alpine3.16 AS builder
+FROM golang:1.20-alpine3.17 AS builder
 WORKDIR /src/
 COPY . /src/
-RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags='-extldflags=-static' -o /bot 
+RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags='-extldflags=-static' -o /interactions-server ./cmd/interactions-server/main.go
 
 FROM gcr.io/distroless/static
-COPY --from=builder /bot /bin/bot
+COPY --from=builder /interactions-server /bin/interactions-server
+EXPOSE 8080
 
-ENTRYPOINT [ "/bin/bot" ]
+ENTRYPOINT [ "/bin/interactions-server" ]

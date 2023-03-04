@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/emoji"
-	"github.com/tonkat-su/bot/handlers"
 	"github.com/tonkat-su/bot/imgur"
 	"github.com/tonkat-su/bot/mclookup"
 	"github.com/tonkat-su/bot/mcuser"
@@ -20,10 +18,9 @@ type PrepareStatusEmbedRequest struct {
 	Session *discordgo.Session
 	Imgur   *imgur.Client
 
-	GuildId                     string
-	ServerHostname              string
-	ServerName                  string
-	AppendLastUpdatedEmbedField bool
+	GuildId        string
+	ServerHostname string
+	ServerName     string
 }
 
 func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEmbed, error) {
@@ -53,8 +50,6 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 		embed.Color = 0xf04747
 		return embed, nil
 	}
-
-	lastUpdated := time.Now()
 
 	embed.Fields = []*discordgo.MessageEmbedField{
 		{
@@ -94,15 +89,6 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 		}
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
-
-	if params.AppendLastUpdatedEmbedField {
-		updatedFields, err := handlers.AppendLastUpdatedEmbedField(embed.Fields, lastUpdated)
-		if err != nil {
-			log.Printf("error appending last updated embed field: %s", err)
-		} else {
-			embed.Fields = updatedFields
-		}
-	}
 
 	embed.Color = 0x43b581
 
