@@ -24,7 +24,8 @@ type Config struct {
 	RconPassword        string `split_words:"true" required:"true"`
 	RconHostport        string `split_words:"true" required:"true"`
 
-	DiscordGuildId string `split_words:"true" required:"true"`
+	DiscordGuildId             string `split_words:"true" required:"true"`
+	LeaderboardNamespacePrefix string `split_words:"true" required:"true"`
 }
 
 func NewServer(cfg *Config) (*Server, error) {

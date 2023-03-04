@@ -20,7 +20,7 @@ func (srv *Server) leaderboard(w http.ResponseWriter, event discordgo.Interactio
 	}
 
 	board, err := leaderboard.New(awsCfg, &leaderboard.Config{
-		NamespacePrefix: srv.cfg.MinecraftServerName,
+		NamespacePrefix: srv.cfg.LeaderboardNamespacePrefix,
 	})
 	if err != nil {
 		log.Printf("error instantiating leaderboard: %s", err)
