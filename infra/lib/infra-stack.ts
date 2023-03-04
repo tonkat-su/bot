@@ -5,6 +5,8 @@ import { aws_route53 as route53 } from "aws-cdk-lib";
 import { aws_secretsmanager as secretsManager } from "aws-cdk-lib";
 import { aws_lambda as lambda } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
+import { aws_events as events } from "aws-cdk-lib";
+import { aws_events_targets as events_targets } from "aws-cdk-lib";
 import * as apigwv2integration from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 import { aws_logs as logs } from "aws-cdk-lib";
@@ -57,6 +59,38 @@ export class InfraStack extends Stack {
       "interactionsSecrets",
       "arn:aws:secretsmanager:us-west-2:635281304921:secret:discord-interactions-api-enWlPw"
     );
+
+    // lambda to grant cat treats
+    const giveCatTreatsLambda = new lambda.Function(
+      this,
+      "giveCatTreatsLambda",
+      {
+        code: lambda.Code.fromBucket(
+          lambdasAsset.bucket,
+          lambdasAsset.s3ObjectKey
+        ),
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "give-cat-treats",
+        timeout: cdk.Duration.seconds(45),
+        environment: {
+          MINECRAFT_SERVER_NAME: "frogland",
+          MINECRAFT_SERVER_HOST: "mc.froggyfren.com",
+        },
+        logRetention: logs.RetentionDays.THREE_DAYS,
+      }
+    );
+
+    giveCatTreatsLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["cloudwatch:PutMetricData"],
+        resources: ["*"],
+      })
+    );
+
+    new events.Rule(this, "everyFiveMinutes", {
+      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
+      targets: [new events_targets.LambdaFunction(giveCatTreatsLambda)],
+    });
 
     const interactionsCert = new acm.Certificate(this, "interactionsCert", {
       domainName: "interactions.sjchen.com",
