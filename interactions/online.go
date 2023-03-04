@@ -27,7 +27,6 @@ func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s 
 		Type: 4,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{messageEmbed},
-			Flags:  discordgo.MessageFlagsEphemeral,
 		},
 	}
 
