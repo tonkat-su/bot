@@ -23,7 +23,7 @@ func (p *Player) EmojiTextCode() string {
 	return "<:" + p.EmojiName() + ":" + p.emojiID + ">"
 }
 
-func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Player) error) error {
+func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Player) (string, error)) error {
 	e := make(map[string]*discordgo.Emoji)
 	for _, emoji := range input {
 		if strings.HasSuffix(emoji.Name, "Face") {
@@ -36,20 +36,21 @@ func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Pl
 		if ok {
 			player.emojiID = emoji.ID
 		} else {
-			err := fill(player)
+			emojiId, err := fill(player)
 			if err != nil {
 				return err
 			}
+			player.emojiID = emojiId
 		}
 	}
 	return nil
 }
 
-func fillEmoji(session *discordgo.Session, guildId string) func(*Player) error {
-	return func(player *Player) error {
+func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string, error) {
+	return func(player *Player) (string, error) {
 		face, err := mcuser.GetFace(player.Uuid)
 		if err != nil {
-			return fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
+			return "", fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
 		}
 		emojiParams := &discordgo.EmojiParams{
 			Name:  player.EmojiName(),
@@ -57,10 +58,9 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) error {
 		}
 		emoji, err := session.GuildEmojiCreate(guildId, emojiParams, nil)
 		if err != nil {
-			return fmt.Errorf("error uploading emoji '%s': %s", player.EmojiName(), err.Error())
+			return "", fmt.Errorf("error uploading emoji '%s': %s", player.EmojiName(), err.Error())
 		}
-		player.emojiID = emoji.ID
-		return nil
+		return emoji.ID, nil
 	}
 }
 
