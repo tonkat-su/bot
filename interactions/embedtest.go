@@ -43,9 +43,8 @@ func (srv *Server) test(w http.ResponseWriter, event discordgo.Interaction, s *d
 	response := discordgo.InteractionResponse{
 		Type: 4,
 		Data: &discordgo.InteractionResponseData{
-			Content: "<:tigglywuffFace:1081372739891372093>",
-			Embeds:  []*discordgo.MessageEmbed{messageEmbed},
-			Flags:   discordgo.MessageFlagsEphemeral,
+			Embeds: []*discordgo.MessageEmbed{messageEmbed},
+			Flags:  discordgo.MessageFlagsEphemeral,
 		},
 	}
 
@@ -133,7 +132,7 @@ func prepareStatusEmbed(params *prepareStatusEmbedRequest) (*discordgo.MessageEm
 
 		playersEmbedField = &discordgo.MessageEmbedField{
 			Name:  fmt.Sprintf("online (%d/%d)", pong.Players.Online, pong.Players.Max),
-			Value: emoji.PlayerListEmojis([]*emoji.Player{players[0]}),
+			Value: emoji.PlayerListEmojis(players),
 		}
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
