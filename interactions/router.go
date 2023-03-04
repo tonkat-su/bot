@@ -45,6 +45,7 @@ func NewServer(cfg *Config) (*Server, error) {
 	srv.handlers = map[string]InteractionHandler{
 		"online":    srv.online,
 		"whitelist": srv.whitelist,
+		"test":      srv.test,
 	}
 
 	return srv, nil
