@@ -21,26 +21,6 @@ export class InfraStack extends Stack {
     const discordApplicationPubkey =
       "14f8daad94d0146557e27c172f597d5707c91025774ac6bc99fb0caffd21fd7c";
 
-    const botGroup = new iam.Group(this, "infraBotGroup", {});
-
-    botGroup.addToPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "cloudwatch:PutMetricData",
-          "cloudwatch:ListMetrics",
-          "cloudwatch:GetMetricData",
-        ],
-        resources: ["*"],
-      })
-    );
-
-    const botUser = new iam.User(this, "infraBotUser", {
-      groups: [botGroup],
-    });
-
     const infraZone = route53.HostedZone.fromHostedZoneAttributes(
       this,
       "infraZone",
