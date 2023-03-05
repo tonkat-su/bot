@@ -3,7 +3,7 @@ services:
   interactions:
     build:
       context: ./
-      dockerfile: InteractionsServerDockerfile
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file: ./secrets.env
     init: true
