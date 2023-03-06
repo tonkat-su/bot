@@ -40,6 +40,13 @@ export class InfraStack extends Stack {
       "arn:aws:secretsmanager:us-west-2:635281304921:secret:discord-interactions-api-enWlPw"
     );
 
+    const cdkDeployRole = iam.Role.fromRoleArn(
+      this,
+      "deployIamUser",
+      "arn:aws:iam::635281304921:role/github-cdk-deploy"
+    );
+    interactionsSecrets.grantRead(cdkDeployRole);
+
     // lambda to grant cat treats
     const giveCatTreatsLambda = new lambda.Function(
       this,
