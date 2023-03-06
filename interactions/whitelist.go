@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jltobler/go-rcon"
+	"github.com/tonkat-su/bot/emoji"
 )
 
 func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction, s *discordgo.Session) {
@@ -48,6 +50,60 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 		writeResponse(w, http.StatusFailedDependency, err.Error())
 	}
 
+	if subcommand.Name == "list" {
+		embed, err := prepareWhitelistedEmbed(&prepareWhitelistedEmbedParams{
+			Session: s,
+			Players: strings.Split(", ", strings.Split(": ", output)[1]),
+		})
+		if err != nil {
+			log.Printf("error syncing avatars to emoji: %s", err.Error())
+			writeResponse(w, http.StatusFailedDependency, err.Error())
+		}
+		respondToInteraction(w, http.StatusOK, discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{embed},
+			},
+		})
+		return
+	}
+
 	writeResponse(w, http.StatusOK, output)
 	log.Println("rcon command successful")
+}
+
+type prepareWhitelistedEmbedParams struct {
+	Session        *discordgo.Session
+	Players        []string
+	DiscordGuildId string
+}
+
+func prepareWhitelistedEmbed(params *prepareWhitelistedEmbedParams) (*discordgo.MessageEmbed, error) {
+	players := []*emoji.Player{}
+	for _, name := range params.Players {
+		players = append(players, &emoji.Player{
+			Name: name,
+		})
+	}
+	err := emoji.SyncMinecraftAvatarsToEmoji(params.Session, params.DiscordGuildId, players)
+	if err != nil {
+		return nil, err
+	}
+
+	var builder strings.Builder
+	for i, v := range players {
+		fmt.Fprintf(&builder, "%s %s", v.EmojiTextCode(), v.Name)
+		if i != len(players)-1 {
+			builder.WriteString("\n")
+		}
+	}
+
+	return &discordgo.MessageEmbed{
+		Title: "",
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Value: builder.String(),
+			},
+		},
+	}, nil
 }
