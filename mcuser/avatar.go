@@ -18,7 +18,7 @@ func GetFace(name string) ([]byte, error) {
 	u := &url.URL{
 		Scheme: "https",
 		Host:   "minotar.net",
-		Path:   path.Join("help", name, "128.png"),
+		Path:   path.Join("helm", name, "128.png"),
 	}
 
 	response, err := http.Get(u.String())
