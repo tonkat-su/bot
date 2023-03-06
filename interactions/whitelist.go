@@ -51,6 +51,7 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 	}
 
 	if subcommand.Name == "list" {
+		log.Println(output)
 		embed, err := prepareWhitelistedEmbed(&prepareWhitelistedEmbedParams{
 			Session: s,
 			Players: strings.Split(", ", strings.Split(": ", output)[1]),
