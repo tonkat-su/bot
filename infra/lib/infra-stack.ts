@@ -25,8 +25,8 @@ export class InfraStack extends Stack {
       this,
       "infraZone",
       {
-        hostedZoneId: "Z3CDOBSYLTO062",
-        zoneName: "sjchen.com",
+        hostedZoneId: "Z05432021TEFY2IZX7IFD",
+        zoneName: "bsdlp.dev",
       }
     );
 
@@ -73,7 +73,7 @@ export class InfraStack extends Stack {
     });
 
     const interactionsCert = new acm.Certificate(this, "interactionsCert", {
-      domainName: "interactions.sjchen.com",
+      domainName: "interactions.bsdlp.dev",
       validation: acm.CertificateValidation.fromDns(infraZone),
     });
 
@@ -124,7 +124,7 @@ export class InfraStack extends Stack {
     );
 
     const dn = new apigwv2.DomainName(this, "DN", {
-      domainName: "interactions.sjchen.com",
+      domainName: "interactions.bsdlp.dev",
       certificate: acm.Certificate.fromCertificateArn(
         this,
         "cert",
@@ -145,7 +145,7 @@ export class InfraStack extends Stack {
 
     new route53.ARecord(this, "interactionsAliasRecord", {
       zone: infraZone,
-      recordName: "interactions.sjchen.com.",
+      recordName: "interactions.bsdlp.dev.",
       target: route53.RecordTarget.fromAlias(
         new targets.ApiGatewayv2DomainProperties(
           dn.regionalDomainName,
