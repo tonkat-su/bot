@@ -8,23 +8,17 @@ import (
 	"path"
 )
 
-var ErrAvatarServiceDown = errors.New("crafatar.com is down")
+var ErrAvatarServiceDown = errors.New("minotar.net is down")
 
-func GetFace(uuid string) ([]byte, error) {
-	if uuid == "" {
-		return nil, errors.New("uuid is required")
+func GetFace(name string) ([]byte, error) {
+	if name == "" {
+		return nil, errors.New("name is required")
 	}
 
-	query := url.Values{}
-	query.Set("size", "128")
-	query.Set("overlay", "true")
-	query.Set("scale", "10")
-
 	u := &url.URL{
-		Scheme:   "https",
-		Host:     "crafatar.com",
-		Path:     path.Join("avatars", uuid),
-		RawQuery: query.Encode(),
+		Scheme: "https",
+		Host:   "minotar.net",
+		Path:   path.Join("help", name, "128.png"),
 	}
 
 	response, err := http.Get(u.String())
