@@ -60,7 +60,7 @@ func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Pl
 
 func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string, error) {
 	return func(player *Player) (string, error) {
-		face, err := mcuser.GetFace(player.Uuid)
+		face, err := mcuser.GetFace(player.Name)
 		if err != nil {
 			return "", fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
 		}
