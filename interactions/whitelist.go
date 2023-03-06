@@ -51,10 +51,9 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 	}
 
 	if subcommand.Name == "list" {
-		log.Println(output)
 		embed, err := prepareWhitelistedEmbed(&prepareWhitelistedEmbedParams{
 			Session: s,
-			Players: strings.Split(", ", strings.Split(": ", output)[1]),
+			Players: strings.Split(strings.Split(output, ": ")[1], ", "),
 		})
 		if err != nil {
 			log.Printf("error syncing avatars to emoji: %s", err.Error())
