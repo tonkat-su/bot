@@ -1,8 +1,13 @@
 package emoji
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/mcuser"
@@ -10,9 +15,10 @@ import (
 )
 
 type Player struct {
-	Name    string
-	Uuid    string
-	emojiID string
+	Name string
+	Uuid string
+
+	emojiId string
 }
 
 func (p *Player) EmojiName() string {
@@ -20,10 +26,11 @@ func (p *Player) EmojiName() string {
 }
 
 func (p *Player) EmojiTextCode() string {
-	return "<:" + p.EmojiName() + ":" + p.emojiID + ">"
+	return "<:" + p.EmojiName() + ":" + p.emojiId + ">"
 }
 
 func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Player) (string, error)) error {
+	// TODO: cache this
 	e := make(map[string]*discordgo.Emoji)
 	for _, emoji := range input {
 		if strings.HasSuffix(emoji.Name, "Face") {
@@ -31,18 +38,23 @@ func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Pl
 		}
 	}
 
+	var wg sync.WaitGroup
 	for _, player := range players {
-		emoji, ok := e[player.EmojiName()]
-		if ok {
-			player.emojiID = emoji.ID
-		} else {
+		wg.Add(1)
+		go func(player *Player) {
+			if e, ok := e[player.EmojiName()]; ok {
+				player.emojiId = e.ID
+			}
 			emojiId, err := fill(player)
 			if err != nil {
-				return err
+				log.Printf("error filling player emoji: %s", err.Error())
 			}
-			player.emojiID = emojiId
-		}
+			player.emojiId = emojiId
+			wg.Done()
+		}(player)
 	}
+
+	wg.Wait()
 	return nil
 }
 
@@ -52,6 +64,20 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string
 		if err != nil {
 			return "", fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
 		}
+
+		if !checkIfEmojiNeedsUpdate(player.emojiId, face) {
+			return player.emojiId, nil
+		}
+
+		if player.emojiId != "" {
+			// delete existing emoji
+			err = session.GuildEmojiDelete(guildId, player.emojiId)
+			if err != nil {
+				// eat the error and just create on top of it
+				log.Printf("error deleting existing emoji id %s: %s", player.emojiId, err.Error())
+			}
+		}
+
 		emojiParams := &discordgo.EmojiParams{
 			Name:  player.EmojiName(),
 			Image: dataurl.New(face, "image/png").String(),
@@ -79,4 +105,27 @@ func PlayerListEmojis(players []*Player) string {
 		emojis[i] = p.EmojiTextCode()
 	}
 	return strings.Join(emojis, " ")
+}
+
+func checkIfEmojiNeedsUpdate(emojiId string, face []byte) bool {
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://cdn.discordapp.com/emojis/%s.png?quality=lossless", emojiId), nil)
+	if err != nil {
+		log.Printf("error preparing to fetch emoji from discord: %s", err.Error())
+		return true
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("error fetching emoji from discord: %s", err.Error())
+		return true
+	}
+	defer resp.Body.Close()
+
+	existingEmoji, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("error reading emoji from discord: %s", err.Error())
+		return true
+	}
+
+	return !bytes.Equal(existingEmoji, face)
 }
