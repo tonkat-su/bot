@@ -54,10 +54,6 @@ var commands = []*discordgo.ApplicationCommand{
 		Description: "see who's the biggest nerd on the server",
 	},
 	{
-		Name:        "test",
-		Description: "list who is currently online test",
-	},
-	{
 		Name:        "version",
 		Description: "returns build information",
 	},
