@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
@@ -58,18 +59,24 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 		},
 	}
 
+	var wg sync.WaitGroup
 	players := make([]*emoji.Player, len(pong.Players.Sample))
 	for i, p := range pong.Players.Sample {
-		uuid, err := mcuser.GetUuid(p.Name)
-		if err != nil {
-			uuid = p.ID
-			log.Printf("error getting uuid for user %s: %s", p.Name, err.Error())
-		}
-		players[i] = &emoji.Player{
-			Name: p.Name,
-			Uuid: uuid,
-		}
+		wg.Add(1)
+		go func(i int, p mcpinger.Player) {
+			uuid, err := mcuser.GetUuid(p.Name)
+			if err != nil {
+				uuid = p.ID
+				log.Printf("error getting uuid for user %s: %s", p.Name, err.Error())
+			}
+			players[i] = &emoji.Player{
+				Name: p.Name,
+				Uuid: uuid,
+			}
+			wg.Done()
+		}(i, p)
 	}
+	wg.Wait()
 
 	var playersEmbedField *discordgo.MessageEmbedField
 	if len(players) == 0 {
