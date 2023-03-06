@@ -52,11 +52,12 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 
 	if subcommand.Name == "list" {
 		embed, err := prepareWhitelistedEmbed(&prepareWhitelistedEmbedParams{
-			Session: s,
-			Players: strings.Split(strings.Split(output, ": ")[1], ", "),
+			Session:        s,
+			DiscordGuildId: srv.cfg.DiscordGuildId,
+			Players:        strings.Split(strings.Split(output, ": ")[1], ", "),
 		})
 		if err != nil {
-			log.Printf("error syncing avatars to emoji: %s", err.Error())
+			log.Printf("error syncing avatars to emoji for whitelist list: %s", err.Error())
 			writeResponse(w, http.StatusFailedDependency, err.Error())
 		}
 		respondToInteraction(w, http.StatusOK, discordgo.InteractionResponse{
