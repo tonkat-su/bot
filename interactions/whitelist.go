@@ -100,7 +100,7 @@ func prepareWhitelistedEmbed(params *prepareWhitelistedEmbedParams) (*discordgo.
 	}
 
 	return &discordgo.MessageEmbed{
-		Title: "",
+		Title: "Our Froggy Friends",
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Value: builder.String(),
