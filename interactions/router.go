@@ -33,7 +33,7 @@ func NewServer(cfg *Config) (*Server, error) {
 		return nil, err
 	}
 
-	discordClient.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentGuildEmojis
+	discordClient.ShouldReconnectOnError = true
 
 	srv := &Server{
 		s:   discordClient,
