@@ -179,5 +179,34 @@ export class InfraStack extends Stack {
       schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
       targets: [new events_targets.LambdaFunction(keepWarmLambda)],
     });
+
+    const whitelistFaceSyncLambda = new lambda.Function(
+      this,
+      "whitelistFaceSyncLambda",
+      {
+        code: lambda.Code.fromBucket(
+          lambdasAsset.bucket,
+          lambdasAsset.s3ObjectKey
+        ),
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "sync-whitelist-emojis",
+        timeout: cdk.Duration.seconds(15),
+        environment: {
+          DISCORD_TOKEN: interactionsSecrets
+            .secretValueFromJson("DISCORD_TOKEN")
+            .toString(),
+          MINECRAFT_RCON_PASSWORD: interactionsSecrets
+            .secretValueFromJson("RCON_PASSWORD")
+            .toString(),
+          MINECARFT_RCON_HOST_PORT: "mc.froggyfren.com:25575",
+          DISCORD_GUILD_ID: "764720442250100757",
+        },
+      }
+    );
+
+    new events.Rule(this, "whitelistFaceSyncCronjob", {
+      schedule: events.Schedule.rate(cdk.Duration.hours(1)),
+      targets: [new events_targets.LambdaFunction(whitelistFaceSyncLambda)],
+    });
   }
 }

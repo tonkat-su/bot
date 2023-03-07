@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
@@ -71,14 +72,22 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 			Value: "https://www.youtube.com/watch?v=ypVpv-fEevk",
 		}
 	} else {
+		// fill emoji ids for players
 		err = emoji.SyncMinecraftAvatarsToEmoji(params.Session, params.GuildId, players)
 		if err != nil {
 			log.Printf("error syncing avatars to emoji: %s", err)
 		}
 
+		// format into list of face emojis of online players
+		emojis := make([]string, len(players))
+		for i, p := range players {
+			emojis[i] = p.EmojiTextCode()
+		}
+		emojiString := strings.Join(emojis, " ")
+
 		playersEmbedField = &discordgo.MessageEmbedField{
 			Name:  fmt.Sprintf("online (%d/%d)", pong.Players.Online, pong.Players.Max),
-			Value: emoji.PlayerListEmojis(players),
+			Value: emojiString,
 		}
 	}
 	embed.Fields = append(embed.Fields, playersEmbedField)
@@ -93,6 +102,7 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 			return nil, fmt.Errorf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
 		}
 
+		// TODO: cache this to avoid having to upload every time
 		uploadRequest := &imgur.ImageUploadRequest{
 			Image: favIcon.Data,
 			Name:  serverUrl,

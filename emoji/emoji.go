@@ -69,7 +69,9 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string
 			return player.emojiId, nil
 		}
 
+		// only delete if an emoji currently exists
 		if player.emojiId != "" {
+			log.Printf("deleting old emoji for player %s, id %s", player.Name, player.emojiId)
 			// delete existing emoji
 			err = session.GuildEmojiDelete(guildId, player.emojiId)
 			if err != nil {
@@ -86,6 +88,7 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string
 		if err != nil {
 			return "", fmt.Errorf("error uploading emoji '%s': %s", player.EmojiName(), err.Error())
 		}
+		log.Printf("created emoji for player %s, id %s", player.Name, emoji.ID)
 		return emoji.ID, nil
 	}
 }
@@ -99,15 +102,12 @@ func SyncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, pla
 	return fillPlayerEmojis(guild.Emojis, players, fillEmoji(session, guildId))
 }
 
-func PlayerListEmojis(players []*Player) string {
-	emojis := make([]string, len(players))
-	for i, p := range players {
-		emojis[i] = p.EmojiTextCode()
-	}
-	return strings.Join(emojis, " ")
-}
-
 func checkIfEmojiNeedsUpdate(emojiId string, face []byte) bool {
+	// if no id then that means emoji doesnt exist and we should create
+	if emojiId == "" {
+		return true
+	}
+
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://cdn.discordapp.com/emojis/%s.png?quality=lossless", emojiId), nil)
 	if err != nil {
 		log.Printf("error preparing to fetch emoji from discord: %s", err.Error())
