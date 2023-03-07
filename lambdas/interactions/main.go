@@ -34,6 +34,9 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/interactions", server)
+	mux.HandleFunc("/keepwarm", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	lambda.Start(httpadapter.New(mux).ProxyWithContext)
 }

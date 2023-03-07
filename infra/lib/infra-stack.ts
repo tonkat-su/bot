@@ -74,7 +74,7 @@ export class InfraStack extends Stack {
       })
     );
 
-    new events.Rule(this, "everyFiveMinutes", {
+    new events.Rule(this, "giveCatTreatsCronjob", {
       schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
       targets: [new events_targets.LambdaFunction(giveCatTreatsLambda)],
     });
@@ -149,8 +149,13 @@ export class InfraStack extends Stack {
       methods: [apigwv2.HttpMethod.POST],
       integration: interactionsLambdaApi,
     });
+    httpApi.addRoutes({
+      path: "/keepwarm",
+      methods: [apigwv2.HttpMethod.GET],
+      integration: interactionsLambdaApi,
+    });
 
-    new route53.ARecord(this, "interactionsAliasRecord", {
+    const apiRecord = new route53.ARecord(this, "interactionsAliasRecord", {
       zone: infraZone,
       recordName: "interactions.bsdlp.dev.",
       target: route53.RecordTarget.fromAlias(
@@ -159,6 +164,20 @@ export class InfraStack extends Stack {
           dn.regionalHostedZoneId
         )
       ),
+    });
+
+    const keepWarmLambda = new lambda.Function(this, "keepWarmLambda", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset("lambda"),
+      handler: "keepwarm.handler",
+      environment: {
+        API_DOMAIN: apiRecord.domainName,
+      },
+    });
+
+    new events.Rule(this, "keepInteractionsLambdaWarm", {
+      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
+      targets: [new events_targets.LambdaFunction(keepWarmLambda)],
     });
   }
 }
