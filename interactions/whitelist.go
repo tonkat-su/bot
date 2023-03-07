@@ -18,6 +18,7 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 	rconClient := rcon.NewClient("rcon://"+srv.cfg.RconHostport, srv.cfg.RconPassword)
 
 	var rconCommand string
+	// TODO: refactor this to call each subcommand as its own handler to avoid a giant whitelist handler here
 	switch subcommand.Name {
 	case "list":
 		rconCommand = "whitelist list"
@@ -68,6 +69,8 @@ func (srv *Server) whitelist(w http.ResponseWriter, event discordgo.Interaction,
 		})
 		return
 	}
+
+	// TODO: if we add someone new then we should call sync emoji
 
 	writeResponse(w, http.StatusOK, output)
 	log.Println("rcon command successful")
