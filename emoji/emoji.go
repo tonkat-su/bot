@@ -29,7 +29,7 @@ func (p *Player) EmojiTextCode() string {
 	return "<:" + p.EmojiName() + ":" + p.emojiId + ">"
 }
 
-func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Player) (string, error)) error {
+func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Player) error) error {
 	// TODO: cache this
 	e := make(map[string]*discordgo.Emoji)
 	for _, emoji := range input {
@@ -45,11 +45,10 @@ func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Pl
 			if e, ok := e[player.EmojiName()]; ok {
 				player.emojiId = e.ID
 			}
-			emojiId, err := fill(player)
+			err := fill(player)
 			if err != nil {
 				log.Printf("error filling player emoji: %s", err.Error())
 			}
-			player.emojiId = emojiId
 			wg.Done()
 		}(player)
 	}
@@ -58,15 +57,15 @@ func fillPlayerEmojis(input []*discordgo.Emoji, players []*Player, fill func(*Pl
 	return nil
 }
 
-func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string, error) {
-	return func(player *Player) (string, error) {
+func fillEmoji(session *discordgo.Session, guildId string) func(*Player) error {
+	return func(player *Player) error {
 		face, err := mcuser.GetFace(player.Name)
 		if err != nil {
-			return "", fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
+			return fmt.Errorf("error getting face for %s: %s", player.Name, err.Error())
 		}
 
 		if !checkIfEmojiNeedsUpdate(player.emojiId, face) {
-			return player.emojiId, nil
+			return nil
 		}
 
 		// only delete if an emoji currently exists
@@ -86,10 +85,11 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string
 		}
 		emoji, err := session.GuildEmojiCreate(guildId, emojiParams)
 		if err != nil {
-			return "", fmt.Errorf("error uploading emoji '%s': %s", player.EmojiName(), err.Error())
+			return fmt.Errorf("error uploading emoji '%s': %s", player.EmojiName(), err.Error())
 		}
 		log.Printf("created emoji for player %s, id %s", player.Name, emoji.ID)
-		return emoji.ID, nil
+		player.emojiId = emoji.ID
+		return nil
 	}
 }
 
@@ -99,9 +99,9 @@ func HydrateEmojiIds(session *discordgo.Session, guildId string, players []*Play
 		return err
 	}
 
-	return fillPlayerEmojis(guild.Emojis, players, func(_ *Player) (string, error) {
+	return fillPlayerEmojis(guild.Emojis, players, func(_ *Player) error {
 		// no-op fill function because we assume that all the emojis are synchronized... asynchronously
-		return "", nil
+		return nil
 	})
 }
 
