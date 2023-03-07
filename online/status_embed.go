@@ -73,7 +73,7 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 		}
 	} else {
 		// fill emoji ids for players
-		err = emoji.SyncMinecraftAvatarsToEmoji(params.Session, params.GuildId, players)
+		err = emoji.HydrateEmojiIds(params.Session, params.GuildId, players)
 		if err != nil {
 			log.Printf("error syncing avatars to emoji: %s", err)
 		}

@@ -28,7 +28,7 @@ func PrepareStandingsEmbed(params *PrepareStandingsEmbedRequest) (*discordgo.Mes
 		}
 	}
 
-	err := emoji.SyncMinecraftAvatarsToEmoji(params.Session, params.GuildId, players)
+	err := emoji.HydrateEmojiIds(params.Session, params.GuildId, players)
 	if err != nil {
 		return nil, err
 	}

@@ -86,7 +86,7 @@ func prepareWhitelistedEmbed(params *prepareWhitelistedEmbedParams) (*discordgo.
 			Name: name,
 		})
 	}
-	err := emoji.SyncMinecraftAvatarsToEmoji(params.Session, params.DiscordGuildId, players)
+	err := emoji.HydrateEmojiIds(params.Session, params.DiscordGuildId, players)
 	if err != nil {
 		return nil, err
 	}

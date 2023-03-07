@@ -93,6 +93,18 @@ func fillEmoji(session *discordgo.Session, guildId string) func(*Player) (string
 	}
 }
 
+func HydrateEmojiIds(session *discordgo.Session, guildId string, players []*Player) error {
+	guild, err := session.Guild(guildId)
+	if err != nil {
+		return err
+	}
+
+	return fillPlayerEmojis(guild.Emojis, players, func(_ *Player) (string, error) {
+		// no-op fill function because we assume that all the emojis are synchronized... asynchronously
+		return "", nil
+	})
+}
+
 func SyncMinecraftAvatarsToEmoji(session *discordgo.Session, guildId string, players []*Player) error {
 	guild, err := session.Guild(guildId)
 	if err != nil {
