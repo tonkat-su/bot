@@ -10,12 +10,9 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/tonkat-su/bot/imgur"
 )
 
 type Config struct {
-	ImgurClientId string `split_words:"true" required:"true"`
-
 	DiscordToken         string `split_words:"true" required:"true"`
 	DiscordWebhookPubkey string `split_words:"true" required:"true"`
 
@@ -38,9 +35,6 @@ func NewServer(cfg *Config) (*Server, error) {
 	srv := &Server{
 		s:   discordClient,
 		cfg: cfg,
-		imgur: &imgur.Client{
-			ClientId: cfg.ImgurClientId,
-		},
 	}
 
 	srv.handlers = map[string]InteractionHandler{
@@ -68,7 +62,6 @@ func NewServer(cfg *Config) (*Server, error) {
 type Server struct {
 	s        *discordgo.Session
 	cfg      *Config
-	imgur    *imgur.Client
 	handlers map[string]InteractionHandler
 }
 

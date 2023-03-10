@@ -10,7 +10,6 @@ services:
     environment:
       RCON_HOSTPORT: mc.froggyfren.com:25575
       DISCORD_GUILD_ID: 764720442250100757
-      IMGUR_CLIENT_ID: 3b5d5f0ff8b8c29
       MINECRAFT_SERVER_NAME: froggyland
       MINECRAFT_SERVER_HOST: mc.froggyfren.com
     ports:

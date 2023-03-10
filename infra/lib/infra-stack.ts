@@ -100,9 +100,6 @@ export class InfraStack extends Stack {
           DISCORD_TOKEN: interactionsSecrets
             .secretValueFromJson("DISCORD_TOKEN")
             .toString(),
-          IMGUR_CLIENT_ID: interactionsSecrets
-            .secretValueFromJson("IMGUR_CLIENT_ID")
-            .toString(),
           RCON_PASSWORD: interactionsSecrets
             .secretValueFromJson("RCON_PASSWORD")
             .toString(),

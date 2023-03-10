@@ -9,9 +9,8 @@ import (
 )
 
 func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s *discordgo.Session) {
-	messageEmbed, err := online.PrepareStatusEmbed(&online.PrepareStatusEmbedRequest{
+	prepareStatusResponse, err := online.PrepareStatus(&online.PrepareStatusRequest{
 		Session:        s,
-		Imgur:          srv.imgur,
 		GuildId:        srv.cfg.DiscordGuildId,
 		ServerHostname: srv.cfg.MinecraftServerHost,
 		ServerName:     srv.cfg.MinecraftServerName,
@@ -25,7 +24,7 @@ func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s 
 	response := discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{messageEmbed},
+			Embeds: prepareStatusResponse.MessageEmbeds,
 		},
 	}
 

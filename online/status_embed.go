@@ -1,29 +1,34 @@
 package online
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
+	"mime"
 	"strings"
 
 	mcpinger "github.com/Raqbit/mc-pinger"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tonkat-su/bot/emoji"
-	"github.com/tonkat-su/bot/imgur"
 	"github.com/tonkat-su/bot/mclookup"
 	"github.com/vincent-petithory/dataurl"
 )
 
-type PrepareStatusEmbedRequest struct {
+type PrepareStatusRequest struct {
 	Session *discordgo.Session
-	Imgur   *imgur.Client
 
 	GuildId        string
 	ServerHostname string
 	ServerName     string
 }
 
-func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEmbed, error) {
+type PrepareStatusResponse struct {
+	MessageEmbeds []*discordgo.MessageEmbed
+	Files         []*discordgo.File
+}
+
+func PrepareStatus(params *PrepareStatusRequest) (*PrepareStatusResponse, error) {
 	ctx := context.Background()
 	hostports, err := mclookup.ResolveMinecraftHostPort(ctx, nil, params.ServerHostname)
 	if err != nil {
@@ -48,7 +53,9 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 			},
 		}
 		embed.Color = 0xf04747
-		return embed, nil
+		return &PrepareStatusResponse{
+			MessageEmbeds: []*discordgo.MessageEmbed{embed},
+		}, nil
 	}
 
 	embed.Fields = []*discordgo.MessageEmbedField{
@@ -96,24 +103,40 @@ func PrepareStatusEmbed(params *PrepareStatusEmbedRequest) (*discordgo.MessageEm
 
 	embed.Description = pong.Description.Text
 
-	if pong.Favicon != "" && params.Imgur != nil {
+	files := []*discordgo.File{}
+	if pong.Favicon != "" {
 		favIcon, err := dataurl.DecodeString(pong.Favicon)
 		if err != nil {
 			return nil, fmt.Errorf("error decoding favicon for server '%s': %s", serverUrl, err.Error())
 		}
 
-		// TODO: cache this to avoid having to upload every time
-		uploadRequest := &imgur.ImageUploadRequest{
-			Image: favIcon.Data,
-			Name:  serverUrl,
+		file := &discordgo.File{
+			Name:        "favicon",
+			ContentType: favIcon.ContentType(),
+			Reader:      bytes.NewReader(favIcon.Data),
 		}
-		img, err := params.Imgur.Upload(ctx, uploadRequest)
-		if err != nil {
-			return nil, fmt.Errorf("error uploading favicon for server '%s' to imgur: %s", serverUrl, err.Error())
-		}
+		attachmentName := getAttachmentName("favicon", favIcon.ContentType())
+
+		files = append(files, file)
+
 		embed.Image = &discordgo.MessageEmbedImage{
-			URL: img.Link,
+			URL: attachmentName,
 		}
 	}
-	return embed, nil
+	return &PrepareStatusResponse{
+		MessageEmbeds: []*discordgo.MessageEmbed{embed},
+		Files:         files,
+	}, nil
+}
+
+// eat any errors and assume it is .png
+func getAttachmentName(filename, contentType string) string {
+	var extension string
+	extensions, err := mime.ExtensionsByType(contentType)
+	if err != nil || len(extensions) == 0 {
+		extension = ".png"
+	} else {
+		extension = extensions[0]
+	}
+	return strings.Join([]string{"attachment://", filename, extension}, "")
 }
