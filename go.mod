@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.25.4
 	github.com/awslabs/aws-lambda-go-api-proxy v0.14.0
 	github.com/bsdlp/envconfig v1.5.0
-	github.com/bwmarrin/discordgo v0.27.0
+	github.com/bwmarrin/discordgo v0.27.1
 	github.com/jltobler/go-rcon v0.3.0
 	github.com/vincent-petithory/dataurl v1.0.0
 )
