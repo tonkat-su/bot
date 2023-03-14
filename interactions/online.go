@@ -28,5 +28,22 @@ func (srv *Server) online(w http.ResponseWriter, event discordgo.Interaction, s 
 		},
 	}
 
-	respondToInteraction(w, http.StatusOK, response)
+	/*
+		can't use respondToInteraction because we need to use multipart response
+		to upload files
+	*/
+	contentType, responseBody, err := discordgo.MultipartBodyWithJSON(response, prepareStatusResponse.Files)
+	if err != nil {
+		log.Printf("error preparing multipart body: %s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", contentType)
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(responseBody)
+	if err != nil {
+		log.Printf("error writing response body: %s", err.Error())
+		return
+	}
 }
