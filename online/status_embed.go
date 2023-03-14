@@ -111,16 +111,15 @@ func PrepareStatus(params *PrepareStatusRequest) (*PrepareStatusResponse, error)
 		}
 
 		file := &discordgo.File{
-			Name:        "favicon",
+			Name:        getAttachmentName("favicon", favIcon.ContentType()),
 			ContentType: favIcon.ContentType(),
 			Reader:      bytes.NewReader(favIcon.Data),
 		}
-		attachmentName := getAttachmentName("favicon", favIcon.ContentType())
 
 		files = append(files, file)
 
 		embed.Image = &discordgo.MessageEmbedImage{
-			URL: attachmentName,
+			URL: "attachment://" + file.Name,
 		}
 	}
 	return &PrepareStatusResponse{
@@ -138,5 +137,5 @@ func getAttachmentName(filename, contentType string) string {
 	} else {
 		extension = extensions[0]
 	}
-	return strings.Join([]string{"attachment://", filename, extension}, "")
+	return filename + extension
 }
