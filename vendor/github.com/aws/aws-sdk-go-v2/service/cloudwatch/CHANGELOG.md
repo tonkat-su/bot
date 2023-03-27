@@ -1,3 +1,15 @@
+# v1.25.7 (2023-03-24)
+
+* **Documentation**: Doc-only update to correct alarm actions list
+
+# v1.25.6 (2023-03-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.25.5 (2023-03-10)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.25.4 (2023-02-22)
 
 * **Bug Fix**: Prevent nil pointer dereference when retrieving error codes.
