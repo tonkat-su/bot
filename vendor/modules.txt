@@ -3,7 +3,7 @@
 github.com/Raqbit/mc-pinger
 github.com/Raqbit/mc-pinger/encoding
 github.com/Raqbit/mc-pinger/packet
-# github.com/aws/aws-lambda-go v1.38.0
+# github.com/aws/aws-lambda-go v1.40.0
 ## explicit; go 1.18
 github.com/aws/aws-lambda-go/events
 github.com/aws/aws-lambda-go/lambda
