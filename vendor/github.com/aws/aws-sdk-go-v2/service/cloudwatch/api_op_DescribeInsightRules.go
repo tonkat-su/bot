@@ -14,8 +14,8 @@ import (
 
 // Returns a list of all the Contributor Insights rules in your account. For more
 // information about Contributor Insights, see Using Contributor Insights to
-// Analyze High-Cardinality Data
-// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContributorInsights.html).
+// Analyze High-Cardinality Data (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContributorInsights.html)
+// .
 func (c *Client) DescribeInsightRules(ctx context.Context, params *DescribeInsightRulesInput, optFns ...func(*Options)) (*DescribeInsightRulesOutput, error) {
 	if params == nil {
 		params = &DescribeInsightRulesInput{}
@@ -105,6 +105,9 @@ func (c *Client) addOperationDescribeInsightRulesMiddlewares(stack *middleware.S
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeInsightRules(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
