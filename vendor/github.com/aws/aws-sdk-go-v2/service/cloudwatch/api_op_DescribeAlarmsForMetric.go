@@ -53,8 +53,8 @@ type DescribeAlarmsForMetricInput struct {
 	// The period, in seconds, over which the statistic is applied.
 	Period *int32
 
-	// The statistic for the metric, other than percentiles. For percentile statistics,
-	// use ExtendedStatistics.
+	// The statistic for the metric, other than percentiles. For percentile
+	// statistics, use ExtendedStatistics .
 	Statistic types.Statistic
 
 	// The unit for the metric.
@@ -123,6 +123,9 @@ func (c *Client) addOperationDescribeAlarmsForMetricMiddlewares(stack *middlewar
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeAlarmsForMetric(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

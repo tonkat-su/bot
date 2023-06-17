@@ -1,3 +1,39 @@
+# v1.26.2 (2023-06-15)
+
+* No change notes available for this release.
+
+# v1.26.1 (2023-06-13)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.26.0 (2023-05-04)
+
+* **Feature**: Adds support for filtering by metric names in CloudWatch Metric Streams.
+
+# v1.25.10 (2023-04-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.25.9 (2023-04-10)
+
+* No change notes available for this release.
+
+# v1.25.8 (2023-04-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.25.7 (2023-03-24)
+
+* **Documentation**: Doc-only update to correct alarm actions list
+
+# v1.25.6 (2023-03-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.25.5 (2023-03-10)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.25.4 (2023-02-22)
 
 * **Bug Fix**: Prevent nil pointer dereference when retrieving error codes.

@@ -10,8 +10,8 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Deletes all dashboards that you specify. You can specify up to 100 dashboards to
-// delete. If there is an error during this call, no dashboards are deleted.
+// Deletes all dashboards that you specify. You can specify up to 100 dashboards
+// to delete. If there is an error during this call, no dashboards are deleted.
 func (c *Client) DeleteDashboards(ctx context.Context, params *DeleteDashboardsInput, optFns ...func(*Options)) (*DeleteDashboardsOutput, error) {
 	if params == nil {
 		params = &DeleteDashboardsInput{}
@@ -93,6 +93,9 @@ func (c *Client) addOperationDeleteDashboardsMiddlewares(stack *middleware.Stack
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteDashboards(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -12,8 +12,8 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Returns a list that contains the number of managed Contributor Insights rules in
-// your account.
+// Returns a list that contains the number of managed Contributor Insights rules
+// in your account.
 func (c *Client) ListManagedInsightRules(ctx context.Context, params *ListManagedInsightRulesInput, optFns ...func(*Options)) (*ListManagedInsightRulesOutput, error) {
 	if params == nil {
 		params = &ListManagedInsightRulesInput{}
@@ -31,18 +31,18 @@ func (c *Client) ListManagedInsightRules(ctx context.Context, params *ListManage
 
 type ListManagedInsightRulesInput struct {
 
-	// The ARN of an Amazon Web Services resource that has managed Contributor Insights
-	// rules.
+	// The ARN of an Amazon Web Services resource that has managed Contributor
+	// Insights rules.
 	//
 	// This member is required.
 	ResourceARN *string
 
 	// The maximum number of results to return in one operation. If you omit this
-	// parameter, the default number is used. The default number is 100.
+	// parameter, the default number is used. The default number is 100 .
 	MaxResults *int32
 
-	// Include this value to get the next set of rules if the value was returned by the
-	// previous operation.
+	// Include this value to get the next set of rules if the value was returned by
+	// the previous operation.
 	NextToken *string
 
 	noSmithyDocumentSerde
@@ -54,8 +54,8 @@ type ListManagedInsightRulesOutput struct {
 	// resource.
 	ManagedRules []types.ManagedRuleDescription
 
-	// Include this value to get the next set of rules if the value was returned by the
-	// previous operation.
+	// Include this value to get the next set of rules if the value was returned by
+	// the previous operation.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
@@ -115,6 +115,9 @@ func (c *Client) addOperationListManagedInsightRulesMiddlewares(stack *middlewar
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListManagedInsightRules(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -139,7 +142,7 @@ var _ ListManagedInsightRulesAPIClient = (*Client)(nil)
 // ListManagedInsightRules
 type ListManagedInsightRulesPaginatorOptions struct {
 	// The maximum number of results to return in one operation. If you omit this
-	// parameter, the default number is used. The default number is 100.
+	// parameter, the default number is used. The default number is 100 .
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
