@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine3.17 AS builder
+FROM golang:1.20.5-alpine3.18 AS builder
 WORKDIR /src/
 COPY . /src/
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags='-extldflags=-static' -o /interactions-server ./cmd/interactions-server/main.go
