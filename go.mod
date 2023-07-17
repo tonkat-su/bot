@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Raqbit/mc-pinger v0.2.3
 	github.com/aws/aws-lambda-go v1.41.0
-	github.com/aws/aws-sdk-go-v2 v1.18.1
+	github.com/aws/aws-sdk-go-v2 v1.19.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.27
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.26.2
 	github.com/awslabs/aws-lambda-go-api-proxy v0.14.0
